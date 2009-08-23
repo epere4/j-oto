@@ -3,6 +3,8 @@
  */
 package com.google.code.joto;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -70,6 +72,8 @@ public class ReverseEngineerObjectUnitTest
 
 class TestClass
 {
+    int integer = 9;
+
     Access access;
 
     ErrorContext errorContext;
@@ -83,6 +87,10 @@ class TestClass
     String[] strings;
 
     Object[] objects;
+
+    BigDecimal someBigDecimal = BigDecimal.valueOf( 456.7 );
+
+    BigInteger someBigInteger = BigInteger.valueOf( 345 );
 
     @Override
     public String toString()
@@ -100,7 +108,7 @@ class TestClass
         someFeeTypeCode.add( FeeTypeCode.PERDAY );
         someFeeTypeCode.add( FeeTypeCode.FPT );
         vendor.addCodeToCountry( "US", CodeType.IT, "some code" );
-        strings = new String[] { "lolo", "lala" };
+        strings = new String[] { "lolo", "lala", "someString\nWith new line\tand\ntab" };
         objects = new Object[] {
             13,
             new Date(),

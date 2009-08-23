@@ -5,7 +5,7 @@ import java.lang.reflect.Modifier;
 
 import com.google.code.joto.CustomProcessor;
 import com.google.code.joto.ProcessMoreCallback;
-import com.google.code.joto.ReverseEngineerObjectWorkerParameter;
+import com.google.code.joto.ReverseEngineerData;
 import com.google.code.joto.datatype.EnumeratedType;
 
 public class EnumeratedTypeProcessor
@@ -17,7 +17,7 @@ public class EnumeratedTypeProcessor
         return objectToProcess instanceof EnumeratedType;
     }
 
-    public void processThis( Object objectToProcess, ReverseEngineerObjectWorkerParameter sharedData, int depthLevel,
+    public void processThis( Object objectToProcess, ReverseEngineerData sharedData, int depthLevel,
                              ProcessMoreCallback callback )
     {
         EnumeratedType enumeratedType = (EnumeratedType) objectToProcess;
