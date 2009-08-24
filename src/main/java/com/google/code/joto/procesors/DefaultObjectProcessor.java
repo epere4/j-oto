@@ -35,7 +35,8 @@ public class DefaultObjectProcessor
     {
         if ( sharedData.objectsAlreadyProcessed.contains( objectToProcess ) )
         {
-            concat( sharedData, "getInstance( ", System.identityHashCode( objectToProcess ), ")" );
+            concat( sharedData, "(", getTypeAsString( objectToProcess ), ") getInstance( ", System
+                .identityHashCode( objectToProcess ), ")" );
             concat( sharedData, " /* @", Integer.toHexString( System.identityHashCode( objectToProcess ) ), " */ " );
             return;
         }
