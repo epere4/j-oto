@@ -35,9 +35,9 @@ public class SomeDummyClass
 
     Object[] objects;
 
-    BigDecimal someBigDecimal = BigDecimal.valueOf( 456.7 );
+    BigDecimal someBigDecimal;
 
-    BigInteger someBigInteger = BigInteger.valueOf( 345 );
+    BigInteger someBigInteger;
 
     Collection someSynchronizedCollection = Collections.synchronizedCollection( new ArrayList() );
 
@@ -78,5 +78,7 @@ public class SomeDummyClass
             vendor };
         someSynchronizedCollection.add( vendor );
         someSynchronizedCollection.add( 123 );
+        someBigDecimal = BigDecimal.valueOf( 456.7 );
+        someBigInteger = BigInteger.valueOf( 345 );
     }
 }

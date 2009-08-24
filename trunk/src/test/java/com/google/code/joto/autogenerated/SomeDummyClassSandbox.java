@@ -38,7 +38,7 @@ class SomeDummyClassSandbox
             public SomeDummyClass create()
             {
                 SomeDummyClass obj = new SomeDummyClass();
-                registerInstance( 28904249, obj ); /* @1b90b39 */
+                registerInstance( 30246505, obj ); /* @1cd8669 */
                 obj.setInteger( 56 );
                 setFieldValue( obj, getFieldForClass( SomeDummyClass.class, "access" ), Access.FRAUD );
                 setFieldValue( obj, getFieldForClass( SomeDummyClass.class, "errorContext" ),
@@ -49,7 +49,7 @@ class SomeDummyClassSandbox
                     public Vendor create()
                     {
                         Vendor obj = new Vendor( (String) null );
-                        registerInstance( 27837671, obj ); /* @1a8c4e7 */
+                        registerInstance( 24431647, obj ); /* @174cc1f */
                         obj.setVendorCode( "Dollar" );
                         obj.setAddEVoucherAsBillingReference( false );
                         obj.setEVoucherNumberLength( 12 );
@@ -127,7 +127,7 @@ class SomeDummyClassSandbox
                     {
                         Object[] array = new Object[8];
                         array[0] = 13;
-                        array[1] = new Date( 1251093054269L ) /* Mon Aug 24 02:50:54 GMT-03:00 2009 */;
+                        array[1] = new Date( 1251145925584L ) /* Mon Aug 24 17:32:05 GMT-03:00 2009 */;
                         array[2] = "lolo";
                         array[3] = CodeType.RC;
                         array[4] = ErrorContext.INVALID_PRICE_OPTION;
@@ -137,13 +137,13 @@ class SomeDummyClassSandbox
                             public VendorCommission create()
                             {
                                 VendorCommission obj = new VendorCommission();
-                                registerInstance( 32429958, obj ); /* @1eed786 */
+                                registerInstance( 32320232, obj ); /* @1ed2ae8 */
                                 obj.setCommission( 0.0 );
                                 obj.setTAXCommissionApplicable( true );
                                 return obj;
                             }
                         }.create();
-                        array[7] = getInstance( 27837671 ) /* @1a8c4e7 */;
+                        array[7] = (Vendor) getInstance( 24431647 ) /* @174cc1f */;
                         return array;
                     }
                 }.create() );
@@ -163,7 +163,7 @@ class SomeDummyClassSandbox
                         public LinkedList create()
                         {
                             LinkedList col = new LinkedList();
-                            col.add( getInstance( 27837671 ) /* @1a8c4e7 */);
+                            col.add( (Vendor) getInstance( 24431647 ) /* @174cc1f */);
                             col.add( 123 );
                             return col;
                         }
