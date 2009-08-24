@@ -1,5 +1,6 @@
 package com.google.code.joto;
 
+import static com.google.code.joto.ReverseEngineerHelper.getBestConstructorInvocationCodeForObject;
 import static com.google.code.joto.ReverseEngineerHelper.getTypeAsString;
 import static com.google.code.joto.ReverseEngineerHelper.removeDashesAndFirstCharInUpperCase;
 
@@ -86,8 +87,10 @@ public class ReverseEngineerData
     public static String writeDeclarationAndInitializationOfVariable( ReverseEngineerData sharedData,
                                                                String variableName, Object objectToProcess )
     {
+
         String variableType = getTypeAsString( objectToProcess );
-        concat( sharedData, variableType, " ", variableName, " = new ", variableType, "();\n" );
+        concat( sharedData, variableType, " ", variableName, " = ",
+                getBestConstructorInvocationCodeForObject( objectToProcess ), ";\n" );
         return variableName;
     }
 

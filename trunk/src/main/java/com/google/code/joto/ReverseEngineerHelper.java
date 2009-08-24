@@ -1,5 +1,6 @@
 package com.google.code.joto;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -192,6 +193,69 @@ public class ReverseEngineerHelper
         }
         classes.put( clazz, currentCounter + 1 );
         return getFirstLetterInLowerCase( clazz.getSimpleName() ) + currentCounter;
+    }
+
+    public static String getBestConstructorInvocationCodeForObject( Object object )
+    {
+        if ( object == null )
+        {
+            return null;
+        }
+        Class clazz = getType( object );
+        Constructor candidate = null;
+        for ( Constructor current : clazz.getConstructors() )
+        {
+            candidate = getBestConstructor( candidate, current );
+        }
+        if ( candidate == null )
+        {
+            return "new " + clazz.getSimpleName() + "() /* this class has no public constructor */";
+        }
+        else
+        {
+            StringBuilder sb = new StringBuilder( "new " );
+            sb.append( clazz.getSimpleName() ).append( "( " );
+            for ( Class parameter : candidate.getParameterTypes() )
+            {
+                if ( parameter.isPrimitive() )
+                {
+                    if ( Boolean.TYPE.equals( parameter ) )
+                    {
+                        sb.append( "false" );
+                    }
+                    else
+                    {
+                        sb.append( "(" ).append( parameter.getName() ).append( ") 0" );
+                    }
+                }
+                else
+                {
+                    sb.append( "(" ).append( parameter.getSimpleName() ).append( ") null" );
+                }
+            }
+            sb.append( " )" );
+            return sb.toString();
+        }
+    }
+
+    private static Constructor getBestConstructor( Constructor cons1, Constructor cons2 )
+    {
+        if ( cons1 == null )
+        {
+            return cons2;
+        }
+        if ( cons2 == null )
+        {
+            return cons1;
+        }
+        if ( cons1.getParameterTypes().length <= cons2.getParameterTypes().length )
+        {
+            return cons1;
+        }
+        else
+        {
+            return cons2;
+        }
     }
 
 }

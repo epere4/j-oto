@@ -48,7 +48,7 @@ class SomeDummyClassSandbox
                 {
                     public Vendor create()
                     {
-                        Vendor obj = new Vendor( null );
+                        Vendor obj = new Vendor( (String) null );
                         registerInstance( 27837671, obj ); /* @1a8c4e7 */
                         obj.setVendorCode( "Dollar" );
                         obj.setAddEVoucherAsBillingReference( false );
@@ -127,7 +127,7 @@ class SomeDummyClassSandbox
                     {
                         Object[] array = new Object[8];
                         array[0] = 13;
-                        array[1] = new Date( 1251080016625L ) /* Sun Aug 23 23:13:36 GMT-03:00 2009 */;
+                        array[1] = new Date( 1251093054269L ) /* Mon Aug 24 02:50:54 GMT-03:00 2009 */;
                         array[2] = "lolo";
                         array[3] = CodeType.RC;
                         array[4] = ErrorContext.INVALID_PRICE_OPTION;
