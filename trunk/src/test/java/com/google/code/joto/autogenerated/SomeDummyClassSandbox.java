@@ -117,7 +117,7 @@ class SomeDummyClassSandbox
                         String[] array = new String[3];
                         array[0] = "lolo";
                         array[1] = "lala";
-                        array[2] = "someString\n" + "With new line\tand\n" + "tab";
+                        array[2] = "someString\n" + "With new line\tand\n" + "tab\\";
                         return array;
                     }
                 }.create() );
@@ -127,7 +127,7 @@ class SomeDummyClassSandbox
                     {
                         Object[] array = new Object[8];
                         array[0] = 13;
-                        array[1] = new Date( 1251147421731L ) /* Mon Aug 24 17:57:01 GMT-03:00 2009 */;
+                        array[1] = new Date( 1251147891892L ) /* Mon Aug 24 18:04:51 GMT-03:00 2009 */;
                         array[2] = "lolo";
                         array[3] = CodeType.RC;
                         array[4] = ErrorContext.INVALID_PRICE_OPTION;

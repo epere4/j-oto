@@ -67,6 +67,7 @@ public class StringProcessorUnitTest
         assertStringProcessing( "\"some\\n\"\n + \"enter\\n\"\n + \"\"", "some\nenter\n" );
         assertStringProcessing( "\"expect\\ted\"", "expect\ted" );
         assertStringProcessing( "\"expect\\red\"", "expect\red" );
+        assertStringProcessing( "\"expect\\\\ed\"", "expect\\ed" );
         assertStringProcessing( "\"expect\\r\\ted\"", "expect\r\ted" );
     }
 

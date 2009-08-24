@@ -24,6 +24,7 @@ public class StringProcessor
         replacementTable.put( '\n', "\\n\"\n + \"" );
         replacementTable.put( '\r', "\\r" );
         replacementTable.put( '\t', "\\t" );
+        replacementTable.put( '\\', "\\\\" );
     }
 
     /**

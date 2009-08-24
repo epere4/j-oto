@@ -82,7 +82,7 @@ public class SomeDummyClass
         someFeeTypeCode.add( FeeTypeCode.PERDAY );
         someFeeTypeCode.add( FeeTypeCode.FPT );
         vendor.addCodeToCountry( "US", CodeType.IT, "some code" );
-        strings = new String[] { "lolo", "lala", "someString\nWith new line\tand\ntab" };
+        strings = new String[] { "lolo", "lala", "someString\nWith new line\tand\ntab\\" };
         objects = new Object[] {
             13,
             new Date(),
