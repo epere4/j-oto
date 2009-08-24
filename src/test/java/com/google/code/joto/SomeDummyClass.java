@@ -49,6 +49,22 @@ public class SomeDummyClass
         this.integer = integer;
     }
 
+    /**
+     * @param someBigDecimal the someBigDecimal to set
+     */
+    void setSomeBigDecimal( BigDecimal someBigDecimal )
+    {
+        this.someBigDecimal = someBigDecimal;
+    }
+
+    /**
+     * @param someBigInteger the someBigInteger to set
+     */
+    public void setSomeBigInteger( BigInteger someBigInteger )
+    {
+        this.someBigInteger = someBigInteger;
+    }
+
     @Override
     public String toString()
     {

@@ -127,7 +127,7 @@ class SomeDummyClassSandbox
                     {
                         Object[] array = new Object[8];
                         array[0] = 13;
-                        array[1] = new Date( 1251145925584L ) /* Mon Aug 24 17:32:05 GMT-03:00 2009 */;
+                        array[1] = new Date( 1251147421731L ) /* Mon Aug 24 17:57:01 GMT-03:00 2009 */;
                         array[2] = "lolo";
                         array[3] = CodeType.RC;
                         array[4] = ErrorContext.INVALID_PRICE_OPTION;
@@ -149,7 +149,7 @@ class SomeDummyClassSandbox
                 }.create() );
                 setFieldValue( obj, getFieldForClass( SomeDummyClass.class, "someBigDecimal" ),
                                new BigDecimal( "456.7" ) );
-                setFieldValue( obj, getFieldForClass( SomeDummyClass.class, "someBigInteger" ), new BigInteger( "345" ) );
+                obj.setSomeBigInteger( new BigInteger( "345" ) );
                 if ( getFieldValue( obj, getFieldForClass( SomeDummyClass.class, "someSynchronizedCollection" ) ) == null )
                 {
                     setFieldValue( obj, getFieldForClass( SomeDummyClass.class, "someSynchronizedCollection" ),
