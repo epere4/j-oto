@@ -46,7 +46,7 @@ public class ReverseEngineerData
     public final Set<String> classesAlreadyDeclared = new HashSet<String>();
 
     /** classesToImport */
-    public final Set<Class> classesToImport;
+    private final Set<Class> classesToImport;
 
     /** sb */
     public final StringBuilder sb;
@@ -100,7 +100,15 @@ public class ReverseEngineerData
                                              Field field )
     {
         String propertyName = removeDashesAndFirstCharInUpperCase( field.getName() );
-        concat( sharedData, variableName, ".set", propertyName, "(" );
+        String setterName = "set" + propertyName;
+
+        setVarWithValueStart( sharedData, variableName, setterName );
+    }
+
+    public static void setVarWithValueStart( ReverseEngineerData sharedData, String variableName,
+                                              String setterMethodName )
+    {
+        concat( sharedData, variableName, ".", setterMethodName, "(" );
     }
 
     public static void setVarWithValueEnd( ReverseEngineerData sharedData )
@@ -112,6 +120,30 @@ public class ReverseEngineerData
     {
         String propertyName = removeDashesAndFirstCharInUpperCase( field.getName() );
         concat( sb, varName, ".set", propertyName, "(", valueToSet, ");\n" );
+    }
+
+    /**
+     * @param clazz
+     */
+    public void addClassToImport( Class clazz )
+    {
+        classesToImport.add( clazz );
+    }
+
+    /**
+     * @param classes
+     */
+    public void addClassesToImport( Set<Class> classes )
+    {
+        classesToImport.addAll( classes );
+    }
+
+    /**
+     * @return the classesToImport
+     */
+    public Set<Class> getClassesToImport()
+    {
+        return Collections.unmodifiableSet( classesToImport );
     }
 
 }

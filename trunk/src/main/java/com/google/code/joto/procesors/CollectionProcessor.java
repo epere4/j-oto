@@ -5,6 +5,7 @@ import static com.google.code.joto.ReverseEngineerData.writeCreatorFooter;
 import static com.google.code.joto.ReverseEngineerData.writeCreatorHeader;
 import static com.google.code.joto.ReverseEngineerData.writeDeclarationAndInitializationOfVariable;
 import static com.google.code.joto.ReverseEngineerData.writeReturnStatement;
+import static com.google.code.joto.ReverseEngineerHelper.getType;
 
 import java.util.Collection;
 
@@ -30,6 +31,7 @@ public class CollectionProcessor
         {
             String variableName = "col";
 
+            sharedData.addClassToImport( getType( collectionToProcess ) );
             writeDeclarationAndInitializationOfVariable( sharedData, variableName, collectionToProcess );
 
             for ( Object element : collectionToProcess )

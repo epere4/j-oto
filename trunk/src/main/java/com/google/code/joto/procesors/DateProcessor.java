@@ -32,7 +32,7 @@ public class DateProcessor
                              ProcessMoreCallback callback )
         throws Exception
     {
-        sharedData.classesToImport.add( Date.class );
+        sharedData.addClassToImport( Date.class );
         Date dateToProcess = (Date) objectToProcess;
         sharedData.concat( "new Date(", dateToProcess.getTime(), "L) /* ", dateToProcess, "*/ " );
 

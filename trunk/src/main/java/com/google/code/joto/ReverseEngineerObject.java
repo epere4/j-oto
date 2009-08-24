@@ -44,24 +44,24 @@ public class ReverseEngineerObject
 
         ReverseEngineerData sharedData = new ReverseEngineerData( listOfProcessors );
 
-        addSomeClassesToImportAlways( sharedData.classesToImport );
+        addSomeClassesToImportAlways( sharedData );
 
         generateCodeRecursively( objectToProcess, sharedData, 0 );
 
-        String imports = makeImports( sharedData.classesToImport );
+        String imports = makeImports( sharedData.getClassesToImport() );
         String code = sharedData.sb.toString();
 
         return new ReverseEngineerObjectResponse( imports, code );
 
     }
 
-    private void addSomeClassesToImportAlways( Set<Class> classesToImport )
+    private void addSomeClassesToImportAlways( ReverseEngineerData sharedData )
     {
-        classesToImport.add( List.class );
-        classesToImport.add( Set.class );
-        classesToImport.add( Map.class );
-        classesToImport.add( Creator.class );
-        classesToImport.add( Collection.class );
+        sharedData.addClassToImport( List.class );
+        sharedData.addClassToImport( Set.class );
+        sharedData.addClassToImport( Map.class );
+        sharedData.addClassToImport( Creator.class );
+        sharedData.addClassToImport( Collection.class );
 
     }
 
@@ -88,7 +88,10 @@ public class ReverseEngineerObject
     {
         try
         {
-            sharedData.classesToImport.add( objectToProcess.getClass() );
+            if ( objectToProcess != null )
+            {
+                sharedData.addClassToImport( objectToProcess.getClass() );
+            }
             for ( CustomProcessor customProc : sharedData.listOfProcessors )
             {
                 if ( customProc.canProcessThis( objectToProcess ) )
