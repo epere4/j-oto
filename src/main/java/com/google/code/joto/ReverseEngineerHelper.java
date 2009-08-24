@@ -2,6 +2,7 @@ package com.google.code.joto;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,15 +31,15 @@ public class ReverseEngineerHelper
         return valueObjectType.getSimpleName().length() == 0 ? "Object" : valueObjectType.getSimpleName();
     }
 
-    private static final Set<Class<?>> instantiableClasses = new HashSet<Class<?>>( Arrays.asList( HashMap.class,
-                                                                                                   Hashtable.class,
-                                                                                                   ArrayList.class,
-                                                                                                   LinkedList.class,
-                                                                                                   HashSet.class,
-                                                                                                   Vector.class,
-                                                                                                   TreeMap.class,
-                                                                                                   LinkedHashMap.class,
-                                                                                                   LinkedHashSet.class ) );
+    private static final Set<Class<?>> instantiableClasses;
+    static
+    {
+        List instantiableClassesList = Arrays.asList( HashMap.class, Hashtable.class, ArrayList.class,
+                                                      LinkedList.class, HashSet.class, Vector.class, TreeMap.class,
+                                                      LinkedHashMap.class, LinkedHashSet.class );
+        instantiableClasses = new HashSet<Class<?>>( instantiableClassesList );
+
+    }
 
     public static Class getType( Object object )
     {
@@ -49,6 +50,10 @@ public class ReverseEngineerHelper
 
         final Class valueObjecType;
         if ( instantiableClasses.contains( object.getClass() ) )
+        {
+            valueObjecType = object.getClass();
+        }
+        else if ( Modifier.isPublic( object.getClass().getModifiers() ) && !object.getClass().isInterface() )
         {
             valueObjecType = object.getClass();
         }
@@ -64,7 +69,7 @@ public class ReverseEngineerHelper
             }
             else
             {
-                valueObjecType = object.getClass();
+                valueObjecType = LinkedList.class;
             }
         }
         else if ( object instanceof Map )
@@ -98,7 +103,9 @@ public class ReverseEngineerHelper
         {
             String fieldCleaned = removeDashesAndFirstCharInUpperCase( field.getName() );
             String methodCleaned = getMethodNameWithoutPrefix( method, methodPrefix );
-            if ( method.getName().startsWith( methodPrefix ) && fieldCleaned.contains( methodCleaned ) )
+            if ( method.getName().startsWith( methodPrefix ) && fieldCleaned.contains( methodCleaned )
+                && method.getParameterTypes().length == 1
+                && field.getType().isAssignableFrom( method.getParameterTypes()[0] ) )
             {
                 if ( methodCleaned.length() > maxLengthThatMatched )
                 {

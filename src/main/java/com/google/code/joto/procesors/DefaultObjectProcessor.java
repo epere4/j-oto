@@ -1,7 +1,5 @@
 package com.google.code.joto.procesors;
 
-import static com.google.code.joto.ReverseEngineerHelper.getMethodForSetting;
-import static com.google.code.joto.ReverseEngineerHelper.getTypeAsString;
 import static com.google.code.joto.ReverseEngineerData.concat;
 import static com.google.code.joto.ReverseEngineerData.setVarWithValueEnd;
 import static com.google.code.joto.ReverseEngineerData.setVarWithValueStart;
@@ -9,6 +7,8 @@ import static com.google.code.joto.ReverseEngineerData.writeCreatorFooter;
 import static com.google.code.joto.ReverseEngineerData.writeCreatorHeader;
 import static com.google.code.joto.ReverseEngineerData.writeDeclarationAndInitializationOfVariable;
 import static com.google.code.joto.ReverseEngineerData.writeReturnStatement;
+import static com.google.code.joto.ReverseEngineerHelper.getMethodForSetting;
+import static com.google.code.joto.ReverseEngineerHelper.getTypeAsString;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -26,7 +26,7 @@ public class DefaultObjectProcessor
 
     public boolean canProcessThis( Object objectToProcess )
     {
-        return true;
+        return objectToProcess != null;
     }
 
     public void processThis( Object objectToProcess, ReverseEngineerData sharedData, int depthLevel,
@@ -89,9 +89,15 @@ public class DefaultObjectProcessor
                     }
                     else
                     {
-                        if ( clazz.isAnonymousClass() || getMethodForSetting( field ) != null )
+                        if ( clazz.isAnonymousClass() )
                         {
                             setVarWithValueStart( sharedData, variableName, field );
+                            callback.processThis( valueOfFieldToProcess );
+                            setVarWithValueEnd( sharedData );
+                        }
+                        else if ( getMethodForSetting( field ) != null )
+                        {
+                            setVarWithValueStart( sharedData, variableName, getMethodForSetting( field ).getName() );
                             callback.processThis( valueOfFieldToProcess );
                             setVarWithValueEnd( sharedData );
                         }
