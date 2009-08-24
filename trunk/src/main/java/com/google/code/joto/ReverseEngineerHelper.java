@@ -105,8 +105,8 @@ public class ReverseEngineerHelper
             String fieldCleaned = removeDashesAndFirstCharInUpperCase( field.getName() );
             String methodCleaned = getMethodNameWithoutPrefix( method, methodPrefix );
             if ( method.getName().startsWith( methodPrefix ) && fieldCleaned.contains( methodCleaned )
-                && method.getParameterTypes().length == 1
-                && field.getType().isAssignableFrom( method.getParameterTypes()[0] ) )
+                && methodHasOnlyOneParameterAndForTheType( field.getType(), method )
+                && Modifier.isPublic( method.getModifiers() ) )
             {
                 if ( methodCleaned.length() > maxLengthThatMatched )
                 {
@@ -116,6 +116,11 @@ public class ReverseEngineerHelper
             }
         }
         return candidate;
+    }
+
+    private static boolean methodHasOnlyOneParameterAndForTheType( Class type, Method method )
+    {
+        return ( method.getParameterTypes().length == 1 && type.isAssignableFrom( method.getParameterTypes()[0] ) );
     }
 
     public static String removeDashesAndFirstCharInUpperCase( String name )
