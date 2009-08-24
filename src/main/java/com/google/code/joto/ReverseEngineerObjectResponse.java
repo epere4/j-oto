@@ -1,6 +1,6 @@
 package com.google.code.joto;
 
-class ReverseEngineerObjectResponse
+public class ReverseEngineerObjectResponse
 {
 
     public ReverseEngineerObjectResponse( String imports, String code )
