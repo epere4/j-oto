@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.code.joto.util.IdentitySet;
+
 /**
  * @author SG0203967
  */
@@ -41,7 +43,7 @@ public class ReverseEngineerData
     }
 
     /** objectsAlreadyProcessed */
-    public final Set<Object> objectsAlreadyProcessed = new HashSet<Object>();
+    public final Set<Object> objectsAlreadyProcessed = new IdentitySet<Object>();
 
     /** classesAlreadyDeclared */
     public final Set<String> classesAlreadyDeclared = new HashSet<String>();
