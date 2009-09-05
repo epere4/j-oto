@@ -106,7 +106,7 @@ setFieldValue( obj, getFieldForClass(SomeDummyClass.class, "objects"), new Creat
 public Object[] create() {
 Object[] array = new Object[8];
 array[0] = 13;
-array[1] = new Date(1252111656694L) /* Fri Sep 04 21:47:36 GMT-03:00 2009*/ ;
+array[1] = new Date(1252113826248L) /* Fri Sep 04 22:23:46 GMT-03:00 2009*/ ;
 array[2] = "lolo";
 array[3] = CodeType.RC;
 array[4] = ErrorContext.INVALID_PRICE_OPTION;
