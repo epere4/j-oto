@@ -30,6 +30,8 @@ public class SomeDummyClass
     Vendor vendor;
 
     List<FeeTypeCode> someFeeTypeCode;
+    
+    int [] somePrimitiveArray;
 
     String[] strings;
 
@@ -96,5 +98,6 @@ public class SomeDummyClass
         someSynchronizedCollection.add( 123 );
         someBigDecimal = BigDecimal.valueOf( 456.7 );
         someBigInteger = BigInteger.valueOf( 345 );
+        somePrimitiveArray = new int[] { 3, 4, -6};
     }
 }
