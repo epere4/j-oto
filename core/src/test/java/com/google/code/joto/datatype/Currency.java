@@ -3,6 +3,8 @@
  */
 package com.google.code.joto.datatype;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 public class Currency
 {
     private String code;
@@ -23,5 +25,11 @@ public class Currency
     public static Currency getCurrencyForUSA()
     {
         return USD;
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString( this );
     }
 }

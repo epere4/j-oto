@@ -2,6 +2,8 @@ package com.google.code.joto.datatype;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 public class VendorCommission
 implements
 Serializable
@@ -31,4 +33,9 @@ Serializable
     this.isTAXCommissionApplicable = isTAXCommissionApplicable;
   }
 
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString( this );
+    }
 }

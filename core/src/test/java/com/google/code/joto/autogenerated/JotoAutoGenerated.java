@@ -23,7 +23,7 @@ final InstancesMap instancesMap = new InstancesMap();
 Joto generatedObject = new Creator<Joto>(){ 
 public Joto create() {
 Joto obj = new Joto(  );
-instancesMap.registerInstance( 14491894, obj);  /* @dd20f6 */
+instancesMap.registerInstance( 27196165, obj);  /* @19efb05 */
 obj.setName("j-oto");
 obj.setVersion("1.0");
 return obj;

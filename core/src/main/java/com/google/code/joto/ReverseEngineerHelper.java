@@ -210,11 +210,14 @@ public class ReverseEngineerHelper
         Constructor candidate = null;
         for ( Constructor current : clazz.getConstructors() )
         {
-            candidate = getBestConstructor( candidate, current );
+            if ( isAppropriateConstructor( current ) )
+            {
+                candidate = getBestConstructor( candidate, current );
+            }
         }
         if ( candidate == null )
         {
-            return "new " + clazz.getSimpleName() + "() /* this class has no public constructor */";
+            return "new " + clazz.getSimpleName() + "() /* TODO: this class has no public constructor */";
         }
         else
         {
@@ -247,6 +250,17 @@ public class ReverseEngineerHelper
             sb.append( " )" );
             return sb.toString();
         }
+    }
+
+    private static boolean isAppropriateConstructor( Constructor constructor )
+    {
+        return !isInappropriateConstructor( constructor );
+    }
+
+    private static boolean isInappropriateConstructor( Constructor constructor )
+    {
+        return constructor.getParameterTypes().length == 1
+            && constructor.getParameterTypes()[0].equals( constructor.getDeclaringClass() );
     }
 
     private static Constructor getBestConstructor( Constructor cons1, Constructor cons2 )
