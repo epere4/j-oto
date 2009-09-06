@@ -34,35 +34,35 @@ public class IgnoreClassProcessorUnitTest
     public void testCanProcessThis_FailsBecauseNotFullClassName()
     {
         IgnoreClassProcessor proc = new IgnoreClassProcessor( "Vendor" );
-        assertFalse( proc.canProcessThis( new Vendor( null ) ) );
+        assertFalse( proc.canProcessThis( new Vendor( null, null ) ) );
     }
 
     @Test
     public void testCanProcessThis_SucceedsUsingFullClassName()
     {
         IgnoreClassProcessor proc = new IgnoreClassProcessor( "com.google.code.joto.datatype.Vendor" );
-        assertTrue( proc.canProcessThis( new Vendor( null ) ) );
+        assertTrue( proc.canProcessThis( new Vendor( null, null ) ) );
     }
 
     @Test
     public void testCreateForClass()
     {
         IgnoreClassProcessor proc = IgnoreClassProcessor.createForClasses( Vendor.class );
-        assertTrue( proc.canProcessThis( new Vendor( null ) ) );
+        assertTrue( proc.canProcessThis( new Vendor( null, null ) ) );
     }
 
     @Test
     public void testCreateForClassName()
     {
         IgnoreClassProcessor proc = IgnoreClassProcessor.createForClassNames( "com.google.code.joto.datatype.Vendor" );
-        assertTrue( proc.canProcessThis( new Vendor( null ) ) );
+        assertTrue( proc.canProcessThis( new Vendor( null, null ) ) );
     }
 
     @Test
     public void testCreateForSimpleClassName()
     {
         IgnoreClassProcessor proc = IgnoreClassProcessor.createForSimpleClassNames( "Vendor" );
-        assertTrue( proc.canProcessThis( new Vendor( null ) ) );
+        assertTrue( proc.canProcessThis( new Vendor( null, null ) ) );
         assertFalse( proc.canProcessThis( CodeType.BS ) );
     }
 
@@ -70,7 +70,7 @@ public class IgnoreClassProcessorUnitTest
     public void testCreateForSimpleClassNames()
     {
         IgnoreClassProcessor proc = IgnoreClassProcessor.createForSimpleClassNames( "Vendor", "CodeType" );
-        assertTrue( proc.canProcessThis( new Vendor( null ) ) );
+        assertTrue( proc.canProcessThis( new Vendor( null, null ) ) );
         assertTrue( proc.canProcessThis( CodeType.BS ) );
     }
 

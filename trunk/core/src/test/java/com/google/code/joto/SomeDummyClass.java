@@ -88,7 +88,7 @@ public class SomeDummyClass
         access = Access.FRAUD;
         errorContext = ErrorContext.INVALID_PRICE_OPTION;
         feeTypeCode = FeeTypeCode.TAX;
-        vendor = new Vendor( "Dollar" );
+        vendor = new Vendor( "Dollar", "leroi" );
         someFeeTypeCode = new ArrayList<FeeTypeCode>();
         someFeeTypeCode.add( FeeTypeCode.PERDAY );
         someFeeTypeCode.add( FeeTypeCode.FPT );

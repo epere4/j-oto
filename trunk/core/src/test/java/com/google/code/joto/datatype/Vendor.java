@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 public class Vendor
     implements Serializable
 {
@@ -32,9 +34,15 @@ public class Vendor
 
     private Map<String, VendorCommission> commissions = new HashMap<String, VendorCommission>();
 
-    public Vendor( String vendorCode )
+    public Vendor( Vendor vendorToCopy )
+    {
+        this.vendorCode = vendorToCopy.vendorCode;
+    }
+
+    public Vendor( String vendorCode, String avNumberLength )
     {
         setVendorCode( vendorCode );
+        setAvNumberLength( avNumberLength );
     }
 
     public String getVendorCode()
@@ -149,13 +157,7 @@ public class Vendor
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append( getClass().getName() ).append( "@" ).append( Integer.toHexString( System.identityHashCode( this ) ) )
-            .append( "\n" );
-        sb.append( "vendorCode: " ).append( getVendorCode() ).append( "\n" );
-        sb.append( "preferences: " ).append( preferences ).append( "\n" );
-
-        return sb.toString();
+        return ToStringBuilder.reflectionToString( this );
     }
 
     public boolean getAddEVoucherAsBillingReference()
