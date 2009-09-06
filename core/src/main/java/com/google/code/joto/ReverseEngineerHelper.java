@@ -220,8 +220,10 @@ public class ReverseEngineerHelper
         {
             StringBuilder sb = new StringBuilder( "new " );
             sb.append( clazz.getSimpleName() ).append( "( " );
-            for ( Class parameter : candidate.getParameterTypes() )
+            for ( int i = 0; i < candidate.getParameterTypes().length; i++ )
             {
+                Class parameter = candidate.getParameterTypes()[i];
+
                 if ( parameter.isPrimitive() )
                 {
                     if ( Boolean.TYPE.equals( parameter ) )
@@ -236,6 +238,10 @@ public class ReverseEngineerHelper
                 else
                 {
                     sb.append( "(" ).append( parameter.getSimpleName() ).append( ") null" );
+                }
+                if ( i + 1 < candidate.getParameterTypes().length )
+                {
+                    sb.append( ", " );
                 }
             }
             sb.append( " )" );
