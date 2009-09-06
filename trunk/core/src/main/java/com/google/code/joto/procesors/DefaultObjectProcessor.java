@@ -35,7 +35,7 @@ public class DefaultObjectProcessor
     {
         if ( sharedData.objectsAlreadyProcessed.contains( objectToProcess ) )
         {
-            concat( sharedData, "(", getTypeAsString( objectToProcess ), ") getInstance( ", System
+            concat( sharedData, "(", getTypeAsString( objectToProcess ), ") instancesMap.getInstance( ", System
                 .identityHashCode( objectToProcess ), ")" );
             concat( sharedData, " /* @", Integer.toHexString( System.identityHashCode( objectToProcess ) ), " */ " );
             return;
@@ -46,7 +46,8 @@ public class DefaultObjectProcessor
         {
             String variableName = "obj";
             writeDeclarationAndInitializationOfVariable( sharedData, variableName, objectToProcess );
-            concat( sharedData, "registerInstance( ", System.identityHashCode( objectToProcess ), ", ", variableName,
+            concat( sharedData, "instancesMap.registerInstance( ", System.identityHashCode( objectToProcess ), ", ",
+                    variableName,
                     "); " );
             concat( sharedData, " /* @", Integer.toHexString( System.identityHashCode( objectToProcess ) ), " */\n" );
 

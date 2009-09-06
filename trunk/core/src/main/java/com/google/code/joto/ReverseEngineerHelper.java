@@ -25,7 +25,7 @@ public class ReverseEngineerHelper
     {
         if ( object == null )
         {
-            throw new IllegalArgumentException( "valueObject cannot be null" );
+            return "Object";
         }
 
         final Class valueObjectType = getType( object );
