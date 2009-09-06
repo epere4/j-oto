@@ -22,6 +22,7 @@ import com.google.code.joto.procesors.DateProcessor;
 import com.google.code.joto.procesors.DefaultObjectProcessor;
 import com.google.code.joto.procesors.EnumProcessor;
 import com.google.code.joto.procesors.MapProcessor;
+import com.google.code.joto.procesors.MultitonProcessor;
 import com.google.code.joto.procesors.NullProcessor;
 import com.google.code.joto.procesors.NumberProcessor;
 import com.google.code.joto.procesors.PrimitiveTypeProcessor;
@@ -89,6 +90,7 @@ public class ReverseEngineerObject
         listOfDefaultProcessors.add( new MapProcessor() );
         listOfDefaultProcessors.add( new ArrayProcessor() );
         listOfDefaultProcessors.add( new EnumProcessor() );
+        listOfDefaultProcessors.add( new MultitonProcessor() );
         listOfDefaultProcessors.add( new DefaultObjectProcessor() );
         return listOfDefaultProcessors;
     }
