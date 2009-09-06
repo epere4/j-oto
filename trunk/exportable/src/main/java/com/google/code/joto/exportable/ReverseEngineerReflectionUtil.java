@@ -1,6 +1,8 @@
 package com.google.code.joto.exportable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Some utility methods for reflection that wraps all the checked exceptions and rethrows them as
@@ -83,6 +85,39 @@ public class ReverseEngineerReflectionUtil
         catch ( NoSuchFieldException e )
         {
             throw new RuntimeException( e );
+        }
+    }
+
+    /**
+     * This is just a wrapper for {@link Method#invoke(Object, Object...)} that will catch all the
+     * checked exceptions and rethrow them as {@link RuntimeException}.
+     * <p>
+     * This method should work on private, default, protected and public methods.
+     * @param method the method that will be invoked.
+     * @param obj see {@link Method#invoke(Object, Object...)}
+     * @param args see {@link Method#invoke(Object, Object...)}
+     * @return see {@link Method#invoke(Object, Object...)}
+     * @see Method#invoke(Object, Object...)
+     */
+    public static Object invokeMethod(Method method, Object obj, Object ... args) {
+        // obj.method(args)
+        boolean oldAccessible = method.isAccessible();
+        try
+        {
+            method.setAccessible( true );
+            return method.invoke( obj, args );
+        }
+        catch ( IllegalAccessException e )
+        {
+            throw new RuntimeException( e );
+        }
+        catch ( InvocationTargetException e )
+        {
+            throw new RuntimeException( e );
+        }
+        finally
+        {
+            method.setAccessible( oldAccessible );
         }
     }
 }

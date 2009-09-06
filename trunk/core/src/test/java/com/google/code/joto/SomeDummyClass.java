@@ -12,9 +12,11 @@ import org.apache.commons.lang.builder.ToStringStyle;
 
 import com.google.code.joto.datatype.Access;
 import com.google.code.joto.datatype.CodeType;
+import com.google.code.joto.datatype.Currency;
 import com.google.code.joto.datatype.ErrorContext;
 import com.google.code.joto.datatype.FeeTypeCode;
 import com.google.code.joto.datatype.SomeDataTypeToBeIgnoredOnProcessing;
+import com.google.code.joto.datatype.SomeSingleton;
 import com.google.code.joto.datatype.Vendor;
 import com.google.code.joto.datatype.VendorCommission;
 
@@ -43,6 +45,10 @@ public class SomeDummyClass
     BigInteger someBigInteger;
 
     Collection someSynchronizedCollection = Collections.synchronizedCollection( new ArrayList() );
+
+    SomeSingleton someSingleton;
+
+    Currency[] someCurencies;
 
     SomeDataTypeToBeIgnoredOnProcessing someDataTypeToBeIgnoredOnProcessing;
 
@@ -102,7 +108,8 @@ public class SomeDummyClass
         someBigDecimal = BigDecimal.valueOf( 456.7 );
         someBigInteger = BigInteger.valueOf( 345 );
         somePrimitiveArray = new int[] { 3, 4, -6};
-
+        someSingleton = SomeSingleton.getInstance();
         someDataTypeToBeIgnoredOnProcessing = new SomeDataTypeToBeIgnoredOnProcessing( -56, "some text " );
+        someCurencies = new Currency[] { Currency.ARS, Currency.USD };
     }
 }
