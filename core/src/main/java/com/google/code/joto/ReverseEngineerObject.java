@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.code.joto.exportable.Creator;
+import com.google.code.joto.exportable.InstancesMap;
 import com.google.code.joto.exportable.ReverseEngineerReflectionUtil;
 import com.google.code.joto.procesors.ArrayProcessor;
 import com.google.code.joto.procesors.BooleanProcessor;
@@ -46,7 +47,16 @@ public class ReverseEngineerObject
 
         addSomeClassesToImportAlways( sharedData );
 
+        ReverseEngineerData.writeCreatorHeader( sharedData, objectToProcess );
+        sharedData.concat( "final InstancesMap instancesMap = new InstancesMap();\n" );
+        sharedData.concat( ReverseEngineerHelper.getTypeAsString( objectToProcess ) );
+        sharedData.concat( " generatedObject = " );
+
         generateCodeRecursively( objectToProcess, sharedData, 0 );
+
+        sharedData.concat( ";\n" );
+        ReverseEngineerData.writeReturnStatement( sharedData, "generatedObject" );
+        ReverseEngineerData.writeCreatorFooter( sharedData );
 
         String imports = makeImports( sharedData.getClassesToImport() );
         String code = sharedData.sb.toString();
@@ -62,7 +72,7 @@ public class ReverseEngineerObject
         sharedData.addClassToImport( Map.class );
         sharedData.addClassToImport( Creator.class );
         sharedData.addClassToImport( Collection.class );
-
+        sharedData.addClassToImport( InstancesMap.class );
     }
 
     private LinkedList<CustomProcessor> makeListOfDefaultProcessors()
@@ -83,8 +93,7 @@ public class ReverseEngineerObject
         return listOfDefaultProcessors;
     }
 
-    private void generateCodeRecursively( Object objectToProcess, ReverseEngineerData sharedData,
-                                          int depthLevel )
+    private void generateCodeRecursively( Object objectToProcess, ReverseEngineerData sharedData, int depthLevel )
     {
         try
         {
@@ -146,4 +155,3 @@ public class ReverseEngineerObject
     }
 
 }
-
