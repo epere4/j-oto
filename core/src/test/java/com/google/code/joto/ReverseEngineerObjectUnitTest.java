@@ -14,6 +14,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import com.google.code.joto.customized.EnumeratedTypeProcessor;
+import com.google.code.joto.procesors.IgnoreClassProcessor;
 
 /**
  */
@@ -45,8 +46,9 @@ public class ReverseEngineerObjectUnitTest
         List<String> someStrings = new ArrayList<String>();
         someStrings.add( "some" );
         someStrings.add( "234" );
-        List<EnumeratedTypeProcessor> userSuppliedProcessors = Arrays
-            .asList( new EnumeratedTypeProcessor() );
+        List<CustomProcessor> userSuppliedProcessors = Arrays
+            .asList( new EnumeratedTypeProcessor(), IgnoreClassProcessor
+                .createForSimpleClassNames( "SomeDataTypeToBeIgnoredOnProcessing" ) );
         final ReverseEngineerObjectResponse response1 = reverseEngineerObject.generateCode( someStrings,
                                                                                             userSuppliedProcessors );
         printAResponse( response1, "SomeStringsSandbox" );
@@ -91,4 +93,3 @@ public class ReverseEngineerObjectUnitTest
     }
 
 }
-

@@ -14,6 +14,7 @@ import com.google.code.joto.datatype.Access;
 import com.google.code.joto.datatype.CodeType;
 import com.google.code.joto.datatype.ErrorContext;
 import com.google.code.joto.datatype.FeeTypeCode;
+import com.google.code.joto.datatype.SomeDataTypeToBeIgnoredOnProcessing;
 import com.google.code.joto.datatype.Vendor;
 import com.google.code.joto.datatype.VendorCommission;
 
@@ -42,6 +43,8 @@ public class SomeDummyClass
     BigInteger someBigInteger;
 
     Collection someSynchronizedCollection = Collections.synchronizedCollection( new ArrayList() );
+
+    SomeDataTypeToBeIgnoredOnProcessing someDataTypeToBeIgnoredOnProcessing;
 
     /**
      * @param integer the integer to set
@@ -99,5 +102,7 @@ public class SomeDummyClass
         someBigDecimal = BigDecimal.valueOf( 456.7 );
         someBigInteger = BigInteger.valueOf( 345 );
         somePrimitiveArray = new int[] { 3, 4, -6};
+
+        someDataTypeToBeIgnoredOnProcessing = new SomeDataTypeToBeIgnoredOnProcessing( -56, "some text " );
     }
 }
