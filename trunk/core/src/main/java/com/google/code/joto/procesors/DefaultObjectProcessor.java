@@ -54,6 +54,7 @@ public class DefaultObjectProcessor
             Class<? extends Object> clazz = objectToProcess.getClass();
             while ( clazz != null )
             {
+              sharedData.addClassToImport( clazz );
                 Field[] fields = clazz.getDeclaredFields();
                 for ( Field field : fields )
                 {
