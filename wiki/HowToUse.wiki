@@ -1,0 +1,25 @@
+#summary Short tutorial of how to use the tool.
+#labels Featured,Phase-Implementation
+
+= Introduction =
+
+The tool is in alpha state, so no distributable have been published, yet. If you want to use it, you have to check it out from the svn and use mvn to build it.
+
+= Details =
+
+
+In order to use it, this is the minimum code:
+
+{{{
+ReverseEngineerObject reverseEngineerObject = new ReverseEngineerObject();
+List<CustomProcessor> userSuppliedProcessors = null;
+ReverseEngineerObjectResponse response = reverseEngineerObject.generateCode( someStrings, userSuppliedProcessors );
+System.out.println(response);
+}}}
+
+You can check usage from [http://code.google.com/p/j-oto/source/browse/trunk/core/src/test/java/com/google/code/joto/ReverseEngineerObjectUnitTest.java ReverseEngineerObjectUnitTest.java].
+
+Stay tuned for issue #16 that will improve usability.
+
+Stay tunned for better documentation.
+
