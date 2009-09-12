@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>joto-exportable</name>
+	<description>joto (Java Object To cOde) library's classes needed to run generated code.</description>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>

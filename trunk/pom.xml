@@ -6,6 +6,7 @@
     <version>1.0-SNAPSHOT</version>
     <name>joto-parent</name>
     <url>http://code.google.com/p/j-oto/</url>
+	<description>joto (Java Object To cOde) library's parent pom</description>
     <dependencyManagement>
         <dependencies>
             <dependency>
