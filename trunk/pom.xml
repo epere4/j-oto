@@ -108,4 +108,7 @@
     <distributionManagement>
         <downloadUrl>http://code.google.com/p/j-oto/downloads/list</downloadUrl>
     </distributionManagement>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 </project>
