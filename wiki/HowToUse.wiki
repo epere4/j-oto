@@ -1,13 +1,13 @@
 #summary Short tutorial of how to use the tool.
-#labels Featured,Phase-Implementation
+#labels Featured,Phase-Implementation,Phase-Deploy
 
 = Introduction =
 
-The tool is in alpha state, so no distributable have been published, yet. If you want to use it, you have to check it out from the svn and use mvn to build it.
+I have released version joto-1.0.0. You can download it from the download section. A [http://jira.codehaus.org/browse/MAVENUPLOAD-2660 request] have been done to have it in maven central repo. I will let you know when it is ready.
 
 = Details =
 
-
+==Basic Usage==
 In order to use it, this is the minimum code:
 
 {{{
@@ -19,7 +19,23 @@ System.out.println(response);
 
 You can check usage from [http://code.google.com/p/j-oto/source/browse/trunk/core/src/test/java/com/google/code/joto/ReverseEngineerObjectUnitTest.java ReverseEngineerObjectUnitTest.java].
 
-Stay tuned for issue #16 that will improve usability.
-   -> Update: issue #16 was fixed. I still owe you the documentation
+==Alternative Usage==
 
-Stay tunned for better documentation.
+Since the fix of issue #16 the usability has been improved. There is now a {{{ClassCreatorHelper}}} that will create a source java file with the generated code. I allows you to supply the package name, the source folder where that package should be located and a classname prefix and suffix (between prefix and suffix there will be a number that increments automatically with each call to {{{extractToDummyObject()}}}).
+
+Here is a sample code taken from the [http://code.google.com/p/j-oto/source/browse/trunk/core/src/test/java/com/google/code/joto/util/ClassCreatorHelperUnitTest.java?spec=svn33&r=33 ClassCreatorHelperUnitTest.java]
+
+{{{
+File outputSrcFolder = new File( "target" );
+String outputPackageName = "com.test.packages";
+List<? extends CustomProcessor> userSuppliedProcessors = null;
+ClassCreatorHelper classCreatorHelper = new ClassCreatorHelper( outputSrcFolder, outputPackageName,
+                                                   userSuppliedProcessors );
+
+SomeDummyClass someDummyClass = new SomeDummyClass();
+someDummyClass.setValues();
+File generatedClassFile = classCreatorHelper
+    .extractToDummyObject( someDummyClass, "SomeDummyClass", "Scenary1" );
+
+System.out.println( "Generated class file: " + generatedClassFile );
+}}}
