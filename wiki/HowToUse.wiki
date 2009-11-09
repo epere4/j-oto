@@ -20,6 +20,6 @@ System.out.println(response);
 You can check usage from [http://code.google.com/p/j-oto/source/browse/trunk/core/src/test/java/com/google/code/joto/ReverseEngineerObjectUnitTest.java ReverseEngineerObjectUnitTest.java].
 
 Stay tuned for issue #16 that will improve usability.
+   -> Update: issue #16 was fixed. I still owe you the documentation
 
 Stay tunned for better documentation.
-
