@@ -2,13 +2,13 @@
     <parent>
         <groupId>com.google.code.joto</groupId>
         <artifactId>joto-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.google.code.joto</groupId>
     <artifactId>joto-core</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>joto-core</name>
 	<description>joto (Java Object To cOde) library's core classes.</description>
     <dependencies>
