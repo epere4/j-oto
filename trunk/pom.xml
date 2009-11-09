@@ -3,7 +3,7 @@
     <groupId>com.google.code.joto</groupId>
     <artifactId>joto-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>joto-parent</name>
     <url>http://code.google.com/p/j-oto/</url>
 	<description>joto (Java Object To cOde) library's parent pom</description>
@@ -12,7 +12,7 @@
             <dependency>
                 <groupId>com.google.code.joto</groupId>
                 <artifactId>joto-exportable</artifactId>
-                <version>1.0.0</version>
+                <version>1.0.1-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
