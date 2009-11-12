@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorderui;
+package com.google.code.joto.eventrecorder.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

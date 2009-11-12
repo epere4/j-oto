@@ -112,7 +112,7 @@ public class FileRecordEventStore extends AbstractRecordEventStore {
 	// ------------------------------------------------------------------------
 	
 	/** implements RecordEventStore */
-	public synchronized void addEvent(RecordEventHandle info, byte[] data) {
+	public synchronized int addEvent(RecordEventHandle info, byte[] data) {
 		try {
 			long currFilePos = currEventDataFile.getFilePointer();
 			RecordEventData eventData = createNewEventData(info, data);
@@ -122,6 +122,7 @@ public class FileRecordEventStore extends AbstractRecordEventStore {
 			
 			eventsDataCache.put(eventData.getEventId(), eventData);
 			
+			return eventData.getEventId();
 		} catch(IOException ex) {
 			throw new RuntimeException(ex);
 		}
