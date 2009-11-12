@@ -34,11 +34,13 @@ public class CyclicBufferRecordEventStore extends DefaultMemoryRecordEventStore 
 	// ------------------------------------------------------------------------
 	
 	@Override
-	public synchronized void addEvent(RecordEventHandle eventInfo, byte[] data) {
-		super.addEvent(eventInfo, data);
+	public synchronized int addEvent(RecordEventHandle eventInfo, byte[] data) {
+		int res = super.addEvent(eventInfo, data);
 		
 		// truncate if necessary..
 		checkNeedTruncate();
+		
+		return res;
 	}
 	
 	// internal

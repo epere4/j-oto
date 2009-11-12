@@ -23,19 +23,23 @@ public abstract class RecordEventChange implements Serializable {
 		/** internal for java.io.Serializable */
 		private static final long serialVersionUID = 1L;
 
-		private RecordEventHandle eventHandle;
+		private RecordEventData eventData;
 
-		public AddRecordEventStoreEvent(RecordEventHandle eventHandle) {
+		public AddRecordEventStoreEvent(RecordEventData eventData) {
 			super();
-			this.eventHandle = eventHandle;
+			this.eventData = eventData;
 		}
 
 		public void accept(RecordEventChangeVisitor visitor) {
 			visitor.caseAddEvent(this);
 		}
 		
+		public RecordEventData getEventData() {
+			return eventData;
+		}
+
 		public RecordEventHandle getEventHandle() {
-			return eventHandle;
+			return eventData.getEventHandle();
 		}
 		
 	}

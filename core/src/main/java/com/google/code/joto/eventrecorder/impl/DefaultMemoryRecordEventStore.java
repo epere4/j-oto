@@ -45,13 +45,15 @@ public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
 	}
 
 	
-	public synchronized void addEvent(RecordEventHandle eventInfo, byte[] data) {
+	public synchronized int addEvent(RecordEventHandle eventInfo, byte[] data) {
 		RecordEventData eventData = createNewEventData(eventInfo, data);
 		
 		eventDataList.add(eventData);
 		
-		RecordEventChange storeEvt = new AddRecordEventStoreEvent(eventData.getEventHandle());
+		RecordEventChange storeEvt = new AddRecordEventStoreEvent(eventData);
 		fireStoreEvent(storeEvt);
+		
+		return eventData.getEventId();
 	}
 
 }
