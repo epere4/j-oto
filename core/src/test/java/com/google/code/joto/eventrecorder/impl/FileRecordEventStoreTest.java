@@ -6,6 +6,9 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
@@ -16,6 +19,8 @@ import com.google.code.joto.testobj.TestObjFactory;
  */
 public class FileRecordEventStoreTest extends TestCase {
 
+	private static final Logger log = LoggerFactory.getLogger(FileRecordEventStoreTest.class);
+	
 	private File targetTestDir;
 	
 	public FileRecordEventStoreTest(String name) {
@@ -216,9 +221,9 @@ public class FileRecordEventStoreTest extends TestCase {
 	public void testBenchmarkWriteSimple() {
 		boolean deleteFile = true; // use false for debuggin(?): showing file content
 		// 
-		System.out.println("benchmark FileRecordEventStore ... First result is not significative because hotspot is lazy...");
+		log.info("benchmark FileRecordEventStore ... First result is not significative because hotspot is lazy...");
 		doTestBenchmarkWriteSimple("FileRecordEventStoreTest-Bench500x500.tmp", 50, 50, deleteFile); // => 
-		System.out.println("now benchmark with different repeatCount x size");
+		log.info("now benchmark with different repeatCount x size");
 		
 		doTestBenchmarkWriteSimple("FileRecordEventStoreTest-Bench1000x10.tmp", 1000,   10, deleteFile);
 		doTestBenchmarkWriteSimple("FileRecordEventStoreTest-Bench100x100.tmp",  100,  100, deleteFile);
@@ -227,7 +232,7 @@ public class FileRecordEventStoreTest extends TestCase {
 //		doTestBenchmarkWriteSimple("FileRecordEventStoreTest-Bench10x10000.tmp",   10, 10000); // => 11Mo 
 //		doTestBenchmarkWriteSimple("FileRecordEventStoreTest-Bench5x500000.tmp",  5, 500000);
 
-		System.out.println("benchmark FileRecordEventStore finished");
+		log.info("benchmark FileRecordEventStore finished");
 	}
 	
 	protected void doTestBenchmarkWriteSimple(String fileName, final int repeatCount, final int writeCount, boolean deleteFile) {
@@ -253,12 +258,12 @@ public class FileRecordEventStoreTest extends TestCase {
 				totalAddNanos += (nanos2 - nanos1); 
 				totalFlushNanos += (nanos3 - nanos2);
 //				int millis10 = (int) (10*nanos / 1000000);
-//				System.out.println("write+flush " + writeCount + " events with simple obj, " 
+//				log.info("write+flush " + writeCount + " events with simple obj, " 
 //						+ "took:" + (millis10*0.1) + " ms/" + writeCount
 //						+ ", " + (millis10*0.1/writeCount) + " ms/u"
 //						);
 			}
-			System.out.println("bench FileRecordEventStore: repeat " + repeatCount + " x write+flush " + writeCount + " events with simple obj\n"
+			log.info("bench FileRecordEventStore: repeat " + repeatCount + " x write+flush " + writeCount + " events with simple obj\n"
 					+ " total time: " + formatNanosTotalTime(totalAddNanos + totalFlushNanos, repeatCount, writeCount) + "\n"
 					+ " time for addEvent(): " + formatNanosTotalTime(totalAddNanos, repeatCount, writeCount) + "\n"
 					+ " time for flush(): " +  formatNanosTotalTime(totalFlushNanos, repeatCount, writeCount) + "\n"

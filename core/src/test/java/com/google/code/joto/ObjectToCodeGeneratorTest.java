@@ -6,6 +6,9 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanStmt;
 import com.google.code.joto.ast.beanstmt.impl.BeanASTPrettyPrinter;
 import com.google.code.joto.testobj.A;
@@ -22,6 +25,7 @@ import com.google.code.joto.testobj.TestObjFactory;
 public class ObjectToCodeGeneratorTest extends TestCase {
 
 	private static boolean DEBUG = false;
+	private static Logger log = LoggerFactory.getLogger(ObjectToCodeGeneratorTest.class);
 	
 	public ObjectToCodeGeneratorTest(String testName) {
 		super(testName);
@@ -64,7 +68,7 @@ public class ObjectToCodeGeneratorTest extends TestCase {
 
 	private void doTest(String testName, Object obj) {
 		if (DEBUG) {
-			System.out.println("\n" + testName + " ...");
+			log.info(testName + " ...");
 		}
 		
 		ObjectToCodeGenerator v2j = new ObjectToCodeGenerator();
@@ -79,11 +83,11 @@ public class ObjectToCodeGeneratorTest extends TestCase {
 		BeanASTPrettyPrinter stmtPrinter = new BeanASTPrettyPrinter(printStream); 
 		stmtPrinter.visitStmtList(stmts);
 		if (DEBUG) {
-			System.out.println("code={\n" + bout.toString() + "\n }");
+			log.info("code={\n" + bout.toString() + "\n }");
 		}
 		
 		if (DEBUG) {
-			System.out.println("... done " + testName + "\n");
+			log.info("... done " + testName);
 		}
 	}
 

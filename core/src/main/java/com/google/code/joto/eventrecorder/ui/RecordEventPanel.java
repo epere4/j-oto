@@ -13,8 +13,8 @@ import javax.swing.event.ListSelectionListener;
 
 import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStore;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.thoughtworks.xstream.XStream;
 
 /**
@@ -70,15 +70,13 @@ public class RecordEventPanel {
 	// -------------------------------------------------------------------------
 	
 	private void onRecordEventSelectionChanged(ListSelectionEvent e) {
-		int firstIndex = e.getFirstIndex();
-		int lastIndex = e.getLastIndex();
-		System.out.println("ListSelectionEvent: " + firstIndex + " " + lastIndex + " adjusting:" + e.getValueIsAdjusting());
+//		int firstIndex = e.getFirstIndex();
+//		int lastIndex = e.getLastIndex();
 //		if (e.getValueIsAdjusting()) {
 //			return; //??
 //		}
 		
 		int[] selectedRows = recordEventTable.getSelectedRows();
-		System.out.println("selected table lines: " + firstIndex + " " + lastIndex);
 		
 		List<RecordEventData> selectedEventDataList = new ArrayList<RecordEventData>();
 		for (int selectedRow : selectedRows) {

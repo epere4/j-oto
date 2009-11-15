@@ -2,11 +2,16 @@ package com.google.code.joto.eventrecorder;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * default implementation of RecordEventListener for redispatching to a RecordEventVisitor
  */
 public class DefaultVisitorRecordEventListener implements RecordEventListener {
 
+	private static Logger log = LoggerFactory.getLogger(DefaultVisitorRecordEventListener.class);
+	
 	private RecordEventChangeVisitor target;
 	
 	//-------------------------------------------------------------------------
@@ -33,7 +38,7 @@ public class DefaultVisitorRecordEventListener implements RecordEventListener {
 			event.accept(target);			
 		} catch(Exception ex) {
 			// ignore, no rethrow!
-			System.err.println("Failed to handle RecordEvent...ignore!");
+			log.warn("Failed to handle RecordEvent...ignore!", ex);
 		}
 	}
 }

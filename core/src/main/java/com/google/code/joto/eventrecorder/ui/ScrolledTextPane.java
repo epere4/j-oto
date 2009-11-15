@@ -16,11 +16,16 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.text.Document;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  */
 public class ScrolledTextPane {
 
+	private static Logger log = LoggerFactory.getLogger(ScrolledTextPane.class);
+	
 	private JPanel mainPanel;
 	private JScrollPane scrollPane;
 	private JTextPane textPane;
@@ -68,7 +73,7 @@ public class ScrolledTextPane {
 			Document doc = textPane.getDocument();
 			doc.remove(0, doc.getLength());
 		} catch(Exception ex) {
-			System.err.println("failed to clear text");
+			log.warn("failed to clear text", ex);
 		}
 	}
 
