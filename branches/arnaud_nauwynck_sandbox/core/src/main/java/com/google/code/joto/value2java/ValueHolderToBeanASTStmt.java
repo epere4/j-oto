@@ -55,6 +55,9 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	
 	private VarDeclStmt logVarDeclStmt;
 	
+	private VHToStmtProcessorContext vhToStmtProcessorContext = 
+		new VHToStmtProcessorContext();
+	
 	// -------------------------------------------------------------------------
 	
 	public ValueHolderToBeanASTStmt() {
@@ -65,13 +68,21 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	public Map<AbstractObjectValueHolder, Object2ASTInfo> getResultObjInitInfoMap() {
 		return objInitInfoMap;
 	}
-	
-	public void visitRootObject(AbstractObjectValueHolder objVH, String name) {
-		objToInitInfo(objVH, name);
+
+	public VHToStmtProcessorContext getVhToStmtProcessorContext() {
+		return vhToStmtProcessorContext;
+	}
+
+	public void setVhToStmtProcessorContext(VHToStmtProcessorContext p) {
+		this.vhToStmtProcessorContext = p;
 	}
 	
 	// implements ValueHolderVisitor2
 	// -------------------------------------------------------------------------
+
+	public void visitRootObject(AbstractObjectValueHolder objVH, String name) {
+		objToInitInfo(objVH, name);
+	}
 
 	public BeanAST caseNull(Object2ASTInfo objInfo) {
 		LiteralExpr initExpr = new LiteralExpr(null);
