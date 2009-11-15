@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventHandle;
-import com.google.code.joto.eventrecorder.RecordEventChange.TruncateRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventStoreChange;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
 
 /**
  *
@@ -34,36 +36,48 @@ public class CyclicBufferRecordEventStore extends DefaultMemoryRecordEventStore 
 	// ------------------------------------------------------------------------
 	
 	@Override
-	public synchronized int addEvent(RecordEventHandle eventInfo, byte[] data) {
-		int res = super.addEvent(eventInfo, data);
+	public synchronized RecordEventData addEvent(RecordEventSummary eventInfo, byte[] data) {
+		RecordEventData eventData = doAddEvent(eventInfo, data);
 		
-		// truncate if necessary..
-		checkNeedTruncate();
-		
-		return res;
+		AddRecordEventStoreEvent addEvent = new AddRecordEventStoreEvent(eventData);
+		if (maxEventCount != -1 || eventDataList.size() < maxEventCount) {
+			// no need truncate
+			fireStoreEvent(addEvent);
+		} else {
+			// need truncate
+			RecordEventData truncatedEvent = super.eventDataList.remove(0);
+			int truncatedEventId = truncatedEvent.getEventId();
+			List<RecordEventSummary> truncatedEvents = new ArrayList<RecordEventSummary>(1);
+			truncatedEvents.add(truncatedEvent.getEventSummary());
+			TruncateRecordEventStoreEvent truncEvent = onTruncateSetFirstEventId(truncatedEventId + 1, truncatedEvents);
+			
+			List<RecordEventStoreChange> firedEvents = new ArrayList<RecordEventStoreChange>(2);
+			firedEvents.add(truncEvent);
+			firedEvents.add(addEvent);
+			fireStoreEvents(firedEvents);
+		}
+		return eventData;
 	}
-	
+
 	// internal
 	// ------------------------------------------------------------------------
 	
 	protected void checkNeedTruncate() {
-		int eventDataListLen = eventDataList.size();
-		int truncateCount = 0;
-		if (eventDataListLen > maxEventCount) {
-			// need truncate...
-			truncateCount = maxEventCount - eventDataListLen;
+		if (maxEventCount == -1 || eventDataList.size() < maxEventCount) {
+			return;
 		}
+		// get truncated info
+		int truncatedLen = eventDataList.size() - maxEventCount;
+		List<RecordEventSummary> truncateEvents = eventDataListToEventHandleList(eventDataList.subList(0, truncatedLen));
+		int fromEventId = truncateEvents.get(0).getEventId();
+		int toEventId = truncateEvents.get(truncatedLen - 1).getEventId() +  1;
 		
-		if (truncateCount != 0) {
-			List<RecordEventHandle> truncateEvents = eventDataListToEventHandleList(eventDataList.subList(0, truncateCount));
-			
-			List<RecordEventData> newList = new ArrayList<RecordEventData>(eventDataList.subList(truncateCount, eventDataListLen));
-			eventDataList.clear();
-			eventDataList.addAll(newList);
-			
-			fireStoreEvent(new TruncateRecordEventStoreEvent(truncateEvents));
-		}
-	}
+		// do truncate
+		int checkTruncatedLen = eventDataList.truncateHeadForMaxRows(maxEventCount);
+		assert checkTruncatedLen == truncatedLen;
 
+		// fire truncated event
+		fireStoreEvent(new TruncateRecordEventStoreEvent(fromEventId, toEventId, truncateEvents));
+	}
 
 }

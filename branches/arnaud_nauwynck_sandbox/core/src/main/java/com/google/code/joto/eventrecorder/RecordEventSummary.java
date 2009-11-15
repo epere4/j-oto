@@ -6,46 +6,64 @@ import java.util.Date;
 /**
  * 
  */
-public class RecordEventHandle implements Serializable {
+public class RecordEventSummary implements Serializable {
 
 	/** internal for java.io.Serializable */
 	private static final long serialVersionUID = 1L;
 
 	private final int eventId;
 	private Date eventDate;
+	private String threadName;
 	private String eventType;
 	private String eventSubType;
 	private String eventMethodName;
 	private String eventMethodDetail;
 	
-	private long objectDataFilePosition;
+	private long internalEventStoreDataAddress;
 	
 	// ------------------------------------------------------------------------
 
-	public RecordEventHandle(int eventId) {
+	public RecordEventSummary(int eventId) {
 		this.eventId = eventId;
 	}
 
-	public RecordEventHandle(int eventId, Date eventDate, String eventType, String eventSubType, String eventMethodName,
-			String eventMethodDetail, int objectDataFilePosition) {
+	public RecordEventSummary(int eventId, Date eventDate, String threadName, 
+			String eventType, String eventSubType, 
+			String eventMethodName,
+			String eventMethodDetail, 
+			int internalEventStoreDataAddress) {
 		super();
 		this.eventId = eventId;
 		this.eventDate = eventDate;
+		this.threadName = threadName;
 		this.eventType = eventType;
 		this.eventSubType = eventSubType;
 		this.eventMethodName = eventMethodName;
 		this.eventMethodDetail = eventMethodDetail;
-		this.objectDataFilePosition = objectDataFilePosition;
+		this.internalEventStoreDataAddress = internalEventStoreDataAddress;
 	}
 
-	public RecordEventHandle(int eventId, RecordEventHandle src) {
+	public RecordEventSummary(int eventId, RecordEventSummary src) {
 		this.eventId = eventId;
 		this.eventDate = src.eventDate;
+		this.threadName = src.threadName;
 		this.eventType = src.eventType;
 		this.eventSubType = src.eventSubType;
 		this.eventMethodName = src.eventMethodName;
 		this.eventMethodDetail = src.eventMethodDetail;
-		this.objectDataFilePosition = src.objectDataFilePosition;
+		this.internalEventStoreDataAddress = src.internalEventStoreDataAddress;
+	}
+	
+	public static RecordEventSummary snewDefault(
+			String eventType, String eventSubType, 
+			String eventMethodName) {
+		RecordEventSummary e = new RecordEventSummary(-1);
+		e.setEventDate(new Date());
+		e.setThreadName(Thread.currentThread().getName());
+		e.setEventType(eventType);
+		e.setEventSubType(eventSubType);
+		e.setEventMethodName(eventMethodName);
+		return e;
 	}
 	
 	// ------------------------------------------------------------------------
@@ -56,6 +74,14 @@ public class RecordEventHandle implements Serializable {
 	
 	public Date getEventDate() {
 		return eventDate;
+	}
+	
+	public String getThreadName() {
+		return threadName;
+	}
+
+	public void setThreadName(String p) {
+		this.threadName = p;
 	}
 
 	public void setEventDate(Date eventDate) {
@@ -94,12 +120,12 @@ public class RecordEventHandle implements Serializable {
 		this.eventMethodDetail = eventMethodDetail;
 	}
 
-	public long getObjectDataFilePosition() {
-		return objectDataFilePosition;
+	public long getInternalEventStoreDataAddress() {
+		return internalEventStoreDataAddress;
 	}
 
-	public void setObjectDataFilePosition(long p) {
-		this.objectDataFilePosition = p;
+	public void setInternalEventStoreDataAddress(long p) {
+		this.internalEventStoreDataAddress = p;
 	}
 
 	// ------------------------------------------------------------------------
@@ -108,12 +134,13 @@ public class RecordEventHandle implements Serializable {
 	public String toString() {
 		return "RecordEventHandle[" 
 			+ eventId 
-			+ " " + eventDate
 			+ " " + eventType 
 			+ ((eventSubType != null)? " " + eventSubType : "") 
+			+ " " + eventDate
+			+ " " + threadName
 			+ " " + eventMethodName 
 			+ ((eventMethodDetail != null)? " " + eventMethodDetail : "")
-			+ " @" + objectDataFilePosition
+			+ " @" + internalEventStoreDataAddress
 			+ "]";
 	}
 	

@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
-import com.google.code.joto.eventrecorder.RecordEventChange;
+import com.google.code.joto.eventrecorder.RecordEventStoreChange;
 import com.google.code.joto.eventrecorder.RecordEventListener;
 
 /**
@@ -22,7 +22,7 @@ public class RecordEventSwingRedispatcher implements RecordEventListener {
 
 	//-------------------------------------------------------------------------
 	
-	public void onEvent(final RecordEventChange event) {
+	public void onEvent(final RecordEventStoreChange event) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				target.onEvent(event);
@@ -30,7 +30,7 @@ public class RecordEventSwingRedispatcher implements RecordEventListener {
 		});
 	}
 
-	public void onEvents(final List<RecordEventChange> events) {
+	public void onEvents(final List<RecordEventStoreChange> events) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				target.onEvents(events);

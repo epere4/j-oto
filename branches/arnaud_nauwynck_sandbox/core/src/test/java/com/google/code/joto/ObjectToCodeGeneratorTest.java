@@ -19,11 +19,11 @@ import com.google.code.joto.testobj.TestObjFactory;
 /**
  * JUnit test for ObjectToCodeGenerator 
  */
-public class AppTest extends TestCase {
+public class ObjectToCodeGeneratorTest extends TestCase {
 
 	private static boolean DEBUG = false;
 	
-	public AppTest(String testName) {
+	public ObjectToCodeGeneratorTest(String testName) {
 		super(testName);
     }
 

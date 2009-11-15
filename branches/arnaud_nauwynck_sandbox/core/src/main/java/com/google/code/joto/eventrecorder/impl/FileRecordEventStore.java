@@ -1,267 +1,336 @@
 package com.google.code.joto.eventrecorder.impl;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import org.apache.log4j.Logger;
+
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventHandle;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.util.io.ByteArrayOutputStream2;
 
 /**
  * 
  */
 public class FileRecordEventStore extends AbstractRecordEventStore {
 
-//	private static Logger log = Logger.getLogger(FileRecordEventStore.class.getName());
+	private static Logger log = Logger.getLogger(FileRecordEventStore.class.getName());
+	
+	private File eventDataFile;
 	
 	
-	private File dir;
-	private String fileName;
+	private OutputStream eventDataFileAppender;
+	private RandomAccessFile eventDataRandomAccessFile;
+	private Object eventDataRandomAccessFileLock = new Object();
+	private long lastFilePosition;
+	private int lastFlushedEventId;
 	
-	private PrintWriter currEventHandleWriter;
+	private ByteArrayOutputStream2 tmpBuffer = new ByteArrayOutputStream2();
 	
-	private RandomAccessFile currEventDataFile;
-	private long currEventDataFileEndPosition;
+	private EventSummaryCompressionContext eventSummaryCompressionContext = new EventSummaryCompressionContext();
 	
-	// keep all EventHandles in memory ??  (but not EventData in any case)
-	private List<RecordEventHandle> eventHandleList = new ArrayList<RecordEventHandle>();
-	
-	private WeakHashMap<Integer,RecordEventData> eventsDataCache = new WeakHashMap<Integer,RecordEventData>();
+	// TODO useless / externalize in wrapper class CacheRecordEventStore
+//	private WeakReference<IntList> cacheEventFilePositionArray = new WeakReference(new IntList());
+	private WeakHashMap<Integer,byte[]> cacheEventObjectDataById = new WeakHashMap<Integer,byte[]>();
 	
 	// ------------------------------------------------------------------------
 
-	public FileRecordEventStore(File dir, String fileName) {
-		this.dir = dir;
-		this.fileName = fileName;
+	public FileRecordEventStore(File eventDataFile) {
+		this.eventDataFile = eventDataFile;
 
-		open();
+		// to call next... open();
 	}
 	
+	// -------------------------------------------------------------------------
+	
 	/** implements RecordEventStore */
-	public void open() {
-		File eventHandlesFile = new File(dir, fileName + "-events.txt");
-		if (!eventHandlesFile.exists()) {
-			try {
-				eventHandlesFile.createNewFile();
-			} catch(Exception ex) {
-				throw new RuntimeException("Failed to create file " + eventHandlesFile, ex);
-			}
-		}
-		
-		File eventDataFile = new File(dir, fileName + "-data.ser");
+	public void open(boolean appendOtherwiseReadonly) {
 		if (!eventDataFile.exists()) {
-			try {
-				eventDataFile.createNewFile();
-			} catch(Exception ex) {
-				throw new RuntimeException("Failed to create file " + eventDataFile, ex);
+			if (appendOtherwiseReadonly) {
+				try {
+					eventDataFile.createNewFile();
+				} catch(Exception ex) {
+					throw new RuntimeException("Failed to create eventDataFile " + eventDataFile, ex);
+				}
+			} else {
+				// eventDataFiles does not exist, but open as readonly => error!
+				throw new RuntimeException("eventDataFile not found " + eventDataFile + ", can not open RecordEventStore in readonly");
+			}
+		} else {
+			if (appendOtherwiseReadonly) {
+				// re-opening eventDataFile for writing? => erase (delete+create) eventDataFile first
+				try {
+					eventDataFile.delete();
+					eventDataFile.createNewFile();
+				} catch(Exception ex) {
+					throw new RuntimeException("Failed to erase eventDataFile " + eventDataFile, ex);
+				}
 			}
 		}
-		
+				
+		this.readonly = !appendOtherwiseReadonly;
 		try {
-			currEventHandleWriter = new PrintWriter(new BufferedOutputStream(new FileOutputStream(eventHandlesFile)));
-		} catch(IOException ex) {
-			throw new RuntimeException("Failed to open " + eventHandlesFile, ex);
-		}
-		
-		try {
-			this.currEventDataFile = new RandomAccessFile(eventDataFile, "rw");
+			String mode = (readonly)? "r" : "rw";
+			this.eventDataRandomAccessFile = new RandomAccessFile(eventDataFile, mode);
+			
+			if (!readonly) {
+				FileOutputStream fileOut = new FileOutputStream(eventDataFile);
+				this.eventDataFileAppender = new BufferedOutputStream(fileOut, 8*8192);
+			}
+			
 		} catch(Exception ex) {
-			throw new RuntimeException("Failed to open file " + eventDataFile, ex);
+			throw new RuntimeException("Failed to open eventDataFile " + eventDataFile, ex);
 		}
-		this.currEventDataFileEndPosition = 0;
+		this.lastFilePosition = 0;
+		this.lastFlushedEventId = 1;
 	}
 	
 	/** implements RecordEventStore */
 	public void close() {
-		if (currEventHandleWriter != null) {
-			try {
-				currEventHandleWriter.close();
+		if (eventDataFileAppender != null) {
+			try { 
+				flush(); 
 			} catch(Exception ex) {
-				// log.error("Failed to close file!", ex);
+				log.error("Failed to flush eventDataFile!", ex);
 			}
-			this.currEventHandleWriter = null;
+			try {
+				eventDataFileAppender.close();
+			} catch(Exception ex) {
+				log.error("Failed to close eventDataFile!", ex);
+			}
+			this.eventDataFileAppender = null;
 		}
-		
-		if (currEventDataFile != null) {
+
+		if (eventDataRandomAccessFile != null) {
 			try {
-				currEventDataFile.close();
+				eventDataRandomAccessFile.close();
 			} catch(Exception ex) {
-				// log.error("Failed to close file!", ex);
+				log.error("Failed to close eventDataFile!", ex);
 			}
-			this.currEventDataFile = null;
+			this.eventDataRandomAccessFile = null;
 		}
 	}
-	
+
 	/** implements RecordEventStore */
+	public void flush() {
+		if (eventDataFileAppender != null) {
+			try {
+				eventDataFileAppender.flush();
+				// eventDataRandomAccessFile.getChannel().force(true);
+				lastFlushedEventId = getLastEventId();
+			} catch(IOException ex) {
+				throw new RuntimeException("failed to flush file " + eventDataFile, ex);
+			}
+		}
+	}
+
+	/** purge for GC */
 	public synchronized void purgeCache() {
-		eventsDataCache.clear();
+		cacheEventObjectDataById.clear();
 	}
-	
-	// ------------------------------------------------------------------------
-	
+
 	/** implements RecordEventStore */
-	public synchronized int addEvent(RecordEventHandle info, byte[] data) {
+	@Override
+	public synchronized List<RecordEventSummary> getEvents(int fromEventId, int toEventId) {
+		int eventIndex = fromEventId - getFirstEventId();
+		if (eventIndex < 0) {
+			throw new RuntimeException("event already purged");
+		}
+		int lastEventId = getLastEventId();
+		if (toEventId == -1) {
+			toEventId = lastEventId;
+		} else if (toEventId < fromEventId) {
+			throw new IllegalArgumentException("invalid toEventId:" + toEventId);
+		} else if (toEventId > lastEventId) {
+			throw new IllegalArgumentException("invalid toEventId:" + toEventId);
+		}
+		List<RecordEventSummary> res = new ArrayList<RecordEventSummary>(toEventId - fromEventId);
+		
+		int currEventPosition = 0;
+		int currEventId = getFirstEventId();
+//		IntList filePosArray = cacheEventFilePositionArray.get();
+//		if (filePosArray != null) {
+//			currEventPosition = filePosArray.getAt(eventIndex);
+//			currEventId = fromEventId;
+//		} else {
+//			// need to scan from before..
+//			filePosArray = new IntList(); // restore weak reference
+//			cacheEventFilePositionArray = new WeakReference(filePosArray);
+//			currEventPosition = 0;
+//			currEventId = getFirstEventId();
+//		}
+
 		try {
-			long currFilePos = currEventDataFile.getFilePointer();
-			RecordEventData eventData = createNewEventData(info, data);
-			eventData.getEventHandle().setObjectDataFilePosition(currFilePos);
-			
-			doWriteEventData(eventData);
-			
-			eventsDataCache.put(eventData.getEventId(), eventData);
-			
-			return eventData.getEventId();
+			synchronized (eventDataRandomAccessFileLock) {
+				// scan/skip currEventId -> until fromEventId
+				if (toEventId > lastFlushedEventId) {
+					flush();
+				}
+				eventDataRandomAccessFile.seek(currEventPosition);
+				for(; currEventId < fromEventId; currEventId++) {
+					int eventTotalSize = eventDataRandomAccessFile.readInt();
+					currEventPosition += eventTotalSize;
+					eventDataRandomAccessFile.seek(currEventPosition);
+				}
+				// reached fromEventId ... now read until toEventId				
+				for(; currEventId < toEventId; currEventId++) {
+					RecordEventData eventData = doReadEventData(currEventId, currEventPosition,
+							true, null, false);
+					res.add(eventData.getEventSummary());
+				}
+			}
 		} catch(IOException ex) {
 			throw new RuntimeException(ex);
 		}
+		return res;
 	}
 
+
 	/** implements RecordEventStore */
-	public synchronized RecordEventData getEventData(RecordEventHandle eventHandle) {
-		Integer eventId = eventHandle.getEventId();
-		RecordEventData res = eventsDataCache.get(eventId);
-		if (res == null) {
-			res = doReadEventData(eventHandle);
-			eventsDataCache.put(eventId, res);
+	@Override
+	public void purgeEvents(int toEventId) {
+		// not supported on file... do nothing!
+	}
+
+	
+	// ------------------------------------------------------------------------
+	
+	/** implements RecordEventStore */
+	public synchronized RecordEventData doAddEvent(RecordEventSummary info, byte[] objectDataBytes) {
+		// prepare data to write in tmp buffer..
+		// format: "<totalEventSize><eventSummarySize><encodedEventSummary><objectDataBytes>"
+		tmpBuffer.reset();
+		DataOutputStream tmpBufferDataOut = new DataOutputStream(tmpBuffer);
+		int eventTotalSize;
+		try {
+			// "skip" 4 bytes for global size (header + encoded eventSummary + event data)
+			// "skip" 4 bytes for size of encoded eventSummary
+			tmpBufferDataOut.writeInt(0);
+			tmpBufferDataOut.writeInt(0);
+			eventSummaryCompressionContext.encode(info, tmpBufferDataOut);
+			int eventSummarySize = tmpBuffer.getCount() - 8; 
+			tmpBuffer.write(objectDataBytes);
+			eventTotalSize = tmpBuffer.getCount(); 
+
+			// now tmp re-wind to write size of encoded eventSummary...
+			tmpBuffer.setCount(0); // tmp re-wind
+			tmpBufferDataOut.writeInt(eventTotalSize);
+			tmpBufferDataOut.writeInt(eventSummarySize);
+			tmpBuffer.setCount(eventTotalSize); // restore
+		} catch(IOException ex) {
+			throw new RuntimeException("should not occur on buffer!", ex);
 		}
-		return res;
+		
+		// byte[] tmpOutBufferArray = tmpOutBuffer.toByteArray(); ... local copy
+		byte[] eventBufferBytes = tmpBuffer.getBuffer();
+		
+		// do lock(? ..already done)+write
+		RecordEventData eventData = createNewEventData(info, objectDataBytes);
+		
+		doWriteEventData(eventData, eventBufferBytes, eventTotalSize);
+		
+		cacheEventObjectDataById.put(eventData.getEventId(), eventData.getObjectDataBytes());
+		
+		return eventData;
 	}
 
 	/** implements RecordEventStore */
-	public synchronized List<RecordEventHandle> getEvents() {
-		List<RecordEventHandle> res = new ArrayList<RecordEventHandle>(eventHandleList);
-		return res;
+	public synchronized RecordEventData getEventData(RecordEventSummary eventSummary) {
+		Integer eventId = eventSummary.getEventId();
+		byte[] objDataBytes = cacheEventObjectDataById.get(eventId);
+		if (objDataBytes == null) {
+			RecordEventData tmp = doReadEventData(
+					eventSummary.getEventId(),
+					eventSummary.getInternalEventStoreDataAddress(),
+					false, eventSummary, 
+					true);
+			objDataBytes = tmp.getObjectDataBytes();
+			cacheEventObjectDataById.put(eventId, objDataBytes);
+		}
+		return new RecordEventData(eventSummary, objDataBytes);
 	}
 
 	// ------------------------------------------------------------------------
 
-	protected void doWriteEventData(RecordEventData eventData) {
-		eventHandleList.add(eventData.getEventHandle());
-		
-		doLogEventHandle(eventData.getEventHandle());
-				
+	protected void doWriteEventData(RecordEventData eventData, byte[] preparedBytes, int preparedBytesLen) {
 		try {
-			currEventDataFile.seek(currEventDataFileEndPosition);
-			RAFOutputStream outputStream = new RAFOutputStream(currEventDataFile);
+			synchronized(eventDataRandomAccessFileLock) {
+				eventData.getEventSummary().setInternalEventStoreDataAddress(lastFilePosition);
 
-			ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-			objectOutputStream.writeObject(eventData);
-			
-			currEventDataFileEndPosition = currEventDataFile.getFilePointer();
+//				long tmppos = eventDataRandomAccessFile.getFilePointer();
+//				if (tmppos != lastFilePosition) {
+//					eventDataRandomAccessFile.seek(lastFilePosition);
+//				}
+//				eventDataRandomAccessFile.write(preparedBytes, 0, preparedBytesLen);
+//				// lastFilePosition = eventDataRandomAccessFile.getFilePointer()
+
+				this.eventDataFileAppender.write(preparedBytes, 0, preparedBytesLen);
+				
+				lastFilePosition += preparedBytesLen;
+			}
 		} catch(Exception ex) {
 			throw new RuntimeException(ex);
 		}
 	}
 	
-	private final DateFormat displayDateFormat = new SimpleDateFormat("HH:mm:ss");
-	
-	/** utility helper, to log Event as text */
-	private void doLogEventHandle(RecordEventHandle p) {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(displayDateFormat.format(p.getEventDate()));
-		sb.append(' ');
-		sb.append(Integer.toString(p.getEventId()));
-		sb.append(' ');
-		sb.append(p.getEventType());
-		sb.append(' ');
-		sb.append(p.getEventSubType());
-		sb.append(' ');
-		sb.append(p.getEventMethodName());
-		sb.append(' ');
-		sb.append(p.getEventMethodDetail());
-		sb.append(" @");
-		sb.append(p.getObjectDataFilePosition());
-		
-		currEventHandleWriter.println(sb.toString());
-	}
 
-	protected RecordEventData doReadEventData(RecordEventHandle eventHandle) {
+	protected RecordEventData doReadEventData(
+			int eventId,
+			long filePosition,
+			boolean readRecordEventSummary,
+			RecordEventSummary recordEventSummary, //... already read, reread??
+			boolean readEventData) {
 		RecordEventData res;
-		long filePos = eventHandle.getObjectDataFilePosition();
-		try {
-			currEventDataFile.seek(filePos);
-			InputStream inputStream = new RAFInputStream(currEventDataFile);
-			ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-			
-			res = (RecordEventData) objectInputStream.readObject();
-			
-		} catch(Exception ex) {
-			throw new RuntimeException(ex);
+		synchronized(eventDataRandomAccessFileLock) {
+			try {
+				if (eventId > lastFlushedEventId) {
+					flush();
+				}
+				eventDataRandomAccessFile.seek(filePosition);
+
+				int eventTotalSize = eventDataRandomAccessFile.readInt();
+				int eventSummarySize = eventDataRandomAccessFile.readInt();
+				if (readRecordEventSummary && recordEventSummary == null) {
+					tmpBuffer.reset();
+					tmpBuffer.ensureCapacity(eventSummarySize);
+					byte[] buffer = tmpBuffer.getBuffer();
+					eventDataRandomAccessFile.read(buffer, 0, eventSummarySize);
+					
+					DataInputStream din = new DataInputStream(new ByteArrayInputStream(buffer, 0, eventSummarySize));
+					recordEventSummary = eventSummaryCompressionContext.decode(eventId, din);
+					// recordEventSummary.setEventId(eventId);// not possible... final => ctor copy!
+					recordEventSummary = new RecordEventSummary(eventId, recordEventSummary);
+				} else {
+					// reread/seek/skip?
+					eventDataRandomAccessFile.skipBytes(eventSummarySize);
+				}
+				// read data bytes
+				byte[] eventObjectData = null;
+				int eventDataSize = eventTotalSize - eventSummarySize - 8;
+				if (readEventData) {
+					eventObjectData = new byte[eventDataSize];
+					eventDataRandomAccessFile.read(eventObjectData);
+				} else {
+					// seek/skip
+					eventDataRandomAccessFile.skipBytes(eventDataSize);
+				}
+				
+				res = new RecordEventData(recordEventSummary, eventObjectData);
+			} catch(Exception ex) {
+				throw new RuntimeException(ex);
+			}
 		}
 		return res;
-	}
-	
-	// ------------------------------------------------------------------------
-	
-	/**
-	 * addapter RandomAccessFile -> InputStream   ?? not in jdk ??
-	 */
-	private static class RAFInputStream extends InputStream {
-		
-		private RandomAccessFile raf;
-				
-		public RAFInputStream(RandomAccessFile raf) {
-			super();
-			this.raf = raf;
-		}
-
-		@Override
-		public int read() throws IOException {
-			return raf.read();
-		}
-
-		@Override
-		public int read(byte[] b, int off, int len) throws IOException {
-			return raf.read(b, off, len);
-		}
-
-		@Override
-		public int read(byte[] b) throws IOException {
-			return raf.read(b);
-		}
-		
-	}
-
-	/**
-	 * addapter RandomAccessFile -> OutputStream   ?? not in jdk ??
-	 */
-	private static class RAFOutputStream extends OutputStream {
-		
-		private RandomAccessFile raf;
-				
-		public RAFOutputStream(RandomAccessFile raf) {
-			super();
-			this.raf = raf;
-		}
-
-		@Override
-		public void write(byte[] b, int off, int len) throws IOException {
-			raf.write(b, off, len);
-		}
-
-		@Override
-		public void write(byte[] b) throws IOException {
-			raf.write(b);
-		}
-
-		@Override
-		public void write(int b) throws IOException {
-			raf.write(b);
-		}
-		
 	}
 	
 }

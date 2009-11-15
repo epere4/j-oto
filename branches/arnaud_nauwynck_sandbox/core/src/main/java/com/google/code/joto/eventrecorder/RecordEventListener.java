@@ -7,7 +7,7 @@ import java.util.List;
  */
 public interface RecordEventListener {
 
-	public void onEvent(RecordEventChange event);
-	public void onEvents(List<RecordEventChange> event);
+	public void onEvent(RecordEventStoreChange event);
+	public void onEvents(List<RecordEventStoreChange> event);
 	
 }

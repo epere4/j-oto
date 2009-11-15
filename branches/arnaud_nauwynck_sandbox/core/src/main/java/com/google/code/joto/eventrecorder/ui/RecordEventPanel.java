@@ -13,7 +13,7 @@ import javax.swing.event.ListSelectionListener;
 
 import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventHandle;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.thoughtworks.xstream.XStream;
 
@@ -81,14 +81,10 @@ public class RecordEventPanel {
 		System.out.println("selected table lines: " + firstIndex + " " + lastIndex);
 		
 		List<RecordEventData> selectedEventDataList = new ArrayList<RecordEventData>();
-		List<RecordEventHandle> events = eventStore.getEvents();
-		if (events != null && events.size() != 0) {
-			// int firstEventId = events.get(0).getEventId();
-			for (int selectedRow : selectedRows) {
-				RecordEventHandle eventHandle = events.get(selectedRow);
-				RecordEventData eventData = eventStore.getEventData(eventHandle);
-				selectedEventDataList.add(eventData);
-			}
+		for (int selectedRow : selectedRows) {
+			RecordEventSummary eventHandle = recordEventTableModel.getEventRow(selectedRow);
+			RecordEventData eventData = eventStore.getEventData(eventHandle);
+			selectedEventDataList.add(eventData);
 		}
 		
 		// display event data list in detailed tabbed pane
@@ -107,7 +103,7 @@ public class RecordEventPanel {
 		StringWriter writer = new StringWriter();
 		XStream xstream = new XStream();
 		for(RecordEventData eventData : eventDataList) {
-			RecordEventHandle eventHandle = eventData.getEventHandle();
+			RecordEventSummary eventHandle = eventData.getEventSummary();
 			Object objectDataCopy = eventData.getObjectDataCopy();
 			writer.append(eventHandle.getEventMethodName());
 			writer.append("\n");
@@ -124,7 +120,7 @@ public class RecordEventPanel {
 		StringBuilder sb = new StringBuilder();
 		ObjectToCodeGenerator objToCode = new ObjectToCodeGenerator();
 		for(RecordEventData eventData : eventDataList) {
-			RecordEventHandle eventHandle = eventData.getEventHandle();
+			RecordEventSummary eventHandle = eventData.getEventSummary();
 			Object objectDataCopy = eventData.getObjectDataCopy();
 
 			sb.append("meth:" + eventHandle.getEventMethodName() + "\n");

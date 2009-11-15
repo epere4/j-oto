@@ -18,17 +18,17 @@ public class DefaultVisitorRecordEventListener implements RecordEventListener {
 	//-------------------------------------------------------------------------
 
 	
-	public void onEvent(RecordEventChange event) {
+	public void onEvent(RecordEventStoreChange event) {
 		onEventStoreEvent(event);
 	}
 	
-	public void onEvents(List<RecordEventChange> events) {
-		for(RecordEventChange event : events) {
+	public void onEvents(List<RecordEventStoreChange> events) {
+		for(RecordEventStoreChange event : events) {
 			onEventStoreEvent(event);
 		}
 	}
 	
-	protected void onEventStoreEvent(RecordEventChange event) {
+	protected void onEventStoreEvent(RecordEventStoreChange event) {
 		try {
 			event.accept(target);			
 		} catch(Exception ex) {

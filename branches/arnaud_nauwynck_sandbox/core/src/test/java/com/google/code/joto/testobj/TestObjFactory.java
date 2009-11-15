@@ -1,5 +1,7 @@
 package com.google.code.joto.testobj;
 
+import java.io.Serializable;
+
 public class TestObjFactory {
 
 	public static SimpleIntFieldA createSimpleIntFieldA() {
@@ -10,7 +12,7 @@ public class TestObjFactory {
 	
 	public static SimpleRefObjectFieldA createSimpleRefObjectFieldA() {
 		SimpleRefObjectFieldA a = new SimpleRefObjectFieldA();
-		a.setFieldObj(new Object());
+		a.setFieldObj(new SerializableObj());
 		return a;
 	}
 	
@@ -90,4 +92,20 @@ public class TestObjFactory {
 		return a;
 	}
 	
+	
+	public static Serializable createAnySerializableBean(int i) {
+		int mod = i % 6;
+		switch(mod) {
+		case 0: return createSimpleIntFieldA();
+		case 1: return createSimpleRefObjectFieldA();
+		case 2: return createBeanA();
+		case 3: return createBeanA2();
+		case 4: return createSimpleRefA();
+		case 5: createSimpleRefBean_Cyclic();
+		
+		default:
+			return createSimpleIntFieldA();
+		}
+	}
+
 }

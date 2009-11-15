@@ -31,12 +31,12 @@ public class RecordEventStoreGenerator {
 	
 	// -------------------------------------------------------------------------
 	
-	public int addEvent(RecordEventHandle info, Serializable objData) {
+	public int addEvent(RecordEventSummary info, Serializable objData) {
 		if (!enableGenerator) {
 			return -1;
 		}
 		byte[] objDataBytes = RecordEventData.serializableToByteArray(objData);
-		int res = eventStore.addEvent(info, objDataBytes);
+		int res = eventStore.addEvent(info, objDataBytes).getEventId();
 		return res;
 	}
 	
