@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
@@ -24,7 +25,7 @@ import com.google.code.joto.util.io.ByteArrayOutputStream2;
  */
 public class FileRecordEventStore extends AbstractRecordEventStore {
 
-	private static Logger log = Logger.getLogger(FileRecordEventStore.class.getName());
+	private static Logger log = LoggerFactory.getLogger(FileRecordEventStore.class.getName());
 	
 	private File eventDataFile;
 	
