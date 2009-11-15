@@ -2,8 +2,6 @@ package com.google.code.joto.util;
 
 import java.util.ArrayList;
 
-import com.google.code.joto.eventrecorder.RecordEventSummary;
-
 /**
  * a simple extension of java.util.ArrayList, 
  * for adding efficient removeRange() as public!

@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventListener;
@@ -19,7 +20,7 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordE
  */
 public abstract class AbstractRecordEventStore implements RecordEventStore {
 
-	private Logger log = Logger.getLogger(getClass());
+	private Logger log = LoggerFactory.getLogger(getClass());
 	
 	protected boolean readonly;
 	

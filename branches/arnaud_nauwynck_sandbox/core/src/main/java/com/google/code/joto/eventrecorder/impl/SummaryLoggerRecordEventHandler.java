@@ -3,7 +3,7 @@ package com.google.code.joto.eventrecorder.impl;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.google.code.joto.eventrecorder.RecordEventChangeVisitor;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
