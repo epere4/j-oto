@@ -7,12 +7,17 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 
 /**
  * 
  */
 public class ConstructorJotoInfo extends MemberJotoInfo {
+
+	private static Logger log = LoggerFactory.getLogger(ConstructorJotoInfo.class);
 
 	private final Constructor targetConstructor;
 
@@ -108,8 +113,8 @@ public class ConstructorJotoInfo extends MemberJotoInfo {
 				try {
 					f = rp.getField(targetClass, ctorPropValue);
 				} catch(Exception ex) {
-					System.err.println("Failed to get field for ctor parameter annotation: " + targetClass 
-							+ ", param" + i + " -> field? " + ctorPropValue);
+					log.warn("Failed to get field for ctor parameter annotation: " + targetClass 
+							+ ", param" + i + " -> field? " + ctorPropValue, ex);
 					f = null;
 				}
 				if (f == null) {

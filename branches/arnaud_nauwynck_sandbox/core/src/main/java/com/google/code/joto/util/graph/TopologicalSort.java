@@ -5,9 +5,18 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.util.ToStringFormatter;
 
+/**
+ * helper class for computing the topological sort of a graph
+ */
 public class TopologicalSort<Vertex> {
+
+	private boolean debug = false;
+	private static Logger log = LoggerFactory.getLogger(TopologicalSort.class);
 
 	public static class Counter {
 		int count;
@@ -20,7 +29,6 @@ public class TopologicalSort<Vertex> {
 	
 	private IGraph<Vertex> graph;
 
-	private boolean debug = false;
 	private ToStringFormatter<Vertex> debugVertexFormat;
 	private Map<Vertex,Integer> debugVertex2id = new IdentityHashMap<Vertex,Integer>(); 
 	
@@ -46,7 +54,7 @@ public class TopologicalSort<Vertex> {
 		List<Vertex> res = new ArrayList<Vertex>();
 
 		if (debug) {
-			System.out.println("topological sort...");
+			log.info("topological sort...");
 		}
 
 		List<Vertex> vertexes = graph.getVertexes();
@@ -77,7 +85,7 @@ public class TopologicalSort<Vertex> {
 		
 
 		if (debug) {
-			System.out.println("queue: " + queue.toString());
+			log.info("queue: " + queue.toString());
 		}
 		
 		// consume elt from queue, decrement counter for each elt polled  
@@ -88,14 +96,14 @@ public class TopologicalSort<Vertex> {
 			}
 			Counter c = vertexToCounter(polledVertex);
 			if (c.count != 0) {
-				System.out.println("circular dependency found...");
+				log.info("circular dependency found...");
 //				throw new IllegalStateException("topological sort failed... circular dependency found");
 			}
 			res.add(polledVertex);
 
 			if (debug) {
-				System.out.println("found next: " + debugVertexFormat.objectToString(polledVertex));
-				System.out.println("queue size:" + queue.size()+ " elt(s)");
+				log.info("found next: " + debugVertexFormat.objectToString(polledVertex));
+				log.info("queue size:" + queue.size()+ " elt(s)");
 			}
 			
 			// decrement (and re-index in queue) all vertex pointed "to" 
@@ -117,14 +125,14 @@ public class TopologicalSort<Vertex> {
 					vertexToCounter.count--;
 
 					if (debug) {
-						System.out.println("decremented count: " + vertexToCounter(vertexTo).count + " for: " + debugVertexFormat.objectToString(vertexTo));
+						log.info("decremented count: " + vertexToCounter(vertexTo).count + " for: " + debugVertexFormat.objectToString(vertexTo));
 					}
 				}
 			}
 		}
 
 		if (debug) {
-			System.out.println("... done topological sort");
+			log.info("... done topological sort");
 		}
 
 		return res;

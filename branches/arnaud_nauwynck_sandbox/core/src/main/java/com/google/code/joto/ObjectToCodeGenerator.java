@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.ast.beanstmt.BeanAST;
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanStmt;
 import com.google.code.joto.ast.beanstmt.impl.BeanASTPrettyPrinter;
@@ -26,6 +29,7 @@ import com.google.code.joto.value2java.VarDefUseDependencyGraphBuilder;
  */
 public class ObjectToCodeGenerator {
 
+	private static final Logger log = LoggerFactory.getLogger(ObjectToCodeGenerator.class);
 	private boolean debug = false;
 	private boolean debugValueHolder = false;
 	private boolean debugLinksFromValueHolder = false;
@@ -86,10 +90,12 @@ public class ObjectToCodeGenerator {
 		AbstractObjectValueHolder objVH = resMap.get(obj);
 
 		if (debug && debugValueHolder) {
-			System.out.println("ObjectToValueHolderBuilder => " + resMap.size() + " obj valueHolder(s)");
-			ValueHolderPrettyPrinter printer = new ValueHolderPrettyPrinter(System.out); 
+			log.info("ObjectToValueHolderBuilder => " + resMap.size() + " obj valueHolder(s)");
+			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+			ValueHolderPrettyPrinter printer = new ValueHolderPrettyPrinter(new PrintStream(buffer)); 
 			printer.setPrintLinksFrom(debugLinksFromValueHolder); 
 			objVH.visit(printer);
+			log.info(buffer.toString());
 		}
 		
 		ValueHolderToBeanASTStmt b2jVisitor = new ValueHolderToBeanASTStmt();
@@ -121,10 +127,10 @@ public class ObjectToCodeGenerator {
 		}
 	
 		if (debug && debugDependencyGraph) {
-			System.out.println("stmt dependency graph: {");
-			GraphPrinter<BeanAST> graphPrinter = new GraphPrinter<BeanAST>(System.out, BeanASTToStringFormatter.getInstance());
+			ByteArrayOutputStream buffer = new ByteArrayOutputStream(); 
+			GraphPrinter<BeanAST> graphPrinter = new GraphPrinter<BeanAST>(new PrintStream(buffer), BeanASTToStringFormatter.getInstance());
 			graphPrinter.printGraph(graph);
-			System.out.println("} // stmt dependency graph");
+			log.info("stmt dependency graph: {" + buffer.toString() + "} // stmt dependency graph");
 		}
 		
 		// topological sort

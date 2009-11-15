@@ -5,16 +5,20 @@ import java.util.Date;
 
 import javax.swing.JFrame;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStore;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
-import com.google.code.joto.eventrecorder.ui.RecordEventPanel;
 import com.google.code.joto.testobj.Pt;
 import com.google.code.joto.testobj.TestObjFactory;
 
 public class UiTestMain {
 
+	private static Logger log = LoggerFactory.getLogger(UiTestMain.class);
+	
 	public static void main(String[] args) {
 		
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
@@ -49,7 +53,7 @@ public class UiTestMain {
 		try {
 			eventStore.addEvent(evt, objDataBytes);
 		} catch(Exception ex) {
-			System.err.println("Failed to serialize?.. ignore");
+			log.warn("Failed to serialize?.. ignore", ex);
 		}
 	}
 }
