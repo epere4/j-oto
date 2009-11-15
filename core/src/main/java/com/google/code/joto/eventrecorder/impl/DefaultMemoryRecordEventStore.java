@@ -3,17 +3,17 @@ package com.google.code.joto.eventrecorder.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.code.joto.eventrecorder.RecordEventChange;
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventHandle;
-import com.google.code.joto.eventrecorder.RecordEventChange.AddRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
+import com.google.code.joto.util.ArrayList2;
 
 /**
  *
  */
 public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
 	
-	protected List<RecordEventData> eventDataList = new ArrayList<RecordEventData>();
+	protected ArrayList2<RecordEventData> eventDataList = new ArrayList2<RecordEventData>();
 	
 	// ------------------------------------------------------------------------
 
@@ -22,12 +22,35 @@ public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
 
 	// ------------------------------------------------------------------------
 
-	public synchronized List<RecordEventHandle> getEvents() {
-		List<RecordEventHandle> res = eventDataListToEventHandleList(eventDataList);
+	@Override
+	public List<RecordEventSummary> getEvents(int fromEventId, int toEventId) {
+		List<RecordEventSummary> res = new ArrayList<RecordEventSummary>();
+		int availableFirstEventId = getFirstEventId();
+		if (fromEventId < availableFirstEventId) {
+			fromEventId = availableFirstEventId;
+		}
+		int availableLastEventId = getLastEventId();
+		if (toEventId == -1 || toEventId  >= availableLastEventId) {
+			toEventId = availableLastEventId;
+		}
+		for(RecordEventData e : eventDataList) {
+			if (e.getEventId() < fromEventId) {
+				continue;
+			}
+			if (toEventId != -1 && e.getEventId() > toEventId) {
+				break;
+			}
+			res.add(e.getEventSummary());
+		}
 		return res;
 	}
 
-	public synchronized RecordEventData getEventData(RecordEventHandle eventHandle) {
+	public synchronized List<RecordEventSummary> getEvents() {
+		List<RecordEventSummary> res = eventDataListToEventHandleList(eventDataList);
+		return res;
+	}
+
+	public synchronized RecordEventData getEventData(RecordEventSummary eventHandle) {
 		if (eventDataList.isEmpty()) {
 			return null;
 		}
@@ -45,15 +68,38 @@ public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
 	}
 
 	
-	public synchronized int addEvent(RecordEventHandle eventInfo, byte[] data) {
+	protected RecordEventData doAddEvent(RecordEventSummary eventInfo, byte[] data) {
 		RecordEventData eventData = createNewEventData(eventInfo, data);
-		
 		eventDataList.add(eventData);
-		
-		RecordEventChange storeEvt = new AddRecordEventStoreEvent(eventData);
-		fireStoreEvent(storeEvt);
-		
-		return eventData.getEventId();
+		return eventData;
 	}
 
+
+	@Override
+	public void purgeEvents(int toEventId) {
+		int firstEventId = getFirstEventId();
+		if (toEventId == -1) {
+			toEventId = getLastEventId();
+		}
+		int truncatedLen = toEventId - firstEventId;
+		
+		List<RecordEventSummary> truncateEvents = eventDataListToEventHandleList(eventDataList.subList(0, truncatedLen));
+		
+		// do truncate
+		eventDataList.removeRange(0, truncatedLen);
+
+		// fire truncated event
+		fireStoreEvent(new TruncateRecordEventStoreEvent(firstEventId, toEventId, truncateEvents));
+	}
+
+	// override java.lang.Object
+	// -------------------------------------------------------------------------
+
+	@Override
+	public String toString() {
+		return "DefaultMemoryRecordEventStore[" 
+			+ "eventIds:" + getFirstEventId() + "-" + getLastEventId()
+			+ "]";
+	}
+	
 }

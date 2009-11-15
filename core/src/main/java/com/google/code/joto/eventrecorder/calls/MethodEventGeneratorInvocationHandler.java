@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Date;
 
-import com.google.code.joto.eventrecorder.RecordEventHandle;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 
 /**
@@ -60,17 +60,17 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 		boolean enable = eventGenerator.isEnableGenerator();
 		int requestEventId = -1;
 		if (enable) {
-			RecordEventHandle evt = createEvent(methodName, requestEventSubType);
+			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
 			EventMethodRequestData objData = new EventMethodRequestData(target, method, args);
 			requestEventId = eventGenerator.addEvent(evt, objData);
 		}
 
 		try {
 			// *** do call ***
-			Object res = method.invoke(this, args);
+			Object res = method.invoke(target, args);
 
 			if (enable && requestEventId != -1) {
-				RecordEventHandle evt = createEvent(methodName, responseEventSubType);
+				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
 				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, res, null);
 				eventGenerator.addEvent(evt, objData);
 			}
@@ -78,7 +78,7 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 
 		} catch(Exception ex) {
 			if (enable && requestEventId != -1) {
-				RecordEventHandle evt = createEvent(methodName, responseEventSubType);
+				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
 				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, null, ex);
 				eventGenerator.addEvent(evt, objData);
 			}
@@ -89,8 +89,8 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 	}
 
 	
-	private RecordEventHandle createEvent(String methodName, String eventSubType) {
-		RecordEventHandle evt = new RecordEventHandle(-1);
+	private RecordEventSummary createEvent(String methodName, String eventSubType) {
+		RecordEventSummary evt = new RecordEventSummary(-1);
 		evt.setEventDate(new Date());
 		evt.setEventType(eventType);
 		evt.setEventSubType(eventSubType);

@@ -11,48 +11,48 @@ import java.io.Serializable;
  */
 public final class RecordEventData implements Serializable {
 
-    /** */
-    private static final long serialVersionUID = -1102569878095077812L;
+    /** internal for java.io.Serializable */
+    private static final long serialVersionUID = 1L;
 
-    private final int eventId;
+    private RecordEventSummary eventSummary;
     
-    private RecordEventHandle eventHandle;
-    
-    private byte[] objectData;
+    private byte[] objectDataBytes;
     
     /** TODO... for debug only?? */
     private transient Object cachedObjectCopy;
     
     // ------------------------------------------------------------------------
 
-	public RecordEventData(int eventId, RecordEventHandle eventHandle, byte[] objectData) {
-		this.eventId = eventId;
-		this.eventHandle = eventHandle;
-		this.objectData = objectData;
+	public RecordEventData(RecordEventSummary eventSummary, byte[] objectData) {
+		this.eventSummary = eventSummary;
+		this.objectDataBytes = objectData;
 	}
 
 	// ------------------------------------------------------------------------
 
 	public int getEventId() {
-		return eventId;
+		return eventSummary.getEventId();
 	}
 	
-	public RecordEventHandle getEventHandle() {
-		return eventHandle;
+	public RecordEventSummary getEventSummary() {
+		return eventSummary;
+	}
+
+	public byte[] getObjectDataBytes() {
+		return objectDataBytes; // TODO return safe copy?
 	}
 
 	public Object getObjectDataCopy() {
 		if (cachedObjectCopy == null) {
-			cachedObjectCopy = byteArrayToSerializable(objectData);
+			cachedObjectCopy = byteArrayToSerializable(objectDataBytes);
 		}
 		return cachedObjectCopy;
 	}
 
-
 	// ------------------------------------------------------------------------
 	
-	/*pp*/ void setEventHandle(RecordEventHandle p) {
-		this.eventHandle = p;
+	/*pp*/ void setEventSummary(RecordEventSummary p) {
+		this.eventSummary = p;
 	}
 
 	

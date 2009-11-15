@@ -6,7 +6,7 @@ import java.util.Date;
 import javax.swing.JFrame;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventHandle;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.eventrecorder.ui.RecordEventPanel;
@@ -38,7 +38,7 @@ public class UiTestMain {
 	private static void doRecordEventObj(RecordEventStore eventStore,
 			String methodName, Serializable objData) {
 		
-		RecordEventHandle evt = new RecordEventHandle(-1);
+		RecordEventSummary evt = new RecordEventSummary(-1);
 		evt.setEventDate(new Date());
 		evt.setEventType("testEventType");
 		evt.setEventSubType("testEventSubType"); 
