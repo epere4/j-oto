@@ -1,6 +1,7 @@
 package com.google.code.joto.eventrecorder.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -40,6 +41,7 @@ public class ScrolledTextPane {
 		scrollPane = new JScrollPane(textPane, 
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		setPreferredScrollableSize(new Dimension(350, 550));
 		mainPanel.add(BorderLayout.CENTER, scrollPane);
 		
 		southToolBar = new JToolBar();
@@ -66,6 +68,10 @@ public class ScrolledTextPane {
 
 	public JComponent getJComponent() {
 		return mainPanel;
+	}
+	
+	public void setPreferredScrollableSize(Dimension preferredSize) {
+		scrollPane.setPreferredSize(preferredSize);
 	}
 	
 	public void clearText() {

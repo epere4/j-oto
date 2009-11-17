@@ -26,8 +26,6 @@ public class EventRecorderModel {
 
 	private RecordEventStore eventStore;
 	
-	private RecordEventSwingRedispatcher swingEventListenerAdapter;
-	
 	//-------------------------------------------------------------------------
 
 	public EventRecorderModel(RecordEventStore eventStore) {

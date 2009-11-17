@@ -1,29 +1,32 @@
 package com.google.code.joto.util.io;
 
 import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.Externalizable;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
- * helper class for encoding/decoding String in a contextual compressed way
+ * helper class for encoding/decoding ObjectStreamClass in a contextual compressed way
  */
-public class IdToStringMapCompressionContext implements Externalizable {
+public class IdToObjectStreamClassCompressionContext implements Externalizable {
 	
 	private int idGenerator = 1;
-	private ArrayList<String> idToValue = new ArrayList<String>();
-	private Map<String,Integer> valueToId = new HashMap<String,Integer>();
+	private ArrayList<ObjectStreamClass> idToValue = new ArrayList<ObjectStreamClass>();
+	private Map<Class,Integer> valueToId = new HashMap<Class,Integer>();
 
 	//-------------------------------------------------------------------------
 
-	public IdToStringMapCompressionContext() {
+	public IdToObjectStreamClassCompressionContext() {
 		clear();
 	}
 
@@ -34,13 +37,17 @@ public class IdToStringMapCompressionContext implements Externalizable {
 		valueToId.clear();
 
 		idGenerator = 1;
-		idToValue.add(null); // 0=null, real values start at index 1
+		idToValue.add(null); // add NULL value
+		
+		// TOADD register default classes ..
+		// for String,List,Integer,Boolean,...
 	}
 	
-	public void encodeContextualValue(String value, DataOutputStream out) throws IOException {
-		if (value == null) {
+	public void encodeContextualValue(ObjectStreamClass valueClassData, ObjectOutputStream out) throws IOException {
+		if (valueClassData == null) {
 			out.writeInt(0);
 		} else {
+			Class<?> value = valueClassData.forClass();
 			Integer id = valueToId.get(value);
 			if (id != null) {
 				out.writeInt(id.intValue());
@@ -50,19 +57,17 @@ public class IdToStringMapCompressionContext implements Externalizable {
 				// it is "better" to use a marker for newly generated value
 				// benefit: the context can re-read encoded values, by itself or others
 				// even it would be no more a "newly" generated id/value
-				int newid = idGenerator++;
-				id = Integer.valueOf(newid);
-				idToValue.add(value);
-				valueToId.put(value, id);
+				
+				int newid = addNewValue(valueClassData);
 				
 				out.writeInt(-newid); // with negative sign!
-				out.writeUTF(value);
+				doWriteValue(valueClassData, out);
 			}
 		}
 	}
 
-	public String decodeContextualValue(DataInputStream in) throws IOException {
-		String res; 
+	public ObjectStreamClass decodeContextualValue(ObjectInputStream in) throws IOException {
+		ObjectStreamClass res; 
 		int id = in.readInt();
 		if (id == 0) {
 			res = null;
@@ -72,7 +77,9 @@ public class IdToStringMapCompressionContext implements Externalizable {
 		} else { // id < 0
 			// "-id,value"
 			id = -id;
-			res = in.readUTF();
+			res = doReadValue(in);
+			
+			Class value = res.forClass();
 			// register newly id (not needed when re-reading from context)
 			if (id > idGenerator) {
 				idGenerator = id + 1; //??
@@ -83,11 +90,40 @@ public class IdToStringMapCompressionContext implements Externalizable {
 					}
 				}
 				idToValue.set(id, res);
-				valueToId.put(res, Integer.valueOf(id));
+				valueToId.put(value, Integer.valueOf(id));
 			} // else re-read value.. 
 		}
 		return res;
 	}
+
+	
+	private ObjectStreamClass doReadValue(DataInput in) throws IOException {
+		ObjectStreamClass res;
+		String className = in.readUTF(); // TODO decode read real ObjectStreamClass instead of className?... cf corresponding doWriteValue()
+		Class clss;
+		try {
+			clss = Class.forName(className);
+		} catch(Exception ex) {
+			throw new InvalidClassException(className);
+		}
+		res = ObjectStreamClass.lookup(clss);
+		return res;
+	}
+
+	private void doWriteValue(ObjectStreamClass classData, DataOutput out) throws IOException {
+		Class<?> value = classData.forClass();
+		out.writeUTF(value.getName()); // TODO encode real valueClassData instead of name??? .. cf corresponding doReadValue()
+	}
+
+	// ObjectStreamClass classData = ObjectStreamClass.lookup(value);
+	protected int addNewValue(ObjectStreamClass classData) {
+		int newid = idGenerator++;
+		idToValue.add(classData);
+		Class<?> value = classData.forClass();
+		valueToId.put(value, Integer.valueOf(newid));
+		return newid;
+	}
+
 
 	// -------------------------------------------------------------------------
 	
@@ -117,8 +153,8 @@ public class IdToStringMapCompressionContext implements Externalizable {
 		int size = idToValue.size();
 		out.writeInt(size);
 		for (int i = 1; i < size; i++) {
-			String str = idToValue.get(i);
-			out.writeUTF(str);
+			ObjectStreamClass valueClassData = idToValue.get(i);
+			doWriteValue(valueClassData, out);
 		}
 	}
 	
@@ -130,22 +166,44 @@ public class IdToStringMapCompressionContext implements Externalizable {
 		idGenerator = in.readInt();
 		int size = in.readInt();
 		for (int i = 1; i < size; i++) {
-			String str = in.readUTF();
-			idToValue.add(str);
-			valueToId.put(str, Integer.valueOf(i));
+			ObjectStreamClass valueClassData = doReadValue(in);
+			Class<?> value = valueClassData.forClass();
+			idToValue.add(valueClassData);
+			valueToId.put(value, Integer.valueOf(i));
 		}
 	}
 
+
 	// override java.lang.Object / debugging helper
 	// -------------------------------------------------------------------------
+	
+	@Override
+	public String toString() {
+		return "IdToObjectStreamClassCompressionContext[size:" + toStringSize() + "]";
+	}
 	
 	public String toStringSize() {
 		return String.valueOf(idGenerator);
 	}
 
 	@Override
-	public String toString() {
-		return "IdToStringCompressionContext[size:" + toStringSize() + "]";
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		IdToObjectStreamClassCompressionContext other = (IdToObjectStreamClassCompressionContext) obj;
+		if (idGenerator != other.idGenerator)
+			return false;
+		if (idToValue == null) {
+			if (other.idToValue != null)
+				return false;
+		} else if (!idToValue.equals(other.idToValue))
+			return false;
+		return true;
 	}
-	
+
+
 }

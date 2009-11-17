@@ -1,5 +1,6 @@
 package com.google.code.joto.eventrecorder.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,8 +69,8 @@ public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
 	}
 
 	
-	protected RecordEventData doAddEvent(RecordEventSummary eventInfo, byte[] data) {
-		RecordEventData eventData = createNewEventData(eventInfo, data);
+	protected RecordEventData doAddEvent(RecordEventSummary eventInfo, Serializable objData) {
+		RecordEventData eventData = createNewEventData(eventInfo, objData);
 		eventDataList.add(eventData);
 		return eventData;
 	}

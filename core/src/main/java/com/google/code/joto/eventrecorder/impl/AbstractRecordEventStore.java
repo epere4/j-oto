@@ -22,7 +22,8 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 	
-	protected boolean readonly;
+	protected boolean canRead;
+	protected boolean canWriteAppend;
 	
 	
 	private List<RecordEventListener> listeners = new ArrayList<RecordEventListener>();
@@ -45,14 +46,37 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 	// ------------------------------------------------------------------------
 	
 	@Override
-	public void open(boolean appendOtherwiseReadonly) {
-		this.readonly = !appendOtherwiseReadonly;
-		// do nothing
+	public void open(String mode) {
+		setMode(mode);
 	}
 	
+	protected void setMode(String mode) {
+		if (mode.equals("ra")) {
+			canRead = true;
+			canWriteAppend = true;
+		} else if (mode.equals("rw")) {
+			canRead = true;
+			canWriteAppend = true;
+		} else if (mode.equals("r")) {
+			canRead = true;
+			canWriteAppend = false;
+		} else {
+			throw new IllegalArgumentException("invalid mode '" + mode + "', expecting one of { ra, rw, r }");
+		}
+	}
+	
+	public boolean getCanRead() {
+		return canRead;
+	}
+
+	public boolean getCanWriteAppend() {
+		return canWriteAppend;
+	}
+
 	@Override
 	public void close() {
-		// do nothing
+		canRead = false;
+		canWriteAppend = false;
 	}
 
 	@Override
@@ -84,9 +108,16 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 		return lastEventId - count;
 	}
 
+	protected void initSetFirstEventId(int p) {
+		this.firstEventId = p;
+	}
+	
+	protected void setLastEventId(int p) {
+		this.lastEventId = p;
+	}
 	
 	protected TruncateRecordEventStoreEvent onTruncateSetFirstEventId(int p, List<RecordEventSummary> optTruncatedEvents) {
-		int truncateFromEventId = firstEventId;  
+		int truncateFromEventId = firstEventId;
 		this.firstEventId = p;
 		// TODO sanity check if optTruncatedEvents is given...
 		return new TruncateRecordEventStoreEvent(truncateFromEventId, firstEventId, optTruncatedEvents); 
@@ -123,18 +154,13 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 		addRecordEventListener(listener);
 	}
 	
-	public RecordEventData addEvent(RecordEventSummary info, Serializable objectData) {
-		byte[] data = RecordEventData.serializableToByteArray(objectData);
-		return addEvent(info, data);
-	}
-	
-	public synchronized RecordEventData addEvent(RecordEventSummary event, byte[] data) {
-		RecordEventData eventData = doAddEvent(event, data);
+	public synchronized RecordEventData addEvent(RecordEventSummary event, Serializable objData) {
+		RecordEventData eventData = doAddEvent(event, objData);
 		fireStoreEvent(new AddRecordEventStoreEvent(eventData));
 		return eventData;
 	}
 
-	protected abstract RecordEventData doAddEvent(RecordEventSummary info, byte[] data);
+	abstract RecordEventData doAddEvent(RecordEventSummary eventInfo, Serializable objData);
 
 	protected static List<RecordEventSummary> eventDataListToEventHandleList(List<RecordEventData> eventDataList) {
 		List<RecordEventSummary> res = new ArrayList<RecordEventSummary>();
@@ -144,10 +170,10 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 		return res;
 	}
 	
-	protected RecordEventData createNewEventData(RecordEventSummary eventInfo, byte[] data) {
+	protected RecordEventData createNewEventData(RecordEventSummary eventInfo, Object objData) {
 		int newEventId = lastEventId++;
 		RecordEventSummary event = new RecordEventSummary(newEventId, eventInfo);
-		RecordEventData eventData = new RecordEventData(event, data);
+		RecordEventData eventData = new RecordEventData(event, objData);
 		return eventData;
 	}
 	
