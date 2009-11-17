@@ -59,7 +59,7 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 		EventMethodRequestData requestData = (EventMethodRequestData) 
 			eventRequestData.getObjectData();
 		assertNotNull(requestData);
-		assertTrue(requestData.getExpr() != d.impl && requestData.getExpr().getClass() == d.impl.getClass()); // serialied obj => different instance!
+		assertTrue(requestData.getExpr().getClass() == d.impl.getClass());
 		Method methodSimple;
 		try {
 			methodSimple = IFoo.class.getMethod("methSimple", new Class[] { String.class, int.class} );
