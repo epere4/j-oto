@@ -102,11 +102,11 @@ public class RecordEventPanel {
 		XStream xstream = new XStream();
 		for(RecordEventData eventData : eventDataList) {
 			RecordEventSummary eventHandle = eventData.getEventSummary();
-			Object objectDataCopy = eventData.getObjectDataCopy();
+			Object objectData = eventData.getObjectData();
 			writer.append(eventHandle.getEventMethodName());
 			writer.append("\n");
 
-			xstream.toXML(objectDataCopy, writer);
+			xstream.toXML(objectData, writer);
 			writer.append("\n");
 			
 			writer.append("\n");
@@ -119,13 +119,13 @@ public class RecordEventPanel {
 		ObjectToCodeGenerator objToCode = new ObjectToCodeGenerator();
 		for(RecordEventData eventData : eventDataList) {
 			RecordEventSummary eventHandle = eventData.getEventSummary();
-			Object objectDataCopy = eventData.getObjectDataCopy();
+			Object objectData = eventData.getObjectData();
 
 			sb.append("meth:" + eventHandle.getEventMethodName() + "\n");
 			sb.append("\n");
 			sb.append("code: {\n\n");
 			
-			String stmtsStr = objToCode.objToStmtsString(objectDataCopy, "eventData");
+			String stmtsStr = objToCode.objToStmtsString(objectData, "eventData");
 			sb.append(stmtsStr);
 			
 			sb.append("\n} // code\n");

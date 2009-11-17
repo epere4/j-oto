@@ -1,5 +1,6 @@
 package com.google.code.joto.eventrecorder;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -7,7 +8,12 @@ import java.util.List;
  */
 public interface RecordEventStore {
 
-	public void open(boolean appendOtherwiseReadonly);
+	/**
+	 * @param mode one of "ra" (default = read+append), 
+	 *  "rw" (read+append after initial clear file),
+	 *  "r"  (readonly) 
+	 */
+	public void open(String mode);
 	public void close();
 	public void flush();
 
@@ -26,11 +32,12 @@ public interface RecordEventStore {
 	public List<RecordEventSummary> getEvents(int fromEventId, int toEventId);
 	
 	/**
-	 * get the "heavy" info for a light event ... the real serializable data is returned here!
-	 * @param handle
+	 * get the "heavy" info for a light event
+	 * ... the real serializable data is returned here!
+	 * @param event
 	 * @return
 	 */
-	public RecordEventData getEventData(RecordEventSummary handle);
+	public RecordEventData getEventData(RecordEventSummary event);
 
 	
 	/**
@@ -44,7 +51,7 @@ public interface RecordEventStore {
 	 * You should typically call this only from helper class RecordEventStoreGenerator,
 	 * which can offer simpler api methods, and can be enabled/disabled at runtime. 
 	 */
-	public RecordEventData addEvent(RecordEventSummary info, byte[] data);
+	public RecordEventData addEvent(RecordEventSummary eventInfo, Serializable objData);
 
 	/**
 	 * synchronized method to call <code>addRecordEventListener(listener) + getEvents(fromEventId, -1)</code> 

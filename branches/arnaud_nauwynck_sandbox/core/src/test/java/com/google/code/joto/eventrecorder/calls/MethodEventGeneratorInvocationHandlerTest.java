@@ -57,7 +57,7 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 		RecordEventData eventRequestData = d.eventStore.getEventData(eventRequest);
 		assertNotNull(eventRequestData);
 		EventMethodRequestData requestData = (EventMethodRequestData) 
-			eventRequestData.getObjectDataCopy();
+			eventRequestData.getObjectData();
 		assertNotNull(requestData);
 		assertTrue(requestData.getExpr() != d.impl && requestData.getExpr().getClass() == d.impl.getClass()); // serialied obj => different instance!
 		Method methodSimple;
@@ -76,7 +76,7 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 		RecordEventData eventResponseData = d.eventStore.getEventData(eventResponse);
 		assertNotNull(eventResponseData);
 		EventMethodResponseData responseData = (EventMethodResponseData) 
-			eventResponseData.getObjectDataCopy();
+			eventResponseData.getObjectData();
 		assertNotNull(responseData);
 		assertEquals(eventRequest.getEventId(), responseData.getRequestEventId());
 		assertEquals("test1", responseData.getResult());

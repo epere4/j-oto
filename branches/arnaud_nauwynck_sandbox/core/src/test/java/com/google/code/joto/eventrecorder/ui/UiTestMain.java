@@ -8,7 +8,6 @@ import javax.swing.JFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
@@ -48,10 +47,8 @@ public class UiTestMain {
 		evt.setEventSubType("testEventSubType"); 
 		evt.setEventMethodName(methodName);
 
-		byte[] objDataBytes = RecordEventData.serializableToByteArray(objData);
-		
 		try {
-			eventStore.addEvent(evt, objDataBytes);
+			eventStore.addEvent(evt, objData);
 		} catch(Exception ex) {
 			log.warn("Failed to serialize?.. ignore", ex);
 		}

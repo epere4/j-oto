@@ -1,5 +1,6 @@
 package com.google.code.joto.eventrecorder.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +37,8 @@ public class CyclicBufferRecordEventStore extends DefaultMemoryRecordEventStore 
 	// ------------------------------------------------------------------------
 	
 	@Override
-	public synchronized RecordEventData addEvent(RecordEventSummary eventInfo, byte[] data) {
-		RecordEventData eventData = doAddEvent(eventInfo, data);
+	public synchronized RecordEventData addEvent(RecordEventSummary eventInfo, Serializable objData) {
+		RecordEventData eventData = doAddEvent(eventInfo, objData);
 		
 		AddRecordEventStoreEvent addEvent = new AddRecordEventStoreEvent(eventData);
 		if (maxEventCount != -1 || eventDataList.size() < maxEventCount) {

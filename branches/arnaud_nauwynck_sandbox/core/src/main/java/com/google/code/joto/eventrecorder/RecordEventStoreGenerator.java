@@ -35,9 +35,8 @@ public class RecordEventStoreGenerator {
 		if (!enableGenerator) {
 			return -1;
 		}
-		byte[] objDataBytes = RecordEventData.serializableToByteArray(objData);
-		int res = eventStore.addEvent(info, objDataBytes).getEventId();
-		return res;
+		RecordEventData eventData = eventStore.addEvent(info, objData);
+		return eventData.getEventId();
 	}
 	
 	
