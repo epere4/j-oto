@@ -14,8 +14,8 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.MapValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveFieldValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectArrayValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectFieldValueNode;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
 import com.google.code.joto.reflect.ReflectUtils;
 import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 
@@ -51,7 +51,7 @@ public class ObjectToValueHolderBuilder {
 			if (compType.isPrimitive()) {
 				return casePrimitiveArray((Object[]) obj);
 			} else {
-				return caseRefObjectArray((Object[]) obj);
+				return caseRefArray((Object[]) obj);
 			}
 		} if (obj instanceof Collection) {
 			return caseCollection((Collection) obj);
@@ -98,16 +98,16 @@ public class ObjectToValueHolderBuilder {
 		return res;
 	}
 
-	protected RefObjectArrayValueHolder caseRefObjectArray(Object[] obj) {
+	protected RefArrayValueHolder caseRefArray(Object[] obj) {
 		if (obj == null) {
 			return null;
 		}
-		RefObjectArrayValueHolder res = (RefObjectArrayValueHolder) identityMap.get(obj);
+		RefArrayValueHolder res = (RefArrayValueHolder) identityMap.get(obj);
 		if (res == null) {
-			res = new RefObjectArrayValueHolder(obj.getClass(), obj.length);
+			res = new RefArrayValueHolder(obj.getClass(), obj.length);
 			identityMap.put(obj, res);
 
-			caseRefObjectArray(obj, res);
+			caseRefArray(obj, res);
 		}
 		return res;
 	}
@@ -156,8 +156,8 @@ public class ObjectToValueHolderBuilder {
 						(PrimitiveFieldValueHolder) fvh;
 					fvh2.setValue(value);
 				} else {
-					RefObjectFieldValueNode fvh2 =
-						(RefObjectFieldValueNode) fvh;
+					RefFieldValueHolder fvh2 =
+						(RefFieldValueHolder) fvh;
 					//.. recurse
 					AbstractObjectValueHolder valueHolder = buildValue(value);
 					fvh2.setTo(valueHolder);
@@ -215,7 +215,7 @@ public class ObjectToValueHolderBuilder {
 		}
 	}
 
-	protected void caseRefObjectArray(final Object[] obj, final RefObjectArrayValueHolder valueHolder) {
+	protected void caseRefArray(final Object[] obj, final RefArrayValueHolder valueHolder) {
 		int len = obj.length;
 		for (int i = 0; i < len; i++) {
 			AbstractObjectValueHolder eltVH = buildValue(obj[i]);
@@ -226,7 +226,7 @@ public class ObjectToValueHolderBuilder {
 	protected void caseCollection(Collection obj, CollectionValueHolder valueHolder) {
 		for(Object objElt : obj) {
 			AbstractObjectValueHolder eltVH = buildValue(objElt);
-			valueHolder.addElt(eltVH);
+			valueHolder.addRefElt(eltVH);
 		}
 	}
 

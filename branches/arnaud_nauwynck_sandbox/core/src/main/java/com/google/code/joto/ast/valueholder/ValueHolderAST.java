@@ -90,7 +90,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	}
 	
 	/**
-	 *
+	 * This class is the parent-classes for all kind of "pointer" in the ValueHolder hierarchy
 	 */
 	public static abstract class RefObjectValueHolder extends ValueHolderAST {
 		
@@ -100,7 +100,12 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 		public RefObjectValueHolder(AbstractObjectValueHolder from) {
 			this.from = from;
 		}
-		
+
+		public RefObjectValueHolder(AbstractObjectValueHolder from, AbstractObjectValueHolder to) {
+			this(from);
+			setTo(to);
+		}
+
 		public final AbstractObjectValueHolder getTo() {
 			return to;
 		}
@@ -202,14 +207,16 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			if (fieldType.isPrimitive()) {
 				res = new PrimitiveFieldValueHolder(this, field);
 			} else {
-				res = new RefObjectFieldValueNode(this, field);
+				res = new RefFieldValueHolder(this, field);
 			}
 			return res;
 		}
 	}
 
 	/**
-	 * 
+	 * this interface is a technical atifact to do emulate "multiple inheritance":
+	 * PrimitiveField .. extends ValueHolderAST
+	 * RefField .. extends RefValueHolder    
 	 */
 	public static interface FieldValueHolder {
 		ValueHolderAST getThisValueHolder();
@@ -257,12 +264,12 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class PrimitiveFieldValueHolder<T> extends ValueHolderAST implements FieldValueHolder { // extends AbstractFieldValueHolder 
+	public static class PrimitiveFieldValueHolder extends ValueHolderAST implements FieldValueHolder { // extends AbstractFieldValueHolder 
 	    
 		protected final ObjectValueHolder parent;
 		protected final Field field;
 
-		private T value;
+		private Object value;
 		
 		public PrimitiveFieldValueHolder(ObjectValueHolder parent, Field field) {
 			this.parent = parent;
@@ -293,11 +300,11 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			return field.getType();
 		}
 
-		public T getValue() {
+		public Object getValue() {
 			return value;
 		}
 
-		public void setValue(T value) {
+		public void setValue(Object value) {
 			checkValueForPrimitiveType(value, field.getType());
 			this.value = value;
 		}
@@ -308,11 +315,11 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class RefObjectFieldValueNode extends RefObjectValueHolder implements FieldValueHolder {
+	public static class RefFieldValueHolder extends RefObjectValueHolder implements FieldValueHolder {
 
 		protected final Field field;
 		
-		public RefObjectFieldValueNode(ObjectValueHolder parent, Field field) {
+		public RefFieldValueHolder(ObjectValueHolder parent, Field field) {
 			super(parent);
 			this.field = field;
 		}
@@ -348,11 +355,11 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class ImmutableObjectValueHolder<T> extends AbstractObjectValueHolder {
+	public static class ImmutableObjectValueHolder extends AbstractObjectValueHolder {
 		
-		private final T value;
+		private final Object value;
 
-		public ImmutableObjectValueHolder(T value) {
+		public ImmutableObjectValueHolder(Object value) {
 			super(value.getClass());
 			this.value = value;
 		}
@@ -367,12 +374,9 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			return v.caseImmutableObjectValue(this, a);
 		}
 
-		public T getValue() {
+		public Object getValue() {
 			return value;
 		}
-		
-		
-		
 		
 	}
 
@@ -425,7 +429,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class PrimitiveArrayValueHolder<T> extends ObjectValueHolder {
+	public static class PrimitiveArrayValueHolder<T> extends AbstractObjectValueHolder {
 
  		private Class<?> componentWrapperType;
 		private PrimitiveArrayEltValueHolder[] holderArray;
@@ -474,171 +478,179 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class RefObjectArrayEltValueHolder<T> extends ValueHolderAST {
-	    
-		private RefObjectArrayValueHolder<T> parent;
+	public static class ArrayEltRefValueHolder extends RefObjectValueHolder {
+
+		// cf super: ObjectArrayValueHolder from
 		private int index;
 		
-		private AbstractObjectValueHolder value;
-		
-		public RefObjectArrayEltValueHolder(RefObjectArrayValueHolder<T> parent, int index) {
-			this.parent = parent;
+		public ArrayEltRefValueHolder(RefArrayValueHolder from, int index) {
+			super(from);
 			this.index = index;
 		}
 
 		public void visit(ValueHolderVisitor v) {
-			v.caseRefObjectArrayElt(this);
+			v.caseRefArrayElt(this);
 		}		
 
 		@Override
 		public <R,A> R visit(ValueHolderVisitor2<R,A> v, A a) {
-			return v.caseRefObjectArrayElt(this, a);
+			return v.caseRefArrayElt(this, a);
 		}
 
-		public RefObjectArrayValueHolder getParent() {
-			return parent;
+		public RefArrayValueHolder getFromArray() {
+			return (RefArrayValueHolder) super.getFrom();
 		}
 
 		public int getIndex() {
 			return index;
 		}
 		
-		public AbstractObjectValueHolder getValue() {
-			return value;
-		}
-
-		public void setValue(AbstractObjectValueHolder p) {
-			this.value = p;
-		}
-
 	}
 
 	/**
 	 * 
 	 */
-	public static class RefObjectArrayValueHolder<T> extends AbstractObjectValueHolder {
+	public static class RefArrayValueHolder extends AbstractObjectValueHolder {
 	    
-		private RefObjectArrayEltValueHolder[] holderArray;
+		private ArrayEltRefValueHolder[] elts;
 		
-		public RefObjectArrayValueHolder(Class<T[]> arrayType, int len) {
+		public RefArrayValueHolder(Class<?> arrayType, int len) {
 			super(arrayType);
-			holderArray = new RefObjectArrayEltValueHolder[len];
+			elts = new ArrayEltRefValueHolder[len];
 			for (int i = 0; i < len; i++) {
-				holderArray[i] = new RefObjectArrayEltValueHolder(this, i);
+				elts[i] = new ArrayEltRefValueHolder(this, i);
 			}
 		}
 
 		@Override
 		public void visit(ValueHolderVisitor v) {
-			v.caseRefObjectArray(this);
+			v.caseRefArray(this);
 		}		
 
 		@Override
 		public <R,A> R visit(ValueHolderVisitor2<R,A> v, A a) {
-			return v.caseRefObjectArray(this, a);
+			return v.caseRefArray(this, a);
 		}
 
-		public RefObjectArrayEltValueHolder[] getHolderArray() {
-			return holderArray;
+		public ArrayEltRefValueHolder[] getEltRefs() {
+			return elts;
 		}
 
-		public RefObjectArrayEltValueHolder getHolderArrayEltAt(int index) {
-			return holderArray[index];
+		public AbstractObjectValueHolder[] getElts() {
+			int len = elts.length;
+			AbstractObjectValueHolder[] res = new AbstractObjectValueHolder[len];
+			for (int i = 0; i < len; i++) {
+				res[i] = elts[i].getTo();
+			}
+			return res;
+		}
+
+		public ArrayEltRefValueHolder getHolderArrayEltAt(int index) {
+			return elts[index];
 		}
 		
 		public void setValueAt(int index, AbstractObjectValueHolder value) {
-			RefObjectArrayEltValueHolder h = getHolderArrayEltAt(index);
-			h.setValue(value);
+			ArrayEltRefValueHolder h = getHolderArrayEltAt(index);
+			h.setTo(value);
 		}
 
 		public AbstractObjectValueHolder getValueAt(int index) {
-			RefObjectArrayEltValueHolder h = getHolderArrayEltAt(index);
-			return h.getValue();
+			ArrayEltRefValueHolder h = getHolderArrayEltAt(index);
+			return h.getTo();
 		}
 
 	}
 
 
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * 
 	 */
-	public static class CollectionValueHolder<T> extends ObjectValueHolder {
+	public static class CollectionValueHolder extends ObjectValueHolder {
 		
-		private Collection<AbstractObjectValueHolder> elts;
+		private Collection<CollectionEltRefValueHolder> elts;
 		
 		public CollectionValueHolder() {
-			this(ArrayList.class, new ArrayList<AbstractObjectValueHolder>());
+			this(ArrayList.class, new ArrayList<CollectionEltRefValueHolder>());
 		}
 
-		public CollectionValueHolder(Class type, Collection<AbstractObjectValueHolder> value) {
+		public CollectionValueHolder(Class type, Collection<CollectionEltRefValueHolder> value) {
 			super(type);
 			this.elts = value;
 		}
 
+		@Override
 		public void visit(ValueHolderVisitor v) {
-			v.caseCollectionObject(this);
+			v.caseCollection(this);
 		}		
 
 		@Override
 		public <R,A> R visit(ValueHolderVisitor2<R,A> v, A a) {
-			return v.caseCollectionObject(this, a);
+			return v.caseCollection(this, a);
 		}
 		
-		public Collection<AbstractObjectValueHolder> getElts() {
+		public Collection<CollectionEltRefValueHolder> getEltRefs() {
 			return elts;
 		}
 
-		public void setElts(Collection<AbstractObjectValueHolder> p) {
-			this.elts = p;
+		public Collection<AbstractObjectValueHolder> getElts() {
+			Collection<AbstractObjectValueHolder> res = new ArrayList(elts.size());
+			for(CollectionEltRefValueHolder elt : elts) {
+				res.add(elt.getTo());
+			}
+			return res;
 		}
 
-		public void addElt(AbstractObjectValueHolder p) {
-			elts.add(p);
+//		public void setElts(Collection<RefObjectValueHolder> p) {
+//			this.elts = p;
+//		}
+
+		public void addRefElt(AbstractObjectValueHolder p) {
+			CollectionEltRefValueHolder elt = new CollectionEltRefValueHolder(this);
+			elts.add(elt);
 		}
 
 	}
 
 	/**
-	 *
+	 * ValuHolder for elements of CollectionValueHolder
 	 */
-	public static class MapEntryValueHolder<K,T> {
-		AbstractObjectValueHolder/*<K>*/ key;
-		AbstractObjectValueHolder/*<T>*/ value;
+	public static class CollectionEltRefValueHolder extends RefObjectValueHolder {
+
+		// cf super: CollectionValueHolder from
+		// 
+		public CollectionEltRefValueHolder(CollectionValueHolder from) {
+			super(from);
+		}
 		
-		public MapEntryValueHolder(AbstractObjectValueHolder key,
-				AbstractObjectValueHolder value) {
-			super();
-			this.key = key;
-			this.value = value;
+		public CollectionEltRefValueHolder(CollectionValueHolder from, AbstractObjectValueHolder to) {
+			this(from);
+			setTo(to);
 		}
 
-		public AbstractObjectValueHolder getKey() {
-			return key;
+		@Override
+		public void visit(ValueHolderVisitor v) {
+			v.caseCollectionElt(this);
 		}
 
-		public void setKey(AbstractObjectValueHolder key) {
-			this.key = key;
+		@Override
+		public <R, A> R visit(ValueHolderVisitor2<R, A> v, A arg) {
+			return v.caseCollectionElt(this, arg);
 		}
-
-		public AbstractObjectValueHolder getValue() {
-			return value;
-		}
-
-		public void setValue(AbstractObjectValueHolder value) {
-			this.value = value;
-		}
-
 		
 	}
+	
+
+	// -------------------------------------------------------------------------
+	
 	
 	/**
 	 * 
 	 */
-	public static class MapValueHolder<K,T> extends ObjectValueHolder {
+	public static class MapValueHolder extends ObjectValueHolder {
 		
-		private Collection<MapEntryValueHolder<K,T>> entries;
+		private Collection<MapEntryValueHolder> entries;
 		
 		public MapValueHolder() {
 			this(HashMap.class);
@@ -646,19 +658,19 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 
 		public MapValueHolder(Class<?> type) {
 			super(type);
-			this.entries = new ArrayList<MapEntryValueHolder<K,T>>();
+			this.entries = new ArrayList<MapEntryValueHolder>();
 		}
 
 		public void visit(ValueHolderVisitor v) {
-			v.caseMapObject(this);
+			v.caseMap(this);
 		}		
 
 		@Override
 		public <R,A> R visit(ValueHolderVisitor2<R,A> v, A a) {
-			return v.caseMapObject(this, a);
+			return v.caseMap(this, a);
 		}
 		
-		public Collection<MapEntryValueHolder<K,T>> getEntries() {
+		public Collection<MapEntryValueHolder> getEntries() {
 			return entries;
 		}
 
@@ -667,10 +679,148 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 //		}
 
 		public void putEntry(AbstractObjectValueHolder/*<K>*/ key, AbstractObjectValueHolder/*<T>*/ value) {
-			MapEntryValueHolder<K,T> e = new MapEntryValueHolder<K,T>(key, value);
+			MapEntryValueHolder e = new MapEntryValueHolder(this, key, value);
 			this.entries.add(e);
 		}
 
+	}
+
+	
+	/**
+	 *
+	 */
+	public static class MapEntryValueHolder extends AbstractObjectValueHolder {
+		
+		final Map2MapEntryRefValueHolder map2MapEntryRef;
+		final MapEntryKeyRefValueHolder key = new MapEntryKeyRefValueHolder(this);
+		final MapEntryValueRefValueHolder value = new MapEntryValueRefValueHolder(this);
+		
+		public MapEntryValueHolder(MapValueHolder from,
+				AbstractObjectValueHolder keyTo,
+				AbstractObjectValueHolder valueTo) {
+			super(Map.Entry.class);
+			this.map2MapEntryRef = new Map2MapEntryRefValueHolder(from, this);
+			this.key.setTo(keyTo); 
+			this.value.setTo(valueTo);
+		}
+
+		@Override
+		public void visit(ValueHolderVisitor v) {
+			v.caseMapEntry(this);
+		}
+
+		@Override
+		public <R, A> R visit(ValueHolderVisitor2<R, A> v, A arg) {
+			return v.caseMapEntry(this, arg);
+		}		
+
+		public MapValueHolder getFromMap() {
+			return map2MapEntryRef.getFromMap();
+		}
+		
+		public MapEntryKeyRefValueHolder getKeyRef() {
+			return key;
+		}
+
+		public MapEntryValueRefValueHolder getValueRef() {
+			return value;
+		}
+
+		public AbstractObjectValueHolder getValue() {
+			return value.getTo();
+		}
+
+		public AbstractObjectValueHolder getKey() {
+			return key.getTo();
+		}
+
+		public void setValueTo(AbstractObjectValueHolder valueTo) {
+			this.value.setTo(valueTo);
+		}
+
+	}
+
+	/**
+	 * 
+	 */
+	public static class Map2MapEntryRefValueHolder extends RefObjectValueHolder {
+
+		public Map2MapEntryRefValueHolder(MapValueHolder from, MapEntryValueHolder to) {
+			super(from);
+		}
+
+		@Override
+		public void visit(ValueHolderVisitor v) {
+			// internal... do nothing! v.caseMap2MapEntry(this);
+		}
+
+		@Override
+		public <R, A> R visit(ValueHolderVisitor2<R, A> v, A arg) {
+			// internal... do nothing! return v.caseMap2MapEntry(this, arg);
+			return null;
+		}
+		
+		public MapValueHolder getFromMap() {
+			return (MapValueHolder) getFrom();
+		}
+		public MapEntryValueHolder getToMapEntry() {
+			return (MapEntryValueHolder) getTo();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	public static class MapEntryKeyRefValueHolder extends RefObjectValueHolder {
+
+		public MapEntryKeyRefValueHolder(MapEntryValueHolder from) {
+			super(from);
+		}
+
+		@Override
+		public void visit(ValueHolderVisitor v) {
+			v.caseMapEntryKey(this);
+		}
+
+		@Override
+		public <R, A> R visit(ValueHolderVisitor2<R, A> v, A arg) {
+			return v.caseMapEntryKey(this, arg);
+		}
+
+		public MapValueHolder getFromMap() {
+			return getFromMapEntry().getFromMap();
+		}
+		public MapEntryValueHolder getFromMapEntry() {
+			return (MapEntryValueHolder) getFrom();
+		}
+		
+	}
+
+	/**
+	 * 
+	 */
+	public static class MapEntryValueRefValueHolder extends RefObjectValueHolder {
+
+		public MapEntryValueRefValueHolder(AbstractObjectValueHolder from) {
+			super(from);
+		}
+
+		@Override
+		public void visit(ValueHolderVisitor v) {
+			v.caseMapEntryValue(this);
+		}
+
+		@Override
+		public <R, A> R visit(ValueHolderVisitor2<R, A> v, A arg) {
+			return v.caseMapEntryValue(this, arg);
+		}
+		
+		public MapValueHolder getFromMap() {
+			return getFromMapEntry().getFromMap();
+		}
+		public MapEntryValueHolder getFromMapEntry() {
+			return (MapEntryValueHolder) getFrom();
+		}
 	}
 
 }

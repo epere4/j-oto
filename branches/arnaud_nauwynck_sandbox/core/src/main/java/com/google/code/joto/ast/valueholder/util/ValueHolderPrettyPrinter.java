@@ -10,18 +10,21 @@ import java.util.Map;
 
 import com.google.code.joto.ast.valueholder.ValueHolderVisitor;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.FieldValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ImmutableObjectValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.MapEntryKeyRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.MapEntryValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.MapEntryValueRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.MapValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayEltValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveFieldValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectArrayEltValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectArrayValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectFieldValueNode;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectValueHolder;
 
 public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
@@ -107,6 +110,7 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 
 	// -------------------------------------------------------------------------
 	
+	@Override
 	public void caseObject(ObjectValueHolder p) {
 		indentPrintln("Object class:" + p.getObjClass().getName());
 		incrIndent();
@@ -119,13 +123,15 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 		decrIndent();
 	}
 
+	@Override
 	public void casePrimitiveField(PrimitiveFieldValueHolder node) {
 		Object value = node.getValue();
 		print(" = " + value);
 		println();
 	}
 
-	public void caseRefField(RefObjectFieldValueNode node) {
+	@Override
+	public void caseRefField(RefFieldValueHolder node) {
 		AbstractObjectValueHolder refVH = node.getTo();
 		if (refVH == null) {
 			println(" = Null");
@@ -138,7 +144,7 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 		}
 	}
 
-
+	@Override
 	public void casePrimitiveArray(PrimitiveArrayValueHolder p) {
 		PrimitiveArrayEltValueHolder[] array = p.getHolderArray();
 		int len = array.length;
@@ -153,6 +159,7 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 		println(" }");
 	}
 
+	@Override
 	public void casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p) {
 		Object valueElt = p.getValue();
 		if (valueElt != null) {
@@ -162,74 +169,103 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 		}
 	}
 	
-	public void caseRefObjectArray(RefObjectArrayValueHolder p) {
-		RefObjectArrayEltValueHolder[] array = p.getHolderArray();
+	@Override
+	public void caseRefArray(RefArrayValueHolder p) {
+		AbstractObjectValueHolder[] array = p.getElts();
 		int len = array.length;
 		indentPrintln("object array " + p.getObjClass().getComponentType().getName() + "[" + len + "] = { ");
 		for (int i = 0; i < len; i++) {
-			RefObjectArrayEltValueHolder elt = array[i];
+			AbstractObjectValueHolder elt = array[i];
 			indentPrint("elt[" + i + "/" + len + ": ");
 			elt.visit(this);
 		}
 		println(" }");
 	}
 
-	public void caseRefObjectArrayElt(RefObjectArrayEltValueHolder p) {
-		if (p.getValue() != null) {
-			visitOrPrintRef(p.getValue());
+	@Override
+	public void caseRefArrayElt(ArrayEltRefValueHolder p) {
+		if (p.getTo() != null) {
+			visitOrPrintRef(p.getTo());
 		} else {
-			print("ERROR null array elt valueHolder");
+			print("Null");
 		}
 	}
 	
+	@Override
+	public void caseImmutableObjectValue(ImmutableObjectValueHolder p) {
+		Object value = p.getValue();
+		indentPrintln("" + value.getClass().getName() + " " + value);
+	}
 	
-	public <T> void caseCollectionObject(CollectionValueHolder<T> p) {
-		Collection<AbstractObjectValueHolder> elts = p.getElts();
+
+	@Override
+	public void caseCollection(CollectionValueHolder p) {
+		Collection<CollectionEltRefValueHolder> elts = p.getEltRefs();
 		int len = elts.size();
 		indentPrintln("collection (" + p.getObjClass() + ") " + len + " elt(s)");
 		incrIndent();
 		int index = 0;
-		for(AbstractObjectValueHolder elt : elts) {
+		for(CollectionEltRefValueHolder elt : elts) {
 			indentPrint("elt[" + index + "/" + len + "]: ");
-			visitOrPrintRef(elt);
+			elt.visit(this);
 			index++;
 		}
 		decrIndent();
 	}
 
-	public <K, T> void caseMapObject(MapValueHolder<K, T> p) {
-		Collection<MapEntryValueHolder<K,T>> entries = p.getEntries();
+	@Override
+	public void caseCollectionElt(CollectionEltRefValueHolder p) {
+		visitOrPrintRef(p.getTo());
+	}
+	
+	@Override
+	public void caseMap(MapValueHolder p) {
+		Collection<MapEntryValueHolder> entries = p.getEntries();
 		int len = entries.size();
 		indentPrintln("map (" + p.getObjClass() + ") " + len + " elt(s)");
 		incrIndent();
 		int index = 0;
-		for(MapEntryValueHolder<K,T> entry : entries) {
+		for(MapEntryValueHolder entry : entries) {
 			indentPrintln("entry[" + index + "/" + len + "]:");
-			
-			incrIndent();
-			indentPrint("key ");
-			visitOrPrintRef(entry.getKey());
-			decrIndent();
-			
-			incrIndent();
-			indentPrint("value ");
-			visitOrPrintRef(entry.getValue());
-			decrIndent();
-			
+			entry.visit(this);
 			index++;
 		}
 		decrIndent();
 	}
 
+	@Override
+	public void caseMapEntry(MapEntryValueHolder p) {
+		// incrIndent();
+		// indentPrintln("mapEntry");
 
+		incrIndent();
+		p.getKey().visit(this);
+		decrIndent();		
 
-	public <T> void caseImmutableObjectValue(ImmutableObjectValueHolder<T> p) {
-		T value = p.getValue();
-		indentPrintln("" + value.getClass().getName() + " " + value);
+		incrIndent();
+		p.getValue().visit(this);
+		decrIndent();		
+
+		// decrIndent();		
 	}
+
+	
+	@Override
+	public void caseMapEntryKey(MapEntryKeyRefValueHolder p) {
+		indentPrint("mapEntry key ");
+		visitOrPrintRef(p.getTo());
+	}
+
+
+	@Override
+	public void caseMapEntryValue(MapEntryValueRefValueHolder p) {
+		indentPrint("mapEntry value ");
+		visitOrPrintRef(p.getTo());
+	}
+
 	
 	// -------------------------------------------------------------------------
-	
+
 	public void incrIndent() {
 		indent++;
 	}
