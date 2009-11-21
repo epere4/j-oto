@@ -23,18 +23,21 @@ import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarRefExpr;
 import com.google.code.joto.ast.valueholder.ValueHolderVisitor2;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.FieldValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ImmutableObjectValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.MapEntryKeyRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.MapEntryValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.MapEntryValueRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.MapValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayEltValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveFieldValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectArrayEltValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectArrayValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectFieldValueNode;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
 import com.google.code.joto.reflect.ClassDictionaryJotoInfo;
 import com.google.code.joto.reflect.ClassJotoInfo;
 import com.google.code.joto.reflect.ConstructorJotoInfo;
@@ -84,12 +87,14 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		objToInitInfo(objVH, name);
 	}
 
+	@Deprecated
 	public BeanAST caseNull(Object2ASTInfo objInfo) {
 		LiteralExpr initExpr = new LiteralExpr(null);
 		doSetObjInitExpr(objInfo, initExpr);
 		return initExpr;
 	}
 	
+	@Override
 	public BeanAST caseObject(ObjectValueHolder p, Object2ASTInfo objInfo) {
 		Class<?> objClass = p.getObjClass();
 		Map<Field,FieldValueHolder> fieldsToSet = new HashMap<Field,FieldValueHolder>(p.getFieldsValuesMap());
@@ -112,7 +117,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 					Object value = vh2.getValue();
 					valueExpr = new LiteralExpr(value);
 				} else { // (vh instanceof RefObjectFieldValueNode)
-					RefObjectFieldValueNode vh2 = (RefObjectFieldValueNode) vh;
+					RefFieldValueHolder vh2 = (RefFieldValueHolder) vh;
 					AbstractObjectValueHolder fieldVH = vh2.getTo();
 					String prefixName = field.getName();
 					valueExpr = objToLhsExpr(fieldVH, prefixName);
@@ -133,6 +138,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return initExpr;
 	}
 	
+	@Override
 	public BeanAST casePrimitiveField(PrimitiveFieldValueHolder p, Object2ASTInfo objInfo) {
 		BeanExpr lhsExpr = objToLhsExpr(objInfo);
 		BeanExpr argExpr = new LiteralExpr(p.getValue());
@@ -140,8 +146,8 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return doCaseFieldSetterExprStmt(p.getField(), lhsExpr, argExpr);
 	}
 
-
-	public BeanAST caseRefField(RefObjectFieldValueNode p, Object2ASTInfo objInfo) {
+	@Override
+	public BeanAST caseRefField(RefFieldValueHolder p, Object2ASTInfo objInfo) {
 		BeanExpr lhsExpr = objToLhsExpr(objInfo);
 		String namePrefix = p.getField().getName();
 		AbstractObjectValueHolder refVH = p.getTo();
@@ -173,7 +179,8 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 
-	public <T> BeanAST caseImmutableObjectValue(ImmutableObjectValueHolder<T> p, Object2ASTInfo objInfo) {
+	@Override
+	public BeanAST caseImmutableObjectValue(ImmutableObjectValueHolder p, Object2ASTInfo objInfo) {
 		BeanExpr initExpr;
 		if (p.getObjClass().equals(String.class)) {
 			initExpr = new LiteralExpr(p.getValue());
@@ -185,21 +192,24 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return initExpr;
 	}
 	
-	public <T> BeanAST caseCollectionObject(CollectionValueHolder<T> p, Object2ASTInfo objInfo) {
+	@Override
+	public BeanAST caseCollection(CollectionValueHolder p, Object2ASTInfo objInfo) {
 		BeanExpr initExpr = doNewDefaultObjInstanceExpr(objInfo, p);
 		doSetObjInitExpr(objInfo, initExpr);
 		
 		BeanExpr lsExpr = objToLhsExpr(objInfo);
 		String addMethodName = "add";
 		
-		Collection<AbstractObjectValueHolder> eltVHs = p.getElts();
+		Collection<CollectionEltRefValueHolder> eltVHs = p.getEltRefs();
 		String eltNamePrefix = objInfo.getVarNameWithSuffix("Elt");
 		
 		int eltIndex = 0;
-		for(AbstractObjectValueHolder eltVH : eltVHs) {
-			String indexedEltNamePrefix = eltNamePrefix + eltIndex;
+		for(CollectionEltRefValueHolder eltVH : eltVHs) {
+			String indexedEltNamePrefix = eltNamePrefix + eltIndex; // ??
 			// *** recurse ***
-			BeanExpr eltExpr = objToLhsExpr(eltVH, indexedEltNamePrefix);
+			BeanExpr eltExpr = (BeanExpr) 
+				// eltVH.visit(this, objInfo); ??? use name??
+				objToLhsExpr(eltVH.getTo(), indexedEltNamePrefix);
 			
 			MethodApplyExpr eltAddExpr = new MethodApplyExpr(lsExpr, addMethodName, eltExpr); 
 			objInfo.addInitStmt(new ExprStmt(eltAddExpr));
@@ -208,7 +218,15 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return initExpr;
 	}
 
-	public <K, T> BeanAST caseMapObject(MapValueHolder<K, T> p, Object2ASTInfo objInfo) {
+	@Override
+	public BeanAST caseCollectionElt(CollectionEltRefValueHolder p, Object2ASTInfo objInfo) {
+		// NOT USED, cf caseCollection()!
+		BeanExpr eltExpr = objToLhsExpr(p.getTo(), null);
+		return eltExpr;
+	}
+	
+	@Override
+	public BeanAST caseMap(MapValueHolder p, Object2ASTInfo objInfo) {
 		BeanExpr initExpr = doNewDefaultObjInstanceExpr(objInfo, p);
 		doSetObjInitExpr(objInfo, initExpr);
 
@@ -217,9 +235,9 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		String valueNamePrefix = objInfo.getVarNameWithSuffix("Value");
 		String putMethodName = "put";
 		
-		Collection<MapEntryValueHolder<K,T>> entryVHs = p.getEntries();
+		Collection<MapEntryValueHolder> entryVHs = p.getEntries();
 		int eltIndex = 0;
-		for(MapEntryValueHolder<K,T> entryVH : entryVHs) {
+		for(MapEntryValueHolder entryVH : entryVHs) {
 			// *** recurse ***
 			BeanExpr keyExpr = objToLhsExpr(entryVH.getKey(), keyNamePrefix);
 			BeanExpr valueExpr = objToLhsExpr(entryVH.getValue(), valueNamePrefix);
@@ -231,7 +249,27 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return initExpr;
 	}
 
+	
 
+	@Override
+	public BeanAST caseMapEntry(MapEntryValueHolder p, Object2ASTInfo arg) {
+		// NOT USED, cf caseMap()!
+		return null;
+	}
+
+	@Override
+	public BeanAST caseMapEntryKey(MapEntryKeyRefValueHolder p, Object2ASTInfo arg) {
+		// NOT USED, cf caseMap()!
+		return null;
+	}
+
+	@Override
+	public BeanAST caseMapEntryValue(MapEntryValueRefValueHolder p, Object2ASTInfo arg) {
+		// NOT USED, cf caseMap()!
+		return null;
+	}
+
+	@Override
 	public BeanAST casePrimitiveArray(PrimitiveArrayValueHolder p, Object2ASTInfo objInfo) {
 		PrimitiveArrayEltValueHolder[] arrayVH = p.getHolderArray();
 		int len = arrayVH.length;
@@ -249,19 +287,21 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 
-	public BeanAST caseRefObjectArray(RefObjectArrayValueHolder p, Object2ASTInfo objInfo) {
-		RefObjectArrayEltValueHolder[] arrayVH = p.getHolderArray();
-		int len = arrayVH.length;
+	@Override
+	public BeanAST caseRefArray(RefArrayValueHolder p, Object2ASTInfo objInfo) {
+		AbstractObjectValueHolder[] eltsVH = p.getElts();
+		int len = eltsVH.length;
 		Class<?> compClass = p.getObjClass().getComponentType();
 		BeanExpr initExpr = doNewObjectArrayExpr(compClass, len);
 		doSetObjInitExpr(objInfo, initExpr);
 		
 		String arrayEltNamePrefix = objInfo.getVarNameWithSuffix("Elt");
 		for(int i = 0; i < len; i++) {
-			RefObjectArrayEltValueHolder eltVH = arrayVH[i];
+			AbstractObjectValueHolder eltVH = eltsVH[i];
 			// *** recurse ***
-			BeanStmt eltStmt = (BeanStmt) eltVH.visit(this, arrayEltNamePrefix);
-			objInfo.addInitStmt(eltStmt);
+			BeanExpr eltExpr = objToLhsExpr(eltVH, arrayEltNamePrefix);
+			// add stmt for "array[i] = expr" 
+			// TODO NOT_IMPLEMENTED_YET ... need to add AssignementExpr and FieldExpr to AST 
 		}
 		return initExpr;
 	}
@@ -270,13 +310,15 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return null;
 	}
 
+	@Override
 	public BeanAST casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p, Object2ASTInfo objInfo) {
-		// TODO Auto-generated method stub
+		// TODO NOT_IMPLEMENTED_YET 
 		return null;
 	}
 	
-	public BeanAST caseRefObjectArrayElt(RefObjectArrayEltValueHolder p, Object2ASTInfo objInfo) {
-		// TODO Auto-generated method stub
+	@Override
+	public BeanAST caseRefArrayElt(ArrayEltRefValueHolder p, Object2ASTInfo objInfo) {
+		// TODO NOT_IMPLEMENTED_YET 
 		return null;
 	}
 
