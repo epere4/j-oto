@@ -1,6 +1,5 @@
 package com.google.code.joto.ast.beanstmt;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,6 +74,44 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 		}
 		
 	}
+	
+	/**
+	 *
+	 */
+	public static class AssignExpr extends BeanExpr {
+		private BeanExpr lhs;
+		private BeanExpr rhs;
+		
+		public AssignExpr(BeanExpr lhs, BeanExpr rhs) {
+			this.lhs = lhs;
+			this.rhs = rhs;
+		}
+
+		public void visit(BeanASTVisitor v) {
+			v.caseAssign(this);
+		}
+		
+		public <R,A> R visit(BeanASTVisitor2<R,A> v, A arg) {
+			return v.caseAssign(this, arg);
+		}
+
+		public BeanExpr getLhs() {
+			return lhs;
+		}
+
+		public BeanExpr getRhs() {
+			return rhs;
+		}
+
+		public void setRhs(BeanExpr rhs) {
+			this.rhs = rhs;
+		}
+
+		public void setLhs(BeanExpr lhs) {
+			this.lhs = lhs;
+		}
+	}
+	
 	
 	/**
 	 * 
@@ -222,12 +259,53 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class ClassExpr extends BeanExpr {
-		Class valueClss;
-
-		public ClassExpr(Class valueClss) {
+	public static class IndexedArrayExpr extends BeanExpr {
+		private BeanExpr lhs;
+		private BeanExpr index;
+		
+		public IndexedArrayExpr(BeanExpr lhs, BeanExpr index) {
 			super();
-			this.valueClss = valueClss;
+			this.lhs = lhs;
+			this.index = index;
+		}
+
+		@Override
+		public void visit(BeanASTVisitor v) {
+			v.caseIndexedArray(this);
+		}
+
+		@Override
+		public <R, A> R visit(BeanASTVisitor2<R, A> v, A arg) {
+			return v.caseIndexedArray(this, arg);
+		}
+
+		public BeanExpr getLhs() {
+			return lhs;
+		}
+
+		public void setLhs(BeanExpr lhs) {
+			this.lhs = lhs;
+		}
+
+		public BeanExpr getIndex() {
+			return index;
+		}
+
+		public void setIndex(BeanExpr index) {
+			this.index = index;
+		}
+		
+	}
+	
+	/**
+	 * 
+	 */
+	public static class ClassExpr extends BeanExpr {
+		String lhsClassName;
+
+		public ClassExpr(String lhsClassName) {
+			super();
+			this.lhsClassName = lhsClassName;
 		}
 
 		public void visit(BeanASTVisitor v) {
@@ -238,8 +316,8 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 			return v.caseClassExpr(this, arg);
 		}
 
-		public Class getValueClss() {
-			return valueClss;
+		public String getLhsClassName() {
+			return lhsClassName;
 		}
 		
 	}
@@ -248,11 +326,13 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 	 * 
 	 */
 	public static class FieldExpr extends BeanExpr {
-		Field field;
+		private BeanExpr lhs;
+		private String fieldName;
 		
-		public FieldExpr(Field field) {
+		public FieldExpr(BeanExpr lhs, String fieldName) {
 			super();
-			this.field = field;
+			this.lhs = lhs;
+			this.fieldName = fieldName;
 		}
 
 		public void visit(BeanASTVisitor v) {
@@ -262,9 +342,21 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 		public <R,A> R visit(BeanASTVisitor2<R,A> v, A arg) {
 			return v.caseFieldExpr(this, arg);
 		}
+		
+		public BeanExpr getLhs() {
+			return lhs;
+		}
 
-		public Field getField() {
-			return field;
+		public void setLhs(BeanExpr p) {
+			this.lhs = p;
+		}
+
+		public void setFieldName(String p) {
+			this.fieldName = p;
+		}
+
+		public String getFieldName() {
+			return fieldName;
 		}
 		
 	}

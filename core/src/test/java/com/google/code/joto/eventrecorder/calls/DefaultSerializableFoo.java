@@ -1,12 +1,16 @@
 package com.google.code.joto.eventrecorder.calls;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class DefaultFoo implements IFoo {
+public class DefaultSerializableFoo implements IFoo, Serializable {
+
+	/** */
+	private static final long serialVersionUID = 1L;
 
 	//-------------------------------------------------------------------------
 
-	public DefaultFoo() {
+	public DefaultSerializableFoo() {
 	}
 
 	//-------------------------------------------------------------------------
