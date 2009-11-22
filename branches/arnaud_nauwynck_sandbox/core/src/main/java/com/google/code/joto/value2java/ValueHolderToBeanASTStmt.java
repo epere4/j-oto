@@ -13,9 +13,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.google.code.joto.ast.beanstmt.BeanAST;
+import com.google.code.joto.ast.beanstmt.BeanAST.AssignExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.ExprStmt;
+import com.google.code.joto.ast.beanstmt.BeanAST.IndexedArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.LiteralExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
@@ -85,13 +87,6 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 
 	public void visitRootObject(AbstractObjectValueHolder objVH, String name) {
 		objToInitInfo(objVH, name);
-	}
-
-	@Deprecated
-	public BeanAST caseNull(Object2ASTInfo objInfo) {
-		LiteralExpr initExpr = new LiteralExpr(null);
-		doSetObjInitExpr(objInfo, initExpr);
-		return initExpr;
 	}
 	
 	@Override
@@ -300,8 +295,10 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 			AbstractObjectValueHolder eltVH = eltsVH[i];
 			// *** recurse ***
 			BeanExpr eltExpr = objToLhsExpr(eltVH, arrayEltNamePrefix);
-			// add stmt for "array[i] = expr" 
-			// TODO NOT_IMPLEMENTED_YET ... need to add AssignementExpr and FieldExpr to AST 
+			// stmt for "array[i] = expr"
+			IndexedArrayExpr lhs = new IndexedArrayExpr(initExpr, new LiteralExpr(initExpr));
+			AssignExpr assign = new AssignExpr(lhs, eltExpr); 
+			objInfo.addInitStmt(new ExprStmt(assign));
 		}
 		return initExpr;
 	}
@@ -366,6 +363,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 	protected BeanExpr objToLhsExpr(AbstractObjectValueHolder objVH, String optGeneratePrefixName) {
+		if (objVH == null) return new LiteralExpr(null);
 		Object2ASTInfo objInfo = objToInitInfo(objVH);
 		if (objInfo.getVarName() == null) {
 			if (optGeneratePrefixName == null) {

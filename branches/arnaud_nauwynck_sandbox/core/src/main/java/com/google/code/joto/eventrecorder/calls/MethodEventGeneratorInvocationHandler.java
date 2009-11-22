@@ -21,6 +21,8 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 	private String requestEventSubType;
 	private String responseEventSubType;
 	
+	private ObjectReplacementMap objectReplacementMap;
+	
 	//-------------------------------------------------------------------------
 
 	public MethodEventGeneratorInvocationHandler(Object target,
@@ -36,9 +38,19 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 		this.responseEventSubType = responseEventSubType;
 	}
 
+	
 	//-------------------------------------------------------------------------
 
 	
+	public ObjectReplacementMap getObjectReplacementMap() {
+		return objectReplacementMap;
+	}
+
+	public void setObjectReplacementMap(ObjectReplacementMap p) {
+		this.objectReplacementMap = p;
+	}
+
+
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		final String methodName = method.getName();
@@ -61,7 +73,13 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 		int requestEventId = -1;
 		if (enable) {
 			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
-			EventMethodRequestData objData = new EventMethodRequestData(target, method, args);
+			Object replTarget = target;
+			Object[] replArgs = args; // TODO not required to replace arg sin current version?
+			if (objectReplacementMap != null) {
+				replTarget = objectReplacementMap.checkReplace(replTarget);
+				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
+			}
+			EventMethodRequestData objData = new EventMethodRequestData(replTarget, method, replArgs);
 			requestEventId = eventGenerator.addEvent(evt, objData);
 		}
 
@@ -71,7 +89,12 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 
 			if (enable && requestEventId != -1) {
 				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
-				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, res, null);
+				
+				Object replRes = res;
+				if (objectReplacementMap != null) {
+					replRes = objectReplacementMap.checkReplace(res);
+				}
+				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, replRes, null);
 				eventGenerator.addEvent(evt, objData);
 			}
 			return res;

@@ -9,8 +9,9 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.testobj.SerializableObj;
 
@@ -20,6 +21,21 @@ import com.google.code.joto.testobj.SerializableObj;
  */
 public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 
+	public static IFoo createFooProxyRecorder(IFoo targetObjCallToRecord, RecordEventStore eventStore) {
+		RecordEventStoreGenerator eventGen = new RecordEventStoreGenerator(eventStore); 
+		return createFooProxyRecorder(targetObjCallToRecord, eventGen);
+	}
+
+	public static IFoo createFooProxyRecorder(IFoo targetObjCallToRecord, RecordEventStoreGenerator eventGen) {
+		ClassLoader classLoader = targetObjCallToRecord.getClass().getClassLoader();
+		InvocationHandler h = 
+			new MethodEventGeneratorInvocationHandler(targetObjCallToRecord, eventGen, 
+						"methCall", "request", "response");
+						// TOADD eventMethodDetail... add name of obj?
+		IFoo fooProxy = (IFoo) Proxy.newProxyInstance(classLoader, new Class[] { IFoo.class }, h );
+		return fooProxy;
+	}
+
 	private static class TestData {
 		IFoo impl;
 		DefaultMemoryRecordEventStore eventStore;
@@ -27,15 +43,10 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 		IFoo fooProxy;
 		
 		public TestData() {
-			impl = new DefaultFoo();
-			
+			impl = new DefaultSerializableFoo();
 			eventStore = new DefaultMemoryRecordEventStore();
 			eventGen = new RecordEventStoreGenerator(eventStore); 
-			
-			ClassLoader classLoader = getClass().getClassLoader();
-			InvocationHandler h = 
-				new MethodEventGeneratorInvocationHandler(impl, eventGen, "foo proxy", "request", "response");
-			fooProxy = (IFoo) Proxy.newProxyInstance(classLoader, new Class[] { IFoo.class }, h );
+			fooProxy = createFooProxyRecorder(impl, eventGen);
 		}
 	}
 	
@@ -91,23 +102,27 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 		TestData d = new TestData();
 		IFoo fooProxy = d.fooProxy;
 		
-		fooProxy.methVoid(1);
-		fooProxy.methVoidFromPrimitives(1, 1.0f, 1.0, 'a', true, (byte)0);
-		fooProxy.methVoidFromPrimitivesArrays(new int[] { 1 }, new float[] { 1.0f }, new double[]{ 1.0 }, new char[] { 'a' }, new boolean[] { true }, new byte[] { (byte)1 });
-		fooProxy.methVoidFromObj(new SerializableObj(), "a", new Date(), Integer.valueOf(1), new Float(1.0f), new Double(1.0));
-		fooProxy.methVoidFromObjArrays(new Object[] { new SerializableObj() }, new String[] { "a" }, new Date[] { new Date() } , new Integer[] {new Integer(1)}, new Float[] { new Float(1.0f) } , new Double[] { new Double(1.0) } );
+		doCallFooMethods(fooProxy);
 		
-		fooProxy.methInt();
-		fooProxy.methFloat();
-		fooProxy.methDouble();
+	}
 
-		fooProxy.methObj();
-		fooProxy.methString();
+	public static void doCallFooMethods(IFoo p) {
+		p.methVoid(1);
+		p.methVoidFromPrimitives(1, 1.0f, 1.0, 'a', true, (byte)0);
+		p.methVoidFromPrimitivesArrays(new int[] { 1 }, new float[] { 1.0f }, new double[]{ 1.0 }, new char[] { 'a' }, new boolean[] { true }, new byte[] { (byte)1 });
+		p.methVoidFromObj(new SerializableObj(), "a", new Date(), Integer.valueOf(1), new Float(1.0f), new Double(1.0));
+		p.methVoidFromObjArrays(new Object[] { new SerializableObj() }, new String[] { "a" }, new Date[] { new Date() } , new Integer[] {new Integer(1)}, new Float[] { new Float(1.0f) } , new Double[] { new Double(1.0) } );
 		
-		fooProxy.methObjArray();
-		fooProxy.methIntArray();
-		fooProxy.methFloatArray();
-		fooProxy.methStringArray();
+		p.methInt();
+		p.methFloat();
+		p.methDouble();
+
+		p.methObj();
+		p.methString();
 		
+		p.methObjArray();
+		p.methIntArray();
+		p.methFloatArray();
+		p.methStringArray();
 	}
 }

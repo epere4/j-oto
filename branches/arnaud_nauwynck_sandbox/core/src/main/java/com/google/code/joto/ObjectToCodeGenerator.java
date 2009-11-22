@@ -16,6 +16,7 @@ import com.google.code.joto.ast.beanstmt.impl.BeanASTToStringFormatter;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
 import com.google.code.joto.ast.valueholder.util.ObjectToValueHolderBuilder;
 import com.google.code.joto.ast.valueholder.util.ValueHolderPrettyPrinter;
+import com.google.code.joto.reflect.ReflectUtils;
 import com.google.code.joto.util.graph.DecoratorGraph;
 import com.google.code.joto.util.graph.IGraph;
 import com.google.code.joto.util.graph.TopologicalSort;
@@ -58,6 +59,30 @@ public class ObjectToCodeGenerator {
 //		this.debugDependencyGraph = debugDependencyGraph;
 //	}
 
+	/**
+	 * @param declaredObjClass
+	 * @param obj
+	 * @param objName
+	 * @return
+	 */
+	public String objToStmtsString(Class declaredObjClass, Object obj, String objName,
+			StringBuilder resStmtsText) {
+		if (obj == null) {
+			return null;
+		}
+		if (declaredObjClass != null && declaredObjClass.isPrimitive() 
+				&& ReflectUtils.primitiveTypeToWrapperType(declaredObjClass) == obj.getClass() // check!
+		) {
+			// encode primitive value directly!
+			return obj.toString();
+		}
+		String stmtsText = objToStmtsString(obj, objName);
+		if (stmtsText != null) {
+			resStmtsText.append(stmtsText);
+		}
+		return objName;
+	}
+	
 	/**
 	 * 
 	 * @param obj

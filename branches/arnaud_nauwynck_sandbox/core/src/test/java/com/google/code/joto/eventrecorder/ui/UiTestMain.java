@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.calls.DefaultSerializableFoo;
+import com.google.code.joto.eventrecorder.calls.IFoo;
+import com.google.code.joto.eventrecorder.calls.MethodEventGeneratorInvocationHandlerTest;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.testobj.Pt;
 import com.google.code.joto.testobj.TestObjFactory;
@@ -22,6 +25,7 @@ public class UiTestMain {
 		
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
 		
+		// record Serializable POJO
 		doRecordEventObj(eventStore, "SimpleIntFieldA", TestObjFactory.createSimpleIntFieldA());
 		// doRecordEventObj(eventStore, "SimpleRefObjectFieldA", TestObjFactory.createSimpleRefObjectFieldA());
 		doRecordEventObj(eventStore, "A", TestObjFactory.createBeanA());
@@ -29,6 +33,16 @@ public class UiTestMain {
 		doRecordEventObj(eventStore, "SimpleRefBean_Cyclic", TestObjFactory.createSimpleRefBean_Cyclic());
 		doRecordEventObj(eventStore, "Pt", new Pt(1, 2));
 
+		// also record method calls using java.lang.reflect.Proxy + interface
+		{
+			IFoo fooImpl = new DefaultSerializableFoo();
+			IFoo fooProxy =  MethodEventGeneratorInvocationHandlerTest.createFooProxyRecorder(fooImpl, eventStore);
+			
+			MethodEventGeneratorInvocationHandlerTest.doCallFooMethods(fooProxy);
+		}
+		
+		
+		
 		RecordEventPanel recordEventPanel = new RecordEventPanel(eventStore);
 		
 		JFrame frame = new JFrame();
@@ -43,8 +57,8 @@ public class UiTestMain {
 		
 		RecordEventSummary evt = new RecordEventSummary(-1);
 		evt.setEventDate(new Date());
-		evt.setEventType("testEventType");
-		evt.setEventSubType("testEventSubType"); 
+		evt.setEventType("testObj");
+		evt.setEventSubType("testObj SubType"); 
 		evt.setEventMethodName(methodName);
 
 		try {

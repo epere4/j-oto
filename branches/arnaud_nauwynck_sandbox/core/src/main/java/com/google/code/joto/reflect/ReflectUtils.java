@@ -141,4 +141,31 @@ public class ReflectUtils {
 		return res;
 	}
 
+	public static Class<?> primitiveTypeToWrapperType(Class<?> t) {
+	     if (t == java.lang.Boolean.TYPE) return java.lang.Boolean.class; 
+	     else if (t == java.lang.Character.TYPE) return java.lang.Character.class;
+	     else if (t == java.lang.Byte.TYPE) return java.lang.Byte.class;
+	     else if (t == java.lang.Short.TYPE) return java.lang.Short.class;
+	     else if (t == java.lang.Integer.TYPE) return java.lang.Integer.class;
+	     else if (t == java.lang.Long.TYPE) return java.lang.Long.class;
+	     else if (t == java.lang.Float.TYPE) return java.lang.Float.class;
+	     else if (t == java.lang.Double.TYPE) return java.lang.Double.class;
+	     else if (t == java.lang.Void.TYPE) return java.lang.Void.class;
+	     else return null;
+	}
+
+	public static Class<?> wrapperTypeToPrimitive(Class<?> t) {
+	     if (t == java.lang.Boolean.class) return java.lang.Boolean.TYPE; 
+	     else if (t == java.lang.Character.class) return java.lang.Character.TYPE;
+	     else if (t == java.lang.Byte.class) return java.lang.Byte.TYPE;
+	     else if (t == java.lang.Short.class) return java.lang.Short.TYPE;
+	     else if (t == java.lang.Integer.class) return java.lang.Integer.TYPE;
+	     else if (t == java.lang.Long.class) return java.lang.Long.TYPE;
+	     else if (t == java.lang.Float.class) return java.lang.Float.TYPE;
+	     else if (t == java.lang.Double.class) return java.lang.Double.TYPE;
+	     else if (t == java.lang.Void.class) return java.lang.Void.TYPE;
+	     else return null;
+	}
+
+	
 }

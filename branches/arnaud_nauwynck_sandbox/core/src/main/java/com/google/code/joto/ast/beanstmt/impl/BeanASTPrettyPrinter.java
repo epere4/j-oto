@@ -5,12 +5,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.google.code.joto.ast.beanstmt.BeanASTVisitor;
+import com.google.code.joto.ast.beanstmt.BeanAST.AssignExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.BlockStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.ClassExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.ExprStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.FieldExpr;
+import com.google.code.joto.ast.beanstmt.BeanAST.IndexedArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.LiteralExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
@@ -59,15 +61,20 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 		println(";");
 	}
 
-	public void caseExprStmt(ExprStmt exprStmt) {
+	public void caseExprStmt(ExprStmt p) {
 		printIndent();
-		exprStmt.getExpr().visit(this);
+		p.getExpr().visit(this);
 		println(";");
 	}
 
 	// implements BeanInitVisitor Expressions
 	// ------------------------------------------------------------------------
 	
+	public void caseAssign(AssignExpr p) {
+		p.getLhs().visit(this);
+		print(" = ");
+		p.getRhs().visit(this);
+	}
 
 	public void caseMethodApplyExpr(MethodApplyExpr p) {
 		if (p.getLhsExpr() != null) {
@@ -97,7 +104,14 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 		print(Integer.toString(p.getLength()));
 		print("]");
 	}
-	
+
+	public void caseIndexedArray(IndexedArrayExpr p) {
+		p.getLhs().visit(this);
+		print("[");
+		p.getIndex().visit(this);
+		print("]");
+	}
+
 	public void caseLitteralExpr(LiteralExpr p) {
 		String javaValue;
 		Object value = p.getValue();
@@ -116,12 +130,15 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 
 
 	public void caseClassExpr(ClassExpr p) {
-		throw new UnsupportedOperationException("TODO");
+		print(p.getLhsClassName());
+		print(".class");
 	}
 
 
 	public void caseFieldExpr(FieldExpr p) {
-		throw new UnsupportedOperationException("TODO");
+		p.visit(this);
+		print(".");
+		print(p.getFieldName());
 	}
 	
 	public void caseVarRef(VarRefExpr p) {

@@ -1,8 +1,10 @@
 package com.google.code.joto.eventrecorder.ui;
 
-import java.io.StringWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JSplitPane;
@@ -15,6 +17,12 @@ import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.calls.ObjectReplacementMap;
+import com.google.code.joto.eventrecorder.processor.DispatcherRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
+import com.google.code.joto.eventrecorder.processor.impl.MethodCallToCodeRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
 import com.thoughtworks.xstream.XStream;
 
 /**
@@ -28,10 +36,21 @@ public class RecordEventPanel {
 	
 	private RecordEventStoreTableModel recordEventTableModel;
 	private JTable recordEventTable;
-	private JTabbedPane selectedEventDetailsTabbedPane;
-	private ScrolledTextPane xmlTextPaneTab;
-	private ScrolledTextPane javaTextPaneTab;
 	
+	/**
+	 * contains child component for displaying selected RecordEvent as Text.
+	 * predefined tabs:
+	 * <ul>
+	 * <li>XStream dump (RecordEvent ObjectData -> Xml)</li>
+	 * <li>Joto Reverse for Java code construction (RecordEvent ObjectData -> Java "new/call" code)</li>
+	 */
+	private JTabbedPane selectionTabbedPane;
+
+	/** downcast helper... currently redundant with selectionTabbedPane! */
+	private List<RecordEventsConverterTextPanel> selectedEventConverterTextPanes = 
+		new ArrayList<RecordEventsConverterTextPanel>();
+	
+	private ObjectReplacementMap objectReplacementMap;
 	
 	// -------------------------------------------------------------------------
 
@@ -41,10 +60,10 @@ public class RecordEventPanel {
 		this.recordEventTableModel = new RecordEventStoreTableModel(eventStore);
 		this.recordEventTable = new JTable(recordEventTableModel);
 
-		this.selectedEventDetailsTabbedPane = new JTabbedPane();
+		this.selectionTabbedPane = new JTabbedPane();
 
 		this.splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
-				recordEventTable, selectedEventDetailsTabbedPane);
+				recordEventTable, selectionTabbedPane);
 		splitPane.setDividerLocation(0.4);
 		
 		recordEventTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -53,11 +72,40 @@ public class RecordEventPanel {
 			}
 		});
 
-		xmlTextPaneTab = new ScrolledTextPane();
-		javaTextPaneTab = new ScrolledTextPane();
+		// predefined text converters:
+		{// Xml XStream text converter
+			RecordEventsProcessorFactory<PrintStream> eventConverterFactory =
+				new XStreamFormatterRecordEventsProcessor.Factory(new XStream());
+			RecordEventsConverterTextPanel comp = 
+				new RecordEventsConverterTextPanel(eventConverterFactory);
+			selectionTabbedPane.add("xml", comp.getJComponent());
+			selectedEventConverterTextPanes.add(comp);
+		}
 		
-		selectedEventDetailsTabbedPane.add("xml", xmlTextPaneTab.getJComponent());
-		selectedEventDetailsTabbedPane.add("java", javaTextPaneTab.getJComponent());
+		{// Reverse Java "new/call" text converter
+			ObjectToCodeGenerator objToCode = new ObjectToCodeGenerator();
+			
+			RecordEventsProcessorFactory<PrintStream> objConverterFactory =
+				new ObjToCodeRecordEventsProcessor.Factory(objToCode);
+			
+			RecordEventsProcessorFactory<PrintStream> methCallConverterFactory =
+				new MethodCallToCodeRecordEventsProcessor.Factory(
+					objToCode, objectReplacementMap);
+			
+			Map<String,RecordEventsProcessorFactory<PrintStream>> eventTypeToFactory =
+				new HashMap<String,RecordEventsProcessorFactory<PrintStream>>();
+			eventTypeToFactory.put("testObj", objConverterFactory);
+			eventTypeToFactory.put("methCall", methCallConverterFactory);
+			
+			RecordEventsProcessorFactory<PrintStream> dispatcherConverterFactory =
+				new DispatcherRecordEventsProcessor.Factory<PrintStream>(
+						eventTypeToFactory, objConverterFactory);
+			
+			RecordEventsConverterTextPanel comp = 
+				new RecordEventsConverterTextPanel(dispatcherConverterFactory);
+			selectionTabbedPane.add("java", comp.getJComponent());
+			selectedEventConverterTextPanes.add(comp);
+		}
 
 	}
 
@@ -70,12 +118,6 @@ public class RecordEventPanel {
 	// -------------------------------------------------------------------------
 	
 	private void onRecordEventSelectionChanged(ListSelectionEvent e) {
-//		int firstIndex = e.getFirstIndex();
-//		int lastIndex = e.getLastIndex();
-//		if (e.getValueIsAdjusting()) {
-//			return; //??
-//		}
-		
 		int[] selectedRows = recordEventTable.getSelectedRows();
 		
 		List<RecordEventData> selectedEventDataList = new ArrayList<RecordEventData>();
@@ -86,53 +128,10 @@ public class RecordEventPanel {
 		}
 		
 		// display event data list in detailed tabbed pane
-		String xmlText = eventsToXmlText(selectedEventDataList);
-		xmlTextPaneTab.setText(xmlText);
-		xmlTextPaneTab.scrollToStart();
-
-		String javaText = eventsToJavaText(selectedEventDataList);
-		javaTextPaneTab.setText(javaText);
-		javaTextPaneTab.scrollToStart();
-
-		
-	}
-
-	private String eventsToXmlText(List<RecordEventData> eventDataList) {
-		StringWriter writer = new StringWriter();
-		XStream xstream = new XStream();
-		for(RecordEventData eventData : eventDataList) {
-			RecordEventSummary eventHandle = eventData.getEventSummary();
-			Object objectData = eventData.getObjectData();
-			writer.append(eventHandle.getEventMethodName());
-			writer.append("\n");
-
-			xstream.toXML(objectData, writer);
-			writer.append("\n");
-			
-			writer.append("\n");
+		for(RecordEventsConverterTextPanel comp : selectedEventConverterTextPanes) {
+			comp.setRecordEventDataList(selectedEventDataList);
 		}
-		return writer.getBuffer().toString();
-	}
-
-	private String eventsToJavaText(List<RecordEventData> eventDataList) {
-		StringBuilder sb = new StringBuilder();
-		ObjectToCodeGenerator objToCode = new ObjectToCodeGenerator();
-		for(RecordEventData eventData : eventDataList) {
-			RecordEventSummary eventHandle = eventData.getEventSummary();
-			Object objectData = eventData.getObjectData();
-
-			sb.append("meth:" + eventHandle.getEventMethodName() + "\n");
-			sb.append("\n");
-			sb.append("code: {\n\n");
-			
-			String stmtsStr = objToCode.objToStmtsString(objectData, "eventData");
-			sb.append(stmtsStr);
-			
-			sb.append("\n} // code\n");
-			
-			sb.append("\n");
-		}
-		return sb.toString();
+	
 	}
 
 }
