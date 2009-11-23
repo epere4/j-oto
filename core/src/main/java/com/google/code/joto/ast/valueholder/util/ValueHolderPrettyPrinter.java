@@ -72,6 +72,9 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 	}
 
 	public void visitOrPrintRef(AbstractObjectValueHolder p) {
+		if (p == null) {
+			return;
+		}
 		Boolean marked = alreadySeenRefs.get(p);
 		Integer refId = getObjId(p);
 		if (marked != null) {

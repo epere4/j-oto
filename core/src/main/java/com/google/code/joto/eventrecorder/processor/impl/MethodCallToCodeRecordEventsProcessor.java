@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Method;
 
 import com.google.code.joto.ObjectToCodeGenerator;
+import com.google.code.joto.ast.beanstmt.impl.BeanASTPrettyPrinter;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.calls.EventMethodRequestData;
 import com.google.code.joto.eventrecorder.calls.ObjectReplacementMap;
@@ -122,7 +123,7 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 				&& ReflectUtils.primitiveTypeToWrapperType(declaredObjClass) == obj.getClass() // check!
 		) {
 			// encode primitive value directly!
-			return obj.toString();
+			return BeanASTPrettyPrinter.litteralToJava(obj);
 		}
 		StringBuilder stmtBuffer = new StringBuilder();
 		String res = objToCode.objToStmtsString(declaredObjClass, obj, exprVarName, stmtBuffer);

@@ -48,7 +48,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
         return null;
     }
 
-	private static void checkValueForPrimitiveType(Object value, Class<?> type) {
+	private static void checkValueWrapperForPrimitiveType(Object value, Class<?> type) {
 		if (value != null) {
 			Class<?> valueClass = value.getClass();
 			if (valueClass != wrapperTypeFor(type)) {
@@ -305,7 +305,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 		}
 
 		public void setValue(Object value) {
-			checkValueForPrimitiveType(value, field.getType());
+			checkValueWrapperForPrimitiveType(value, field.getType());
 			this.value = value;
 		}
 
@@ -420,7 +420,9 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 		}
 
 		public void setValue(T value) {
-			checkValueForPrimitiveType(value, parent.componentWrapperType);
+			if (value != null && value.getClass() != parent.componentWrapperType) {
+				throw new IllegalArgumentException();
+			}
 			this.value = value;
 		}
 

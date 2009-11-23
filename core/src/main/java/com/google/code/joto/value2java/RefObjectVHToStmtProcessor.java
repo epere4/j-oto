@@ -34,10 +34,9 @@ public interface RefObjectVHToStmtProcessor {
 	public List<Class<?>> getTargetSubClassOrInterfaceForProcess(ValueHolderToBeanASTStmt owner);
 
 	public boolean canProcessObjTo(ValueHolderToBeanASTStmt owner, 
-			RefObjectValueHolder linObjToObj);
+			RefObjectValueHolder refObjToObj);
 	
 	public void process(ValueHolderToBeanASTStmt owner,
-			RefObjectValueHolder linObjToObj,
-			Object2ASTInfo objInfo);
+			RefObjectValueHolder refObjToObj);
 	
 }

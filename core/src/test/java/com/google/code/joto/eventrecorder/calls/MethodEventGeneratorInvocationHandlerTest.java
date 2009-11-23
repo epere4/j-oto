@@ -108,10 +108,29 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 
 	public static void doCallFooMethods(IFoo p) {
 		p.methVoid(1);
-		p.methVoidFromPrimitives(1, 1.0f, 1.0, 'a', true, (byte)0);
-		p.methVoidFromPrimitivesArrays(new int[] { 1 }, new float[] { 1.0f }, new double[]{ 1.0 }, new char[] { 'a' }, new boolean[] { true }, new byte[] { (byte)1 });
-		p.methVoidFromObj(new SerializableObj(), "a", new Date(), Integer.valueOf(1), new Float(1.0f), new Double(1.0));
-		p.methVoidFromObjArrays(new Object[] { new SerializableObj() }, new String[] { "a" }, new Date[] { new Date() } , new Integer[] {new Integer(1)}, new Float[] { new Float(1.0f) } , new Double[] { new Double(1.0) } );
+		
+		p.methVoidFromPrimitives(0, 0.0f, 0.0, '\0', false, (byte)0);
+		p.methVoidFromPrimitives(1, 1.0f, 1.0, 'a', true, (byte)1);
+		
+		p.methVoidFromPrimitivesArrays(
+				new int[] { 0, 1 }, 
+				new float[] { 0.0f, 1.0f }, 
+				new double[] { 0.0, 1.0 }, 
+				new char[] { '\0', 'a', '0', '\\', '\'' }, 
+				new boolean[] { false, true }, 
+				new byte[] { (byte)0, (byte)1 });
+		
+		p.methVoidFromObj(new SerializableObj(), "a", 
+				new Date(), Integer.valueOf(1), new Float(1.0f), 
+				new Double(1.0));
+
+		p.methVoidFromObjArrays(
+				new Object[] { null, new SerializableObj() }, 
+				new String[] { null, "", "a", "\"", "\\" }, 
+				new Date[] { null, new Date() } , 
+				new Integer[] { null, new Integer(0), new Integer(1) }, 
+				new Float[] { null, new Float(0.0f), new Float(1.0f) }, 
+				new Double[] { null, new Double(0.0), new Double(1.0) });
 		
 		p.methInt();
 		p.methFloat();

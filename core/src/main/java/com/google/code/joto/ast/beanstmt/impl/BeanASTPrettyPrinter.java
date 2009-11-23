@@ -115,17 +115,47 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 	public void caseLitteralExpr(LiteralExpr p) {
 		String javaValue;
 		Object value = p.getValue();
+		javaValue = litteralToJava(value);
+		print(javaValue);
+	}
+
+	public static String litteralToJava(Object value) {
+		String javaValue;
 		if (value == null) {
 			javaValue = "null";
 		} else if (value instanceof String) {
 			String str = (String) value;
-			str = str.replaceAll("\"", "\\\"");
-			// TODO add more escape..
-			javaValue = "\"" + str + "\""; 
+			javaValue = litteralStringToJavaCode(str);
+		} else if (value instanceof Character) {
+			// if ()
+			char ch = ((Character) value).charValue();
+			javaValue = litteralCharToJavaCode(ch);
 		} else {
 			javaValue = value.toString(); // TODO format...
 		}
-		print(javaValue);
+		return javaValue;
+	}
+
+	public static String litteralStringToJavaCode(String str) {
+		String javaValue;
+		str = str.replace("\\", "\\\\"); // replace '\' by '\\'
+		str = str.replace("\"", "\\\""); // replace '"' by '\"'
+		str = str.replace("\n", "\\n"); // replace <newline> by '\n'
+		// TODO add more escape..
+		javaValue = "\"" + str + "\"";
+		return javaValue;
+	}
+
+	public static String litteralCharToJavaCode(char ch) {
+		String javaValue;
+		String str = Character.toString(ch);
+		if (ch == '\\') { str = "\\\\"; }
+		else if (ch == '\'') { str = "\\\'"; }
+		else if (ch == '\0') { str = "\\0"; }
+		else if (ch == '\n') { str = "\\n"; }
+		// TODO add more escape..
+		javaValue = "'" + str + "'";
+		return javaValue;
 	}
 
 
