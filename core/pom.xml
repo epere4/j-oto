@@ -35,6 +35,14 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+
+	<dependency>
+	  <groupId>aopalliance</groupId>
+	  <artifactId>aopalliance</artifactId>
+	  <version>1.0</version>
+	  <scope>provided</scope> <!--  only for 1 extension class, if needed -->
+	</dependency>
+
   </dependencies>
   
   <build>
