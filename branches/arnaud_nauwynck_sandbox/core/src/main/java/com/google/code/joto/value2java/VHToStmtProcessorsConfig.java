@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * used defined + built-ins VHToStmtProcessor to use in ValueHolderToBeanASTStmt
  */
-public class VHToStmtProcessorContext {
+public class VHToStmtProcessorsConfig {
 
 	private List<ObjectVHToStmtProcessor> objProcessors = 
 		new ArrayList<ObjectVHToStmtProcessor>();
@@ -28,7 +28,7 @@ public class VHToStmtProcessorContext {
 	
 	//-------------------------------------------------------------------------
 
-	public VHToStmtProcessorContext() {
+	public VHToStmtProcessorsConfig() {
 	}
 
 	//-------------------------------------------------------------------------
