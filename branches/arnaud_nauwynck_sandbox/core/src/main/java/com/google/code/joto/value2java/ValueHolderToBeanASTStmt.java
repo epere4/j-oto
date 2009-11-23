@@ -20,6 +20,7 @@ import com.google.code.joto.ast.beanstmt.BeanAST.ExprStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.IndexedArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.LiteralExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
+import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarRefExpr;
@@ -60,8 +61,8 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	
 	private VarDeclStmt logVarDeclStmt;
 	
-	private VHToStmtProcessorContext vhToStmtProcessorContext = 
-		new VHToStmtProcessorContext();
+	private VHToStmtProcessorsConfig vhToStmtProcessorContext = 
+		new VHToStmtProcessorsConfig();
 	
 	// -------------------------------------------------------------------------
 	
@@ -74,11 +75,11 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return objInitInfoMap;
 	}
 
-	public VHToStmtProcessorContext getVhToStmtProcessorContext() {
+	public VHToStmtProcessorsConfig getVhToStmtProcessorContext() {
 		return vhToStmtProcessorContext;
 	}
 
-	public void setVhToStmtProcessorContext(VHToStmtProcessorContext p) {
+	public void setVhToStmtProcessorContext(VHToStmtProcessorsConfig p) {
 		this.vhToStmtProcessorContext = p;
 	}
 	
@@ -269,56 +270,69 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		PrimitiveArrayEltValueHolder[] arrayVH = p.getHolderArray();
 		int len = arrayVH.length;
 		Class<?> compClass = p.getObjClass().getComponentType();
-		BeanExpr initExpr = doNewObjectArrayExpr(compClass, len);
+		BeanExpr initExpr = new NewArrayExpr(compClass, len);
 		doSetObjInitExpr(objInfo, initExpr);
+		BeanExpr lhsArrayExpr = objToLhsExpr(objInfo);
 		
-		String arrayEltNamePrefix = objInfo.getVarNameWithSuffix("Elt");
 		for(int i = 0; i < len; i++) {
 			PrimitiveArrayEltValueHolder eltVH = arrayVH[i];
-			BeanStmt eltStmt = (BeanStmt) eltVH.visit(this, arrayEltNamePrefix);
-			objInfo.addInitStmt(eltStmt);
+			// *** recurse ***
+			BeanExpr eltExpr = new LiteralExpr(eltVH.getValue());
+			// TODO test if it is not necessary to set default values.... array[i] = 0; 0l; 0.0f; 0.0; false; '0' ...
+			boolean setToDefault = false;
+			if (!setToDefault) {
+				// stmt for "array[i] = expr"
+				ExprStmt assignIndexStmt = newAssignArrayIndexStmt(lhsArrayExpr, i, eltExpr);
+				objInfo.addInitStmt(assignIndexStmt);
+			}
 		}
 		return initExpr;
 	}
-
 
 	@Override
 	public BeanAST caseRefArray(RefArrayValueHolder p, Object2ASTInfo objInfo) {
 		AbstractObjectValueHolder[] eltsVH = p.getElts();
 		int len = eltsVH.length;
 		Class<?> compClass = p.getObjClass().getComponentType();
-		BeanExpr initExpr = doNewObjectArrayExpr(compClass, len);
+		BeanExpr initExpr = new NewArrayExpr(compClass, len);
 		doSetObjInitExpr(objInfo, initExpr);
+		BeanExpr lhsArrayExpr = objToLhsExpr(objInfo);
 		
 		String arrayEltNamePrefix = objInfo.getVarNameWithSuffix("Elt");
 		for(int i = 0; i < len; i++) {
 			AbstractObjectValueHolder eltVH = eltsVH[i];
 			// *** recurse ***
 			BeanExpr eltExpr = objToLhsExpr(eltVH, arrayEltNamePrefix);
-			// stmt for "array[i] = expr"
-			IndexedArrayExpr lhs = new IndexedArrayExpr(initExpr, new LiteralExpr(initExpr));
-			AssignExpr assign = new AssignExpr(lhs, eltExpr); 
-			objInfo.addInitStmt(new ExprStmt(assign));
+			// test if it is not necessary to set default values: null
+			boolean setToDefault = (eltExpr == null || 
+					((eltExpr instanceof LiteralExpr) && ((LiteralExpr)eltExpr).getValue() == null));
+			if (!setToDefault) {
+				// stmt for "array[i] = expr"
+				ExprStmt assignIndexStmt = newAssignArrayIndexStmt(lhsArrayExpr, i, eltExpr);
+				objInfo.addInitStmt(assignIndexStmt);
+			}
 		}
 		return initExpr;
 	}
 
-	protected BeanExpr doNewObjectArrayExpr(Class<?> componentClass, int len) {
-		return null;
+	private ExprStmt newAssignArrayIndexStmt(BeanExpr lhsArrayExpr, int index, BeanExpr eltExpr) {
+		IndexedArrayExpr lhs = new IndexedArrayExpr(lhsArrayExpr, new LiteralExpr(index));
+		ExprStmt assignIndexStmt = new ExprStmt(new AssignExpr(lhs, eltExpr));
+		return assignIndexStmt;
 	}
-
+	
+	
 	@Override
 	public BeanAST casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p, Object2ASTInfo objInfo) {
-		// TODO NOT_IMPLEMENTED_YET 
+		// NOT USED ... see casePrimitiveArray() 
 		return null;
 	}
 	
 	@Override
 	public BeanAST caseRefArrayElt(ArrayEltRefValueHolder p, Object2ASTInfo objInfo) {
-		// TODO NOT_IMPLEMENTED_YET 
+		// NOT USED ... see caseRefArray() 
 		return null;
 	}
-
 	
 	// -------------------------------------------------------------------------
 	

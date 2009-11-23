@@ -33,8 +33,6 @@ public class ObjectToValueHolderBuilder {
 
 	public ObjectToValueHolderBuilder() {
 		super();
-	
-		
 	}
 	
 	// -------------------------------------------------------------------------
@@ -49,7 +47,7 @@ public class ObjectToValueHolderBuilder {
 		} if (obj.getClass().isArray()) {
 			Class compType = obj.getClass().getComponentType();
 			if (compType.isPrimitive()) {
-				return casePrimitiveArray((Object[]) obj);
+				return casePrimitiveArray(obj);
 			} else {
 				return caseRefArray((Object[]) obj);
 			}
