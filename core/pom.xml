@@ -7,8 +7,13 @@
   <version>1.0-SANDBOX-AN</version>
   <name>Joto Object To Code</name>
   <url>http://com.google.code.joto</url>
-  
+
+  <properties>
+  	<logback.version>0.9.17</logback.version>
+  </properties>
+    
   <dependencies>
+  
     <dependency>
 	  <groupId>com.thoughtworks.xstream</groupId>
   	  <artifactId>xstream</artifactId>
@@ -19,15 +24,31 @@
 	  <groupId>org.slf4j</groupId>
 	  <artifactId>slf4j-api</artifactId>
 	  <version>1.5.8</version>
-	  <scope>compile</scope>
 	</dependency>
 
-	<dependency>
-	  <groupId>org.slf4j</groupId>
-	  <artifactId>slf4j-simple</artifactId>
-	  <version>1.5.8</version>
-	  <!-- <scope>test</scope> -->
-	</dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version> 
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-access</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+
+    <dependency>
+	  <groupId>log4j</groupId>
+  	  <artifactId>log4j</artifactId>
+  	  <version>1.2.15</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
