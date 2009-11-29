@@ -1,4 +1,4 @@
-package com.google.code.joto.value2java;
+package com.google.code.joto.value2java.impl;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
-import com.google.code.joto.ast.beanstmt.BeanAST.VarRefExpr;
+import com.google.code.joto.ast.beanstmt.BeanAST.SimpleNameExpr;
 import com.google.code.joto.util.graph.IGraph;
 
 
@@ -42,7 +42,7 @@ public class VarDefUseDependencyGraphBuilder implements BeanASTVisitor2<Object,B
 	// -------------------------------------------------------------------------
 
 	@Override
-	public Object caseVarRef(VarRefExpr p, BeanAST parent) {
+	public Object caseSimpleName(SimpleNameExpr p, BeanAST parent) {
 		addUseDef(parent, p.getResolvedDecl());
 		return null;
 	}

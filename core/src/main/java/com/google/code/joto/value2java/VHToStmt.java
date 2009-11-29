@@ -23,7 +23,7 @@ import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
-import com.google.code.joto.ast.beanstmt.BeanAST.VarRefExpr;
+import com.google.code.joto.ast.beanstmt.BeanAST.SimpleNameExpr;
 import com.google.code.joto.ast.valueholder.ValueHolderVisitor2;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
@@ -46,14 +46,15 @@ import com.google.code.joto.reflect.ClassJotoInfo;
 import com.google.code.joto.reflect.ConstructorJotoInfo;
 import com.google.code.joto.reflect.ParamToFieldInfo;
 import com.google.code.joto.util.NameGenerator;
+import com.google.code.joto.value2java.impl.ObjectStmtInfo;
 
 /**
  *
  */
-public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Object2ASTInfo> {
+public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 
-	private Map<AbstractObjectValueHolder,Object2ASTInfo> objInitInfoMap = 
-		new IdentityHashMap<AbstractObjectValueHolder,Object2ASTInfo>();
+	private Map<AbstractObjectValueHolder,ObjectStmtInfo> objStmtInfoMap = 
+		new IdentityHashMap<AbstractObjectValueHolder,ObjectStmtInfo>();
 	
 	private ClassDictionaryJotoInfo classDicInfo = new ClassDictionaryJotoInfo();
 	
@@ -61,37 +62,38 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	
 	private VarDeclStmt logVarDeclStmt;
 	
-	private VHToStmtProcessorsConfig vhToStmtProcessorContext = 
-		new VHToStmtProcessorsConfig();
+	private VHToStmtConverterLookup vhToStmtConverterLookup = 
+		new VHToStmtConverterLookup(true);
 	
 	// -------------------------------------------------------------------------
 	
-	public ValueHolderToBeanASTStmt() {
+	public VHToStmt() {
 	}
 	
 	// ------------------------------------------------------------------------
 
-	public Map<AbstractObjectValueHolder, Object2ASTInfo> getResultObjInitInfoMap() {
-		return objInitInfoMap;
+	public Map<AbstractObjectValueHolder, ObjectStmtInfo> getResultObjInitInfoMap() {
+		return objStmtInfoMap;
 	}
 
-	public VHToStmtProcessorsConfig getVhToStmtProcessorContext() {
-		return vhToStmtProcessorContext;
+	public VHToStmtConverterLookup getVhToStmtConverterLookup() {
+		return vhToStmtConverterLookup;
 	}
 
-	public void setVhToStmtProcessorContext(VHToStmtProcessorsConfig p) {
-		this.vhToStmtProcessorContext = p;
+	public void setVhToStmtConverterLookup(VHToStmtConverterLookup p) {
+		this.vhToStmtConverterLookup = p;
 	}
-	
-	// implements ValueHolderVisitor2
-	// -------------------------------------------------------------------------
 
 	public void visitRootObject(AbstractObjectValueHolder objVH, String name) {
 		objToInitInfo(objVH, name);
 	}
 	
+
+	// implements ValueHolderVisitor2
+	// -------------------------------------------------------------------------
+
 	@Override
-	public BeanAST caseObject(ObjectValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseObject(ObjectValueHolder p, ObjectStmtInfo objInfo) {
 		Class<?> objClass = p.getObjClass();
 		Map<Field,FieldValueHolder> fieldsToSet = new HashMap<Field,FieldValueHolder>(p.getFieldsValuesMap());
 		
@@ -135,7 +137,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 	
 	@Override
-	public BeanAST casePrimitiveField(PrimitiveFieldValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST casePrimitiveField(PrimitiveFieldValueHolder p, ObjectStmtInfo objInfo) {
 		BeanExpr lhsExpr = objToLhsExpr(objInfo);
 		BeanExpr argExpr = new LiteralExpr(p.getValue());
 
@@ -143,13 +145,13 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 	@Override
-	public BeanAST caseRefField(RefFieldValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseRefField(RefFieldValueHolder p, ObjectStmtInfo objInfo) {
 		BeanExpr lhsExpr = objToLhsExpr(objInfo);
 		String namePrefix = p.getField().getName();
 		AbstractObjectValueHolder refVH = p.getTo();
 		
 		// ** recurse **
-		Object2ASTInfo refObjInfo = objToInitInfo(refVH, namePrefix);
+		ObjectStmtInfo refObjInfo = objToInitInfo(refVH, namePrefix);
 		
 		BeanExpr argExpr = objToLhsExpr(refObjInfo);
 
@@ -176,7 +178,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 
 
 	@Override
-	public BeanAST caseImmutableObjectValue(ImmutableObjectValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseImmutableObjectValue(ImmutableObjectValueHolder p, ObjectStmtInfo objInfo) {
 		BeanExpr initExpr;
 		if (p.getObjClass().equals(String.class)) {
 			initExpr = new LiteralExpr(p.getValue());
@@ -189,7 +191,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 	
 	@Override
-	public BeanAST caseCollection(CollectionValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseCollection(CollectionValueHolder p, ObjectStmtInfo objInfo) {
 		BeanExpr initExpr = doNewDefaultObjInstanceExpr(objInfo, p);
 		doSetObjInitExpr(objInfo, initExpr);
 		
@@ -215,14 +217,14 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 	@Override
-	public BeanAST caseCollectionElt(CollectionEltRefValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseCollectionElt(CollectionEltRefValueHolder p, ObjectStmtInfo objInfo) {
 		// NOT USED, cf caseCollection()!
 		BeanExpr eltExpr = objToLhsExpr(p.getTo(), null);
 		return eltExpr;
 	}
 	
 	@Override
-	public BeanAST caseMap(MapValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseMap(MapValueHolder p, ObjectStmtInfo objInfo) {
 		BeanExpr initExpr = doNewDefaultObjInstanceExpr(objInfo, p);
 		doSetObjInitExpr(objInfo, initExpr);
 
@@ -248,25 +250,25 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	
 
 	@Override
-	public BeanAST caseMapEntry(MapEntryValueHolder p, Object2ASTInfo arg) {
+	public BeanAST caseMapEntry(MapEntryValueHolder p, ObjectStmtInfo arg) {
 		// NOT USED, cf caseMap()!
 		return null;
 	}
 
 	@Override
-	public BeanAST caseMapEntryKey(MapEntryKeyRefValueHolder p, Object2ASTInfo arg) {
+	public BeanAST caseMapEntryKey(MapEntryKeyRefValueHolder p, ObjectStmtInfo arg) {
 		// NOT USED, cf caseMap()!
 		return null;
 	}
 
 	@Override
-	public BeanAST caseMapEntryValue(MapEntryValueRefValueHolder p, Object2ASTInfo arg) {
+	public BeanAST caseMapEntryValue(MapEntryValueRefValueHolder p, ObjectStmtInfo arg) {
 		// NOT USED, cf caseMap()!
 		return null;
 	}
 
 	@Override
-	public BeanAST casePrimitiveArray(PrimitiveArrayValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST casePrimitiveArray(PrimitiveArrayValueHolder p, ObjectStmtInfo objInfo) {
 		PrimitiveArrayEltValueHolder[] arrayVH = p.getHolderArray();
 		int len = arrayVH.length;
 		Class<?> compClass = p.getObjClass().getComponentType();
@@ -290,7 +292,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 	@Override
-	public BeanAST caseRefArray(RefArrayValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseRefArray(RefArrayValueHolder p, ObjectStmtInfo objInfo) {
 		AbstractObjectValueHolder[] eltsVH = p.getElts();
 		int len = eltsVH.length;
 		Class<?> compClass = p.getObjClass().getComponentType();
@@ -323,27 +325,27 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	
 	
 	@Override
-	public BeanAST casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p, ObjectStmtInfo objInfo) {
 		// NOT USED ... see casePrimitiveArray() 
 		return null;
 	}
 	
 	@Override
-	public BeanAST caseRefArrayElt(ArrayEltRefValueHolder p, Object2ASTInfo objInfo) {
+	public BeanAST caseRefArrayElt(ArrayEltRefValueHolder p, ObjectStmtInfo objInfo) {
 		// NOT USED ... see caseRefArray() 
 		return null;
 	}
 	
 	// -------------------------------------------------------------------------
 	
-	protected Object2ASTInfo objToInitInfo(AbstractObjectValueHolder objVH, String optGeneratePrefixName) {
+	protected ObjectStmtInfo objToInitInfo(AbstractObjectValueHolder objVH, String optGeneratePrefixName) {
 		if (objVH == null) {
 			return null;
 		}
-		Object2ASTInfo res = objInitInfoMap.get(objVH);
+		ObjectStmtInfo res = objStmtInfoMap.get(objVH);
 		if (res == null) {
-			res = new Object2ASTInfo(objVH);
-			objInitInfoMap.put(objVH, res);
+			res = new ObjectStmtInfo(objVH);
+			objStmtInfoMap.put(objVH, res);
 
 			if (optGeneratePrefixName != null) {
 				checkGeneratedVarName(res, optGeneratePrefixName);
@@ -356,17 +358,17 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return res;
 	}
 
-	protected void doSetObjInitExpr(Object2ASTInfo res, BeanExpr initExpr) {
+	protected void doSetObjInitExpr(ObjectStmtInfo res, BeanExpr initExpr) {
 		Class<?> objType = res.getObjectVH().getObjClass();
 		res.setTypeAndInitExpr(objType, initExpr);	
 	}
 	
-	protected Object2ASTInfo objToInitInfo(AbstractObjectValueHolder objVH) {
-		Object2ASTInfo res = objToInitInfo(objVH, null);
+	protected ObjectStmtInfo objToInitInfo(AbstractObjectValueHolder objVH) {
+		ObjectStmtInfo res = objToInitInfo(objVH, null);
 		return res;
 	}
 
-	protected void checkGeneratedVarName(Object2ASTInfo objInfo, String optGeneratePrefixName) {
+	protected void checkGeneratedVarName(ObjectStmtInfo objInfo, String optGeneratePrefixName) {
 		if (objInfo == null) {
 			return;
 		}
@@ -378,7 +380,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 
 	protected BeanExpr objToLhsExpr(AbstractObjectValueHolder objVH, String optGeneratePrefixName) {
 		if (objVH == null) return new LiteralExpr(null);
-		Object2ASTInfo objInfo = objToInitInfo(objVH);
+		ObjectStmtInfo objInfo = objToInitInfo(objVH);
 		if (objInfo.getVarName() == null) {
 			if (optGeneratePrefixName == null) {
 				optGeneratePrefixName = "tmp";
@@ -388,15 +390,15 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		return objToLhsExpr(objInfo);
 	}
 
-	protected BeanExpr objToLhsExpr(Object2ASTInfo objInfo) {
+	protected BeanExpr objToLhsExpr(ObjectStmtInfo objInfo) {
 		if (objInfo == null) {
 			return new LiteralExpr(null);
 		}
-		return new VarRefExpr(objInfo.getVarDeclStmt());
+		return new SimpleNameExpr(objInfo.getVarDeclStmt());
 	}
 	
 	private NewObjectExpr doNewDefaultObjInstanceExpr(
-			Object2ASTInfo objInfo, 
+			ObjectStmtInfo objInfo, 
 			AbstractObjectValueHolder p, 
 			BeanExpr... optArgs
 			) {
@@ -409,7 +411,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 	}
 
 	private NewObjectExpr doNewDefaultObjInstanceExpr(
-			Object2ASTInfo objInfo, 
+			ObjectStmtInfo objInfo, 
 			AbstractObjectValueHolder p, 
 			List<BeanExpr> optArgs
 			) {
@@ -444,7 +446,7 @@ public class ValueHolderToBeanASTStmt implements ValueHolderVisitor2<BeanAST,Obj
 		if (logVarDeclStmt == null) {
 			logVarDeclStmt = new VarDeclStmt(Logger.class, "log", null);
 		}
-		BeanExpr logFieldExpr = new VarRefExpr(logVarDeclStmt);
+		BeanExpr logFieldExpr = new SimpleNameExpr(logVarDeclStmt);
 		String logMethName = "warn";
 		BeanExpr logArgMsg = new LiteralExpr(msg);
 		BeanExpr methExpr = new MethodApplyExpr(logFieldExpr, logMethName, logArgMsg);
