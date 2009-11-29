@@ -55,7 +55,8 @@ public class ObjectToValueHolderBuilder {
 			return caseCollection((Collection) obj);
 		} else if (obj instanceof Map) {
 			return caseMap((Map) obj);
-		} else if (obj instanceof String) {
+		} else if (ReflectUtils.isPrimitiveWrapperType(obj.getClass())
+				|| obj instanceof String) {
 			return caseImmutableObject(obj);
 		} else {
 			return caseObject(obj);
