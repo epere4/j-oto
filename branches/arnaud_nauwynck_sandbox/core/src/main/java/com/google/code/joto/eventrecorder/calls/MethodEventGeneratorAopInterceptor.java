@@ -8,6 +8,7 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.RecordEventStoreCallback.CorrelatedEventSetterCallback;
 
 /**
  * AOP-Alliance support class for recording events to EventStore 
@@ -55,11 +56,15 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 		String methodName = method.getName();
 		Object target = methInvocation.getThis();
 		Object[] args = methInvocation.getArguments(); 
-			
-		// generate event for method request
+
 		boolean enable = eventGenerator.isEnableGenerator();
-		int requestEventId = -1;
-		if (enable) {
+		if (!enable) {
+			// *** do call ***
+			Object res = method.invoke(target, args);
+			return res;
+		} else {
+			// generate event for method request
+
 			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
 			Object replTarget = target;
 			Object[] replArgs = args; // TODO not required to replace arg sin current version?
@@ -67,36 +72,34 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 				replTarget = objectReplacementMap.checkReplace(replTarget);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
 			}
-			EventMethodRequestData objData = new EventMethodRequestData(replTarget, method, replArgs);
-			requestEventId = eventGenerator.addEvent(evt, objData);
-		}
+			EventMethodRequestData reqObjData = new EventMethodRequestData(replTarget, method, replArgs);
+			
+			RecordEventSummary responseEvt = createEvent(methodName, responseEventSubType);
+			CorrelatedEventSetterCallback callbackForEventId =
+				new CorrelatedEventSetterCallback(responseEvt);
+			
+			eventGenerator.addEvent(evt, reqObjData, callbackForEventId);
 
-		try {
-			// *** do call ***
-			Object res = method.invoke(target, args);
-
-			if (enable && requestEventId != -1) {
-				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
-				
+			try {
+				// *** do call ***
+				Object res = method.invoke(target, args);
+	
 				Object replRes = res;
 				if (objectReplacementMap != null) {
 					replRes = objectReplacementMap.checkReplace(res);
 				}
-				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, replRes, null);
-				eventGenerator.addEvent(evt, objData);
-			}
-			return res;
+				EventMethodResponseData respObjData = new EventMethodResponseData(replRes, null);
+				eventGenerator.addEvent(responseEvt, respObjData, null);
 
-		} catch(Exception ex) {
-			if (enable && requestEventId != -1) {
-				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
-				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, null, ex);
-				eventGenerator.addEvent(evt, objData);
+				return res;
+	
+			} catch(Exception ex) {
+				EventMethodResponseData respObjData = new EventMethodResponseData(null, ex);
+				eventGenerator.addEvent(responseEvt, respObjData, null);
+	
+				throw ex; // rethow!
 			}
-
-			throw ex; // rethow!
 		}
-
 	}
 
 	

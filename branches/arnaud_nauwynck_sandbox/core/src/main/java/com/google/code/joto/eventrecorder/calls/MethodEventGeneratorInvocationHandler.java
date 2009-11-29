@@ -6,6 +6,7 @@ import java.util.Date;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
+import com.google.code.joto.eventrecorder.RecordEventStoreCallback.CorrelatedEventSetterCallback;
 
 /**
  * default implementation of java Proxy reflection, 
@@ -70,8 +71,12 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 
 		// generate event for method request
 		boolean enable = eventGenerator.isEnableGenerator();
-		int requestEventId = -1;
-		if (enable) {
+		if (!enable) {
+			// *** do call ***
+			Object res = method.invoke(target, args);
+			return res;
+		} else {
+ 		
 			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
 			Object replTarget = target;
 			Object[] replArgs = args; // TODO not required to replace arg sin current version?
@@ -79,36 +84,35 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 				replTarget = objectReplacementMap.checkReplace(replTarget);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
 			}
-			EventMethodRequestData objData = new EventMethodRequestData(replTarget, method, replArgs);
-			requestEventId = eventGenerator.addEvent(evt, objData);
-		}
+			EventMethodRequestData reqObjData = new EventMethodRequestData(replTarget, method, replArgs);
+			
+			RecordEventSummary respEvt = createEvent(methodName, responseEventSubType);
+			CorrelatedEventSetterCallback callbackForEventId =
+				new CorrelatedEventSetterCallback(respEvt);
+			
+			eventGenerator.addEvent(evt, reqObjData, callbackForEventId);
 
-		try {
-			// *** do call ***
-			Object res = method.invoke(target, args);
 
-			if (enable && requestEventId != -1) {
-				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
+			try {
+				// *** do call ***
+				Object res = method.invoke(target, args);
 				
 				Object replRes = res;
 				if (objectReplacementMap != null) {
 					replRes = objectReplacementMap.checkReplace(res);
 				}
-				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, replRes, null);
-				eventGenerator.addEvent(evt, objData);
-			}
-			return res;
+				EventMethodResponseData respObjData = new EventMethodResponseData(replRes, null);
+				eventGenerator.addEvent(respEvt, respObjData, null);
 
-		} catch(Exception ex) {
-			if (enable && requestEventId != -1) {
-				RecordEventSummary evt = createEvent(methodName, responseEventSubType);
-				EventMethodResponseData objData = new EventMethodResponseData(requestEventId, null, ex);
-				eventGenerator.addEvent(evt, objData);
-			}
+				return res;
 
-			throw ex; // rethow!
+			} catch(Exception ex) {
+				EventMethodResponseData respObjData = new EventMethodResponseData(null, ex);
+				eventGenerator.addEvent(respEvt, respObjData, null);
+	
+				throw ex; // rethow!
+			}
 		}
-
 	}
 
 	
