@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -17,10 +18,12 @@ import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.calls.MethodCallToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.calls.ObjectReplacementMap;
+import com.google.code.joto.eventrecorder.ext.log.Log4jToCodeRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.ext.log.LogbackToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.DispatcherRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
-import com.google.code.joto.eventrecorder.processor.impl.MethodCallToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
 import com.thoughtworks.xstream.XStream;
@@ -35,6 +38,7 @@ public class RecordEventPanel {
 	private JSplitPane splitPane;
 	
 	private RecordEventStoreTableModel recordEventTableModel;
+	private JScrollPane recordEventScrollPane;
 	private JTable recordEventTable;
 	
 	/**
@@ -58,12 +62,15 @@ public class RecordEventPanel {
 		this.eventStore = eventStore;
 		
 		this.recordEventTableModel = new RecordEventStoreTableModel(eventStore);
-		this.recordEventTable = new JTable(recordEventTableModel);
 
+		
+		this.recordEventTable = new JTable(recordEventTableModel);
+		this.recordEventScrollPane = new JScrollPane(recordEventTable);
+		
 		this.selectionTabbedPane = new JTabbedPane();
 
 		this.splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
-				recordEventTable, selectionTabbedPane);
+				recordEventScrollPane, selectionTabbedPane);
 		splitPane.setDividerLocation(0.4);
 		
 		recordEventTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -91,11 +98,19 @@ public class RecordEventPanel {
 			RecordEventsProcessorFactory<PrintStream> methCallConverterFactory =
 				new MethodCallToCodeRecordEventsProcessor.Factory(
 					objToCode, objectReplacementMap);
-			
+	
+			RecordEventsProcessorFactory<PrintStream> logbackToCommentConverterFactory =
+				new LogbackToCodeRecordEventsProcessor.Factory(true);
+
+			RecordEventsProcessorFactory<PrintStream> log4jToCommentConverterFactory =
+				new Log4jToCodeRecordEventsProcessor.Factory(true);
+
 			Map<String,RecordEventsProcessorFactory<PrintStream>> eventTypeToFactory =
 				new HashMap<String,RecordEventsProcessorFactory<PrintStream>>();
 			eventTypeToFactory.put("testObj", objConverterFactory);
 			eventTypeToFactory.put("methCall", methCallConverterFactory);
+			eventTypeToFactory.put("logback", logbackToCommentConverterFactory);
+			eventTypeToFactory.put("log4j", log4jToCommentConverterFactory);
 			
 			RecordEventsProcessorFactory<PrintStream> dispatcherConverterFactory =
 				new DispatcherRecordEventsProcessor.Factory<PrintStream>(
