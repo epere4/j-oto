@@ -11,7 +11,7 @@ import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
-import com.google.code.joto.ast.beanstmt.BeanAST.VarRefExpr;
+import com.google.code.joto.ast.beanstmt.BeanAST.SimpleNameExpr;
 
 /**
  * Visitor design pattern, for BeanInitAST class hierarchy
@@ -30,7 +30,7 @@ public interface BeanASTVisitor {
 	void caseIndexedArray(IndexedArrayExpr p);
 	void caseClassExpr(ClassExpr p);
 	void caseFieldExpr(FieldExpr p);
-	void caseVarRef(VarRefExpr p);
+	void caseSimpleName(SimpleNameExpr p);
 
 	void caseVarDecl(VarDeclStmt stmt);
 	void caseBlock(BlockStmt stmt);

@@ -18,7 +18,7 @@ import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
-import com.google.code.joto.ast.beanstmt.BeanAST.VarRefExpr;
+import com.google.code.joto.ast.beanstmt.BeanAST.SimpleNameExpr;
 
 /**
  * 
@@ -101,8 +101,16 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 		print("new ");
 		print(classToSimpleName(p.getNewArrayClass()));
 		print("[");
-		print(Integer.toString(p.getLength()));
+		BeanExpr[] initExprs = p.getInitExprs();
+		if (initExprs == null || p.getLength() != p.getInitExprs().length) {
+			print(Integer.toString(p.getLength()));
+		}
 		print("]");
+		if (initExprs != null) {
+			print(" { ");
+			visitExprs(initExprs);
+			print(" }");
+		}
 	}
 
 	public void caseIndexedArray(IndexedArrayExpr p) {
@@ -171,8 +179,8 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 		print(p.getFieldName());
 	}
 	
-	public void caseVarRef(VarRefExpr p) {
-		print(p.getVarName());
+	public void caseSimpleName(SimpleNameExpr p) {
+		print(p.getName());
 	}
 
 	// ------------------------------------------------------------------------
@@ -194,7 +202,21 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 			}
 		}
 	}
-	
+
+	protected void visitExprs(BeanExpr[] args) {
+		if (args != null && args.length != 0) {
+			for (int i = 0, len = args.length; i < len; i++) {
+				BeanExpr arg = args[i];
+				if (arg != null) {
+					arg.visit(this);
+				}
+				if (i + 1 < len) {
+					print(", ");
+				}
+			}
+		}
+	}
+
 	protected String classToSimpleName(Class<?> p) {
 		if (p == null) {
 			p = Object.class; // should not occur!

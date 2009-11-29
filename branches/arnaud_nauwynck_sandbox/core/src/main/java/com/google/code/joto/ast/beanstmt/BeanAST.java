@@ -230,7 +230,7 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 	public static class NewArrayExpr extends BeanExpr {
 		private Class newArrayClass;
 		private int length;
-
+		private BeanExpr[] initExprs;
 		
 		public NewArrayExpr(Class newArrayClass, int length) {
 			super();
@@ -238,6 +238,13 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 			this.length = length;
 		}
 
+		public NewArrayExpr(Class newArrayClass, int length, BeanExpr[] initExprs) {
+			super();
+			this.newArrayClass = newArrayClass;
+			this.length = length;
+			this.initExprs = initExprs;
+		}
+		
 		public void visit(BeanASTVisitor v) {
 			v.caseNewArray(this);
 		}
@@ -252,6 +259,10 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 
 		public int getLength() {
 			return length;
+		}
+
+		public BeanExpr[] getInitExprs() {
+			return initExprs;
 		}
 		
 	}
@@ -364,31 +375,32 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 	/**
 	 * 
 	 */
-	public static class VarRefExpr extends BeanExpr {
-		String varName;
-		VarDeclStmt resolvedDecl;
+	public static class SimpleNameExpr extends BeanExpr {
+		private String name;
+		// TODO can be null + should be more general: use "Symbol"  (either LocalVarDecl, ParameterDecl, Field, or Class...)
+		private VarDeclStmt resolvedDecl; 
 		
-		public VarRefExpr(String p) {
+		public SimpleNameExpr(String p) {
 			super();
-			this.varName = p;
+			this.name = p;
 		}
 
-		public VarRefExpr(VarDeclStmt resolvedDecl) {
+		public SimpleNameExpr(VarDeclStmt resolvedDecl) {
 			super();
 			this.resolvedDecl = resolvedDecl;
-			this.varName = resolvedDecl.getVarName();
+			this.name = resolvedDecl.getVarName();
 		}
 
 		public void visit(BeanASTVisitor v) {
-			v.caseVarRef(this);
+			v.caseSimpleName(this);
 		}
 
 		public <R,A> R visit(BeanASTVisitor2<R,A> v, A arg) {
-			return v.caseVarRef(this, arg);
+			return v.caseSimpleName(this, arg);
 		}
 
-		public String getVarName() {
-			return varName;
+		public String getName() {
+			return name;
 		}
 
 		public VarDeclStmt getResolvedDecl() {
