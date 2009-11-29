@@ -89,7 +89,7 @@ public class MethodEventGeneratorInvocationHandlerTest extends TestCase {
 		EventMethodResponseData responseData = (EventMethodResponseData) 
 			eventResponseData.getObjectData();
 		assertNotNull(responseData);
-		assertEquals(eventRequest.getEventId(), responseData.getRequestEventId());
+		assertEquals(eventRequest.getEventId(), eventResponse.getCorrelatedEventId());
 		assertEquals("test1", responseData.getResult());
 		assertNull(responseData.getException());
 		
