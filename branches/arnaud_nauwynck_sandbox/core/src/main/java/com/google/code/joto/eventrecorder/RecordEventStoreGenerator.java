@@ -8,9 +8,9 @@ import java.io.Serializable;
  */
 public class RecordEventStoreGenerator {
 
-	private RecordEventStore eventStore;
+	protected RecordEventStore eventStore;
 
-	public boolean enableGenerator = true;
+	protected boolean enableGenerator = true;
 	
 	// -------------------------------------------------------------------------
 	
@@ -31,12 +31,15 @@ public class RecordEventStoreGenerator {
 	
 	// -------------------------------------------------------------------------
 	
-	public int addEvent(RecordEventSummary info, Serializable objData) {
+	public void addEvent(RecordEventSummary info, Serializable objData, 
+				RecordEventStoreCallback callback) {
 		if (!enableGenerator) {
-			return -1;
+			return ;
 		}
 		RecordEventData eventData = eventStore.addEvent(info, objData);
-		return eventData.getEventId();
+		if (callback != null) {
+			callback.onStore(eventData);
+		}
 	}
 	
 	
