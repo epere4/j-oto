@@ -41,5 +41,24 @@ public class SerializableUtil {
 		}
 		return res;
 	}
+
+	public static boolean checkSerializable(Object obj) {
+		if (obj == null) return true;
+		if (!(obj instanceof Serializable) 
+				// && !(obj instanceof Externalizable) .. cf Serializable
+				) {
+			return false;
+		}
+		boolean res;
+		try {
+			ByteArrayOutputStream bout = new ByteArrayOutputStream(); 
+			ObjectOutputStream oout = new ObjectOutputStream(bout);
+			oout.writeObject(obj);
+			res = true;
+		} catch(Exception ex) {
+			res = false; // ignore, no rethrow!
+		}
+		return res;
+	}
 	
 }
