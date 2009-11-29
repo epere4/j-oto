@@ -97,6 +97,18 @@ public class ReflectUtils {
 		}
 	}
 
+	public static List<Method> findMethodsByName(Class<?> clss, String methodName, boolean onlyPublic) {
+		List<Method> res = new ArrayList<Method>();
+		for (Method meth : clss.getMethods()) {
+			if (meth.getName().equals(methodName)
+					&& (!onlyPublic || Modifier.isPublic(meth.getModifiers()))
+					) {
+				res.add(meth);
+			}
+		}
+		return res; 
+	}
+
 	
 //	/**
 //	 * TOCHECK ... see Class.getMethod(name, parameterTypes) ???
@@ -152,6 +164,11 @@ public class ReflectUtils {
 	     else if (t == java.lang.Double.TYPE) return java.lang.Double.class;
 	     else if (t == java.lang.Void.TYPE) return java.lang.Void.class;
 	     else return null;
+	}
+
+	public static boolean isPrimitiveWrapperType(Class<?> t) {
+		return t.getName().startsWith("java.lang.")
+			&& wrapperTypeToPrimitive(t) != null;
 	}
 
 	public static Class<?> wrapperTypeToPrimitive(Class<?> t) {
