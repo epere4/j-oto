@@ -21,9 +21,9 @@ import com.google.code.joto.util.graph.DecoratorGraph;
 import com.google.code.joto.util.graph.IGraph;
 import com.google.code.joto.util.graph.TopologicalSort;
 import com.google.code.joto.util.graph.helper.GraphPrinter;
-import com.google.code.joto.value2java.Object2ASTInfo;
-import com.google.code.joto.value2java.ValueHolderToBeanASTStmt;
-import com.google.code.joto.value2java.VarDefUseDependencyGraphBuilder;
+import com.google.code.joto.value2java.VHToStmt;
+import com.google.code.joto.value2java.impl.ObjectStmtInfo;
+import com.google.code.joto.value2java.impl.VarDefUseDependencyGraphBuilder;
 
 /**
  * main class for using Joto : Value to Java Stmt code generator
@@ -123,15 +123,15 @@ public class ObjectToCodeGenerator {
 			log.info(buffer.toString());
 		}
 		
-		ValueHolderToBeanASTStmt b2jVisitor = new ValueHolderToBeanASTStmt();
+		VHToStmt b2jVisitor = new VHToStmt();
 		b2jVisitor.visitRootObject(objVH, objName);
 		
-		Map<AbstractObjectValueHolder, Object2ASTInfo> objInitInfos = 
+		Map<AbstractObjectValueHolder, ObjectStmtInfo> objInitInfos = 
 			b2jVisitor.getResultObjInitInfoMap();
 		
 		List<BeanStmt> tmpUnsortedStmts = new ArrayList<BeanStmt>(); 
-		for(Map.Entry<AbstractObjectValueHolder,Object2ASTInfo> e : objInitInfos.entrySet()) {
-			Object2ASTInfo objInfo = e.getValue();
+		for(Map.Entry<AbstractObjectValueHolder,ObjectStmtInfo> e : objInitInfos.entrySet()) {
+			ObjectStmtInfo objInfo = e.getValue();
 			tmpUnsortedStmts.add(objInfo.getVarDeclStmt());
 			tmpUnsortedStmts.addAll(objInfo.getInitStmts());
 		}
