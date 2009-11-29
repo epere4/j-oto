@@ -1,4 +1,4 @@
-package com.google.code.joto.value2java;
+package com.google.code.joto.value2java.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHo
 /**
  *
  */
-public class Object2ASTInfo {
+public class ObjectStmtInfo {
 	
 	private AbstractObjectValueHolder objectVH;
 	
@@ -21,7 +21,7 @@ public class Object2ASTInfo {
 	
 	// -------------------------------------------------------------------------
 	
-	public Object2ASTInfo(AbstractObjectValueHolder objectVH) {
+	public ObjectStmtInfo(AbstractObjectValueHolder objectVH) {
 		this.objectVH = objectVH;
 	}
 

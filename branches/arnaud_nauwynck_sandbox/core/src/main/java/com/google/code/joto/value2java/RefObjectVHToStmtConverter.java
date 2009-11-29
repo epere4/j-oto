@@ -1,7 +1,5 @@
 package com.google.code.joto.value2java;
 
-import java.util.List;
-
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectValueHolder;
 
 /**
@@ -29,14 +27,11 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectValueHolder;
  * see also ObjectVHToStmtProcessor, for simpler conversions, 
  * where object is accessible by reference.
  */
-public interface RefObjectVHToStmtProcessor {
+public interface RefObjectVHToStmtConverter {
 
-	public List<Class<?>> getTargetSubClassOrInterfaceForProcess(ValueHolderToBeanASTStmt owner);
-
-	public boolean canProcessObjTo(ValueHolderToBeanASTStmt owner, 
-			RefObjectValueHolder refObjToObj);
+	public boolean canConvert(Class<?> fromType, String[] path, Class<?> toType);
 	
-	public void process(ValueHolderToBeanASTStmt owner,
+	public void convert(VHToStmt owner,
 			RefObjectValueHolder refObjToObj);
 	
 }
