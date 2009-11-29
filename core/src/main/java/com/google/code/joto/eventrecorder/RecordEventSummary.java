@@ -18,7 +18,9 @@ public class RecordEventSummary implements Serializable {
 	private String eventSubType;
 	private String eventMethodName;
 	private String eventMethodDetail;
-	
+
+	private int correlatedEventId; // request eventId from response object 
+
 	private long internalEventStoreDataAddress;
 	
 	// ------------------------------------------------------------------------
@@ -51,6 +53,7 @@ public class RecordEventSummary implements Serializable {
 		this.eventSubType = src.eventSubType;
 		this.eventMethodName = src.eventMethodName;
 		this.eventMethodDetail = src.eventMethodDetail;
+		this.correlatedEventId = src.correlatedEventId;
 		this.internalEventStoreDataAddress = src.internalEventStoreDataAddress;
 	}
 	
@@ -119,6 +122,14 @@ public class RecordEventSummary implements Serializable {
 	public void setEventMethodDetail(String eventMethodDetail) {
 		this.eventMethodDetail = eventMethodDetail;
 	}
+	
+	public int getCorrelatedEventId() {
+		return correlatedEventId;
+	}
+
+	public void setCorrelatedEventId(int p) {
+		this.correlatedEventId = p;
+	}
 
 	public long getInternalEventStoreDataAddress() {
 		return internalEventStoreDataAddress;
@@ -128,6 +139,7 @@ public class RecordEventSummary implements Serializable {
 		this.internalEventStoreDataAddress = p;
 	}
 
+	
 	// ------------------------------------------------------------------------
 	
 	@Override
