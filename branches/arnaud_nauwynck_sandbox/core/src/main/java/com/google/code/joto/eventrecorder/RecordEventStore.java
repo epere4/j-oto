@@ -48,7 +48,7 @@ public interface RecordEventStore {
 
 	/**
 	 * SPI to add a new stored event
-	 * You should typically call this only from helper class RecordEventStoreGenerator,
+	 * You should typically call this only from helper class RecordEventStoreWriter,
 	 * which can offer simpler api methods, and can be enabled/disabled at runtime. 
 	 */
 	public RecordEventData addEvent(RecordEventSummary eventInfo, Serializable objData);

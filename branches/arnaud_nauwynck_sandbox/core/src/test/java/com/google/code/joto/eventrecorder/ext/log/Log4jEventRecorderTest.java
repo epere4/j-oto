@@ -10,9 +10,10 @@ import org.apache.log4j.Logger;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.writer.DefaultRecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
  * JUnit test for Log4j extension for RecordEventStore mechanism
@@ -27,14 +28,14 @@ public class Log4jEventRecorderTest extends TestCase {
 		String eventType = "log4j";
 		String loggerName = "a.b.Test";
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
-		RecordEventStoreGenerator eventGenerator = new RecordEventStoreGenerator(eventStore);
+		RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
 
 //		Hierarchy log4jHierarchy = new Hierarchy(null); // ??
 		Logger eventLogger = Logger.getLogger(loggerName);
 
 		// plug RecordEventStore into Log4j
-		EventStoreGeneratorLog4jAppender eventAppender = 
-			new EventStoreGeneratorLog4jAppender(eventGenerator, eventType);
+		EventStoreWriterLog4jAppender eventAppender = 
+			new EventStoreWriterLog4jAppender(eventWriter, eventType);
 		eventLogger.addAppender(eventAppender);
 
 		// now test logging events from log4j

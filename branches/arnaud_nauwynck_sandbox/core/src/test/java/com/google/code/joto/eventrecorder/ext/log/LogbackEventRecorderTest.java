@@ -11,9 +11,10 @@ import ch.qos.logback.classic.LoggerContext;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.writer.DefaultRecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
  * JUnit test for Logback extension for RecordEventStore mechanism
@@ -28,15 +29,15 @@ public class LogbackEventRecorderTest extends TestCase {
 		String eventType = "log4j";
 		String loggerName = "a.b.Test";
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
-		RecordEventStoreGenerator eventGenerator = new RecordEventStoreGenerator(eventStore);
+		RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
 
 		LoggerContext loggerContext = new LoggerContext();
 		loggerContext.reset();
 		Logger logger = loggerContext.getLogger(loggerName);
 
 		// plug RecordEventStore into Log4j
-		EventStoreGeneratorLogbackAppender eventAppender = 
-			new EventStoreGeneratorLogbackAppender(eventGenerator, eventType);
+		EventStoreWriterLogbackAppender eventAppender = 
+			new EventStoreWriterLogbackAppender(eventWriter, eventType);
 		eventAppender.start();
 		logger.addAppender(eventAppender);
 		

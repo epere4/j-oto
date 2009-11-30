@@ -6,17 +6,17 @@ import java.util.Map;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.util.io.SerializableUtil;
 
 /**
  * Spi Extension of EventRecorderStore, for storing log4j events as events 
  *
  */
-public class EventStoreGeneratorLog4jAppender extends AppenderSkeleton {
+public class EventStoreWriterLog4jAppender extends AppenderSkeleton {
 
-	private RecordEventStoreGenerator eventGenerator;
+	private RecordEventWriter eventWriter;
 	
 	private String eventType = "log4j";
 	// private String eventSubType => used for logEvent message severity 
@@ -24,9 +24,9 @@ public class EventStoreGeneratorLog4jAppender extends AppenderSkeleton {
 	
 	// -------------------------------------------------------------------------
 	
-	public EventStoreGeneratorLog4jAppender(RecordEventStoreGenerator eventGenerator, String eventType) {
+	public EventStoreWriterLog4jAppender(RecordEventWriter eventWriter, String eventType) {
 		super();
-		this.eventGenerator = eventGenerator;
+		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 	}
 
@@ -34,7 +34,7 @@ public class EventStoreGeneratorLog4jAppender extends AppenderSkeleton {
 
 	@Override
 	public void close() {
-		eventGenerator = null;
+		eventWriter = null;
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class EventStoreGeneratorLog4jAppender extends AppenderSkeleton {
 
 	@Override
 	protected void append(LoggingEvent p) {
-		if (eventGenerator != null && eventGenerator.isEnableGenerator()) {
+		if (eventWriter != null && eventWriter.isEnable()) {
 			RecordEventSummary eventInfo = new RecordEventSummary(-1);
 
 			eventInfo.setEventType(eventType);
@@ -81,7 +81,7 @@ public class EventStoreGeneratorLog4jAppender extends AppenderSkeleton {
 				eventData.setNdcStrRep(ndc);
 			}
 			
-			eventGenerator.addEvent(eventInfo , eventData, null);
+			eventWriter.addEvent(eventInfo , eventData, null);
 		}
 		
 	}

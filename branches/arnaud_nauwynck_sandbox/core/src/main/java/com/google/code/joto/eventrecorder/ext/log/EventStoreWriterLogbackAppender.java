@@ -8,23 +8,23 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.AppenderBase;
 
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
  *
  */
-public class EventStoreGeneratorLogbackAppender extends AppenderBase<ILoggingEvent> {
+public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent> {
 	
-	private RecordEventStoreGenerator eventGenerator;
+	private RecordEventWriter eventWriter;
 	
 	private String eventType = "logback";
 	
 	// -------------------------------------------------------------------------
 	
-	public EventStoreGeneratorLogbackAppender(RecordEventStoreGenerator eventGenerator, String eventType) {
+	public EventStoreWriterLogbackAppender(RecordEventWriter eventWriter, String eventType) {
 		super();
-		this.eventGenerator = eventGenerator;
+		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 	}
 
@@ -43,7 +43,7 @@ public class EventStoreGeneratorLogbackAppender extends AppenderBase<ILoggingEve
 
 	@Override
 	protected void append(ILoggingEvent p) {
-		if (eventGenerator == null || !eventGenerator.isEnableGenerator()) {
+		if (eventWriter == null || !eventWriter.isEnable()) {
 			return;
 		}
 		
@@ -79,7 +79,7 @@ public class EventStoreGeneratorLogbackAppender extends AppenderBase<ILoggingEve
 		}
 		
 		
-		eventGenerator.addEvent(eventInfo , eventData, null);
+		eventWriter.addEvent(eventInfo , eventData, null);
 	}
 
 }
