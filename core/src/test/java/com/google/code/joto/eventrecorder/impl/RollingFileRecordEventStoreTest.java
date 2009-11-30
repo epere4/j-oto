@@ -72,7 +72,7 @@ public class RollingFileRecordEventStoreTest extends AbstractRecordEventStoreTes
 		
 		doTestBenchmarkWriteSimple(baseName, maxRollingFiles, maxFileSize, 1000,   10, deleteFile);
 		doTestBenchmarkWriteSimple(baseName, maxRollingFiles, maxFileSize,  100,  100, deleteFile);
-		doTestBenchmarkWriteSimple(baseName, maxRollingFiles, maxFileSize,   10, 1000, deleteFile); 
+//		doTestBenchmarkWriteSimple(baseName, maxRollingFiles, maxFileSize,   10, 1000, deleteFile); 
 		
 //		doTestBenchmarkWriteSimple(baseName, maxRollingFiles, maxFileSize, 10, 10000); 
 //		doTestBenchmarkWriteSimple(baseName, maxRollingFiles, maxFileSize,5, 500000);

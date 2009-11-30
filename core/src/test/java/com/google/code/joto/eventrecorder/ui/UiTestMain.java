@@ -14,14 +14,15 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.LoggerContext;
 
 import com.google.code.joto.eventrecorder.RecordEventStore;
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.calls.DefaultSerializableFoo;
-import com.google.code.joto.eventrecorder.calls.IFoo;
-import com.google.code.joto.eventrecorder.calls.MethodEventGeneratorInvocationHandlerTest;
-import com.google.code.joto.eventrecorder.ext.log.EventStoreGeneratorLog4jAppender;
-import com.google.code.joto.eventrecorder.ext.log.EventStoreGeneratorLogbackAppender;
+import com.google.code.joto.eventrecorder.ext.calls.DefaultSerializableFoo;
+import com.google.code.joto.eventrecorder.ext.calls.IFoo;
+import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterInvocationHandlerTest;
+import com.google.code.joto.eventrecorder.ext.log.EventStoreWriterLog4jAppender;
+import com.google.code.joto.eventrecorder.ext.log.EventStoreWriterLogbackAppender;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.writer.DefaultRecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.Pt;
 import com.google.code.joto.testobj.TestObjFactory;
 
@@ -44,22 +45,22 @@ public class UiTestMain {
 		// also record method calls using java.lang.reflect.Proxy + interface
 		{
 			IFoo fooImpl = new DefaultSerializableFoo();
-			IFoo fooProxy =  MethodEventGeneratorInvocationHandlerTest.createFooProxyRecorder(fooImpl, eventStore);
+			IFoo fooProxy =  MethodEventWriterInvocationHandlerTest.createFooProxyRecorder(fooImpl, eventStore);
 			
-			MethodEventGeneratorInvocationHandlerTest.doCallFooMethods(fooProxy);
+			MethodEventWriterInvocationHandlerTest.doCallFooMethods(fooProxy);
 		}
 		
-		{ // record events using Logback event generator
+		{ // record events using Logback event Writer
 			String eventType = "logback";
 			String loggerName = "a.b.Test";
-			RecordEventStoreGenerator eventGenerator = new RecordEventStoreGenerator(eventStore);
+			RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
 
 			LoggerContext loggerContext = new LoggerContext();
 			loggerContext.reset();
 			Logger logger = loggerContext.getLogger(loggerName);
 
-			EventStoreGeneratorLogbackAppender eventAppender = 
-				new EventStoreGeneratorLogbackAppender(eventGenerator, eventType);
+			EventStoreWriterLogbackAppender eventAppender = 
+				new EventStoreWriterLogbackAppender(eventWriter, eventType);
 			eventAppender.start();
 			((ch.qos.logback.classic.Logger) logger).addAppender(eventAppender);
 			
@@ -75,16 +76,16 @@ public class UiTestMain {
 			logger.info("test info message with arguments: str={} int={} date={}", new Object[] { "test", 123, cal.getTime() });
 		}
 
-		{ // record events using deprecated log4j event generator
+		{ // record events using deprecated log4j event Writer
 			String eventType = "log4j";
 			String loggerName = "a.b.Test";
-			RecordEventStoreGenerator eventGenerator = new RecordEventStoreGenerator(eventStore);
+			RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
 
 			org.apache.log4j.Logger logger = 
 				org.apache.log4j.Logger.getLogger(loggerName);
 
-			EventStoreGeneratorLog4jAppender eventAppender = 
-				new EventStoreGeneratorLog4jAppender(eventGenerator, eventType);
+			EventStoreWriterLog4jAppender eventAppender = 
+				new EventStoreWriterLog4jAppender(eventWriter, eventType);
 			((org.apache.log4j.Logger) logger).addAppender(eventAppender);
 			
 			// now test logging events from log4j

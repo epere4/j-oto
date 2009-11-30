@@ -58,7 +58,7 @@ public class FileRecordEventStoreTest extends AbstractRecordEventStoreTestHelper
 		
 		doTestBenchmarkWriteSimple(baseName, 1000,   10, deleteFile);
 		doTestBenchmarkWriteSimple(baseName,  100,  100, deleteFile);
-		doTestBenchmarkWriteSimple(baseName,   10, 1000, deleteFile); 
+//		doTestBenchmarkWriteSimple(baseName,   10, 1000, deleteFile); 
 		
 //		doTestBenchmarkWriteSimple(baseName,   10, 10000); 
 //		doTestBenchmarkWriteSimple(baseName,  5, 500000);

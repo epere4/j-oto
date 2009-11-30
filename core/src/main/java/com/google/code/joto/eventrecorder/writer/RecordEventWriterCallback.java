@@ -1,12 +1,15 @@
-package com.google.code.joto.eventrecorder;
+package com.google.code.joto.eventrecorder.writer;
 
-public interface RecordEventStoreCallback {
+import com.google.code.joto.eventrecorder.RecordEventData;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
+
+public interface RecordEventWriterCallback {
 
 	public void onStore(RecordEventData stored);
 	
 	// -------------------------------------------------------------------------
 	
-	public static class CorrelatedEventSetterCallback implements RecordEventStoreCallback {
+	public static class CorrelatedEventSetterCallback implements RecordEventWriterCallback {
 
 		private RecordEventSummary eventToFill;
 		

@@ -1,27 +1,27 @@
-package com.google.code.joto.eventrecorder.impl;
+package com.google.code.joto.eventrecorder.writer;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
-import com.google.code.joto.eventrecorder.RecordEventStoreCallback;
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 
 /**
- * Asynchronous implementation for RecordEventStoreGenerator
+ * Asynchronous implementation for RecordEventWriter
  */
-public class AsyncQueueEventStoreGenerator extends RecordEventStoreGenerator {
+public class AsyncQueueRecordEventWriter extends AbstractRecordEventWriter {
 
 	private static class QueueEventData {
 		RecordEventSummary event;
 		Serializable objData;
-		RecordEventStoreCallback callback;
+		RecordEventWriterCallback callback;
 
 		public QueueEventData(RecordEventSummary event, Serializable objData,
-				RecordEventStoreCallback callback) {
+				RecordEventWriterCallback callback) {
 			super();
 			this.event = event;
 			this.objData = objData;
@@ -40,12 +40,12 @@ public class AsyncQueueEventStoreGenerator extends RecordEventStoreGenerator {
 
 	private Queue<QueueEventData> queue = new LinkedList<QueueEventData>();
 	
-	private ThreadStatus currThreadStatus;
+	private ThreadStatus currThreadStatus = ThreadStatus.stopped;
 
 	
 	//-------------------------------------------------------------------------
 
-	public AsyncQueueEventStoreGenerator(RecordEventStore eventStore) {
+	public AsyncQueueRecordEventWriter(RecordEventStore eventStore) {
 		super(eventStore);
 	}
 
@@ -87,46 +87,96 @@ public class AsyncQueueEventStoreGenerator extends RecordEventStoreGenerator {
 		}
 	}
 
+	public void waitEmptyQueue() {
+		for(;;) {
+			synchronized(lock) {
+				if (queue.isEmpty()) {
+					break;
+				} else {
+					try {
+						lock.wait(500);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e); 
+					}
+				}
+			}
+		}
+	}
+
+
+	public void waitThreadStopped() {
+		for(;;) {
+			synchronized(lock) {
+				if (currThreadStatus == ThreadStatus.stopped) {
+					break;
+				} else {
+					try {
+						lock.wait(500);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e); 
+					}
+				}
+			}
+		}
+	}
+
 	@Override
 	public void addEvent(RecordEventSummary event, Serializable objData,
-			RecordEventStoreCallback callback) {
-		if (!enableGenerator) {
+			RecordEventWriterCallback callback) {
+		if (!enable) {
 			return;
 		}
 		
 		QueueEventData queueObj = new QueueEventData(event, objData, callback); 
 		synchronized(lock) {
 			queue.add(queueObj);
+			if (queue.size() == 1) { // was empty
+				lock.notify();
+			}
 		}
 	}
 
 
 	protected void doRunThreadLoop() {
 		for(;;) {
-			QueueEventData tmpToProcess = null; 
+			List<QueueEventData> tmpToProcess = null; 
 			synchronized(lock) {
 				if (currThreadStatus == ThreadStatus.running_interrupting) {
 					currThreadStatus = ThreadStatus.stopped;
-					break;
+					return; // stop main loop!
 				}
 				if (!queue.isEmpty()) {
-					tmpToProcess = queue.peek();
+					tmpToProcess = new ArrayList<QueueEventData>(queue.size());
+					for(; !queue.isEmpty(); ) {
+						tmpToProcess.add(queue.poll());
+					}
 				} else {
+					lock.notify(); // wake up thread for waitEmptyQueue()...
 					try {
 						lock.wait();
 					} catch (InterruptedException e) {
 						currThreadStatus = ThreadStatus.stopped;
-						break;
+						return; // stop main loop!
+					}
+					if (!queue.isEmpty()) {
+						tmpToProcess = new ArrayList<QueueEventData>(queue.size());
+						for(; !queue.isEmpty(); ) {
+							tmpToProcess.add(queue.poll());
+						}
+					} else {
+						continue; // wait more..
 					}
 				}
 			}
-			
-			RecordEventData stored = eventStore.addEvent(
-					tmpToProcess.event, 
-					tmpToProcess.objData); 
-			
-			if (tmpToProcess.callback != null) {
-				tmpToProcess.callback.onStore(stored);
+
+			for(QueueEventData tmp : tmpToProcess) {
+				RecordEventData stored = eventStore.addEvent(
+						tmp.event, 
+						tmp.objData); 
+				
+				if (tmp.callback != null) {
+					tmp.callback.onStore(stored);
+				}
 			}
 		}
 	}
@@ -136,7 +186,7 @@ public class AsyncQueueEventStoreGenerator extends RecordEventStoreGenerator {
 	
 	@Override
 	public String toString() {
-		return "AsyncQueueEventStoreGenerator[" 
+		return "AsyncQueueEventStoreWriter[" 
 			+ "currThreadStatus=" + currThreadStatus 
 			+ ", queue length=" + queue.size()
 			+ "]";
