@@ -11,11 +11,11 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventS
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
 
 /**
- *
+ * in-memory cyclic implementation of RecordEventStore
  */
 public class CyclicBufferRecordEventStore extends DefaultMemoryRecordEventStore {
 
-	private int maxEventCount = 100; 
+	private int maxEventCount = 500; 
 	
 	// ------------------------------------------------------------------------
 

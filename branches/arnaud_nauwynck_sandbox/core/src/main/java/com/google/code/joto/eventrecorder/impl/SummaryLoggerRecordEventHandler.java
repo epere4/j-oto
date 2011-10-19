@@ -13,7 +13,7 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.StopRecordingEv
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
 
 /**
- * a simple RecordEventChangeVisitor for logging events
+ * a simple RecordEventChangeVisitor for logging events to slf4j
  */
 public class SummaryLoggerRecordEventHandler implements RecordEventChangeVisitor {
 
