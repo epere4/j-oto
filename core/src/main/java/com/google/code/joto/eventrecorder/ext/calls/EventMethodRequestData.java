@@ -6,6 +6,13 @@ import java.lang.reflect.Method;
 import com.google.code.joto.reflect.SerializableMethodRef;
 
 /**
+ * Serializable object representation of the beginning of a method call.
+ * <p/>
+ * Contains the objects and arguments of the methods being called, but not the result yet! ...
+ * cf corresponding class EventMethodResponseData for the result
+ * <p/>
+ * This class is typically used as the output of an AOP interceptor, of specific instrumented sensors,<br>
+ * and also used as the input of recorder events.
  *
  */
 public class EventMethodRequestData implements Serializable {

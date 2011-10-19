@@ -111,6 +111,7 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 	}
 
 	private String prepareGenerateObj(Class<?> declaredObjClass, Object obj, String exprVarName) {
+		// check for replacement
 		if (obj instanceof ObjectInstanceReplacement) {
 			ObjectInstanceReplacement obj2 = (ObjectInstanceReplacement) obj;
 			return obj2.getReplacedObjName();
