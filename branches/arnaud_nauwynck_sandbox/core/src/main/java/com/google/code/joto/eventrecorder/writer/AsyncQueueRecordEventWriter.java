@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 
 /**
@@ -36,6 +34,10 @@ public class AsyncQueueRecordEventWriter extends AbstractRecordEventWriter {
 		running_interrupting
 	}
 	
+
+	/** underlying proxy target object */
+	private RecordEventWriter target;
+	
 	private Object lock = new Object(); 
 
 	private Queue<QueueEventData> queue = new LinkedList<QueueEventData>();
@@ -45,8 +47,8 @@ public class AsyncQueueRecordEventWriter extends AbstractRecordEventWriter {
 	
 	//-------------------------------------------------------------------------
 
-	public AsyncQueueRecordEventWriter(RecordEventStore eventStore) {
-		super(eventStore);
+	public AsyncQueueRecordEventWriter(RecordEventWriter target) {
+		this.target = target;
 	}
 
 	//-------------------------------------------------------------------------
@@ -123,7 +125,10 @@ public class AsyncQueueRecordEventWriter extends AbstractRecordEventWriter {
 	@Override
 	public void addEvent(RecordEventSummary event, Serializable objData,
 			RecordEventWriterCallback callback) {
-		if (!enable) {
+		if (!isEnable()) {
+			return;
+		}
+		if (!isEnable(event)) {
 			return;
 		}
 		
@@ -170,13 +175,7 @@ public class AsyncQueueRecordEventWriter extends AbstractRecordEventWriter {
 			}
 
 			for(QueueEventData tmp : tmpToProcess) {
-				RecordEventData stored = eventStore.addEvent(
-						tmp.event, 
-						tmp.objData); 
-				
-				if (tmp.callback != null) {
-					tmp.callback.onStore(stored);
-				}
+				target.addEvent(tmp.event, tmp.objData, tmp.callback); 
 			}
 		}
 	}

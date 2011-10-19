@@ -12,7 +12,6 @@ import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
-import com.google.code.joto.eventrecorder.writer.DefaultRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
@@ -28,7 +27,7 @@ public class Log4jEventRecorderTest extends TestCase {
 		String eventType = "log4j";
 		String loggerName = "a.b.Test";
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
-		RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
+		RecordEventWriter eventWriter = eventStore.getEventWriter();
 
 //		Hierarchy log4jHierarchy = new Hierarchy(null); // ??
 		Logger eventLogger = Logger.getLogger(loggerName);

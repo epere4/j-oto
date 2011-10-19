@@ -3,27 +3,22 @@ package com.google.code.joto.eventrecorder.writer;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-import com.google.code.joto.eventrecorder.RecordEventStore;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 
 /**
  *
  */
 public abstract class AbstractRecordEventWriter implements RecordEventWriter {
 
-	protected RecordEventStore eventStore;
+	protected PropertyChangeSupport changeSupport = new PropertyChangeSupport(this); 
 
-	protected boolean enable = true;
+	// ------------------------------------------------------------------------
 
-	private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this); 
-	
-	// -------------------------------------------------------------------------
-	
-	public AbstractRecordEventWriter(RecordEventStore eventStore) {
-		this.eventStore = eventStore;
+	protected AbstractRecordEventWriter() {
 	}
-
-	// -------------------------------------------------------------------------
-
+	
+	// ------------------------------------------------------------------------
+	
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		changeSupport.addPropertyChangeListener(listener);
 	}
@@ -31,17 +26,16 @@ public abstract class AbstractRecordEventWriter implements RecordEventWriter {
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		changeSupport.removePropertyChangeListener(listener);
 	}
-	
+
+	@Override
 	public boolean isEnable() {
-		return enable;
+		return true;
 	}
 
-	public void setEnable(boolean p) {
-		if (p != enable) {
-			boolean oldValue = enable;
-			this.enable = p;
-			changeSupport.firePropertyChange("enable", oldValue, p);
-		}
+	@Override
+	public boolean isEnable(RecordEventSummary info) {
+		return true;
 	}
-
+	
+	
 }

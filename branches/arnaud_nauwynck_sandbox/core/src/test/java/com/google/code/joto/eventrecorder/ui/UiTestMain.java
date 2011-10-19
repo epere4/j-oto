@@ -21,7 +21,6 @@ import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterInvocationH
 import com.google.code.joto.eventrecorder.ext.log.EventStoreWriterLog4jAppender;
 import com.google.code.joto.eventrecorder.ext.log.EventStoreWriterLogbackAppender;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
-import com.google.code.joto.eventrecorder.writer.DefaultRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.Pt;
 import com.google.code.joto.testobj.TestObjFactory;
@@ -33,7 +32,8 @@ public class UiTestMain {
 	public static void main(String[] args) {
 		
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
-		
+		RecordEventWriter eventWriter = eventStore.getEventWriter(); 
+
 		// record Serializable POJO
 		doRecordEventObj(eventStore, "SimpleIntFieldA", TestObjFactory.createSimpleIntFieldA());
 		// doRecordEventObj(eventStore, "SimpleRefObjectFieldA", TestObjFactory.createSimpleRefObjectFieldA());
@@ -45,7 +45,7 @@ public class UiTestMain {
 		// also record method calls using java.lang.reflect.Proxy + interface
 		{
 			IFoo fooImpl = new DefaultSerializableFoo();
-			IFoo fooProxy =  MethodEventWriterInvocationHandlerTest.createFooProxyRecorder(fooImpl, eventStore);
+			IFoo fooProxy =  MethodEventWriterInvocationHandlerTest.createFooProxyRecorder(fooImpl, eventWriter);
 			
 			MethodEventWriterInvocationHandlerTest.doCallFooMethods(fooProxy);
 		}
@@ -53,7 +53,6 @@ public class UiTestMain {
 		{ // record events using Logback event Writer
 			String eventType = "logback";
 			String loggerName = "a.b.Test";
-			RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
 
 			LoggerContext loggerContext = new LoggerContext();
 			loggerContext.reset();
@@ -79,7 +78,6 @@ public class UiTestMain {
 		{ // record events using deprecated log4j event Writer
 			String eventType = "log4j";
 			String loggerName = "a.b.Test";
-			RecordEventWriter eventWriter = new DefaultRecordEventWriter(eventStore);
 
 			org.apache.log4j.Logger logger = 
 				org.apache.log4j.Logger.getLogger(loggerName);
