@@ -27,6 +27,7 @@ public class EventCompressionContext implements Externalizable {
 	private IdToStringMapCompressionContext threadNameCtx = new IdToStringMapCompressionContext();
 	private IdToStringMapCompressionContext eventTypeCtx = new IdToStringMapCompressionContext(); 
 	private IdToStringMapCompressionContext eventSubTypeCtx = new IdToStringMapCompressionContext(); 
+	private IdToStringMapCompressionContext eventClassNameCtx = new IdToStringMapCompressionContext();
 	private IdToStringMapCompressionContext eventMethodNameCtx = new IdToStringMapCompressionContext();
 	// not compressed?? private IdToStringMapCompressionContext eventMethodDetail;
 
@@ -47,6 +48,7 @@ public class EventCompressionContext implements Externalizable {
 		threadNameCtx.encodeContextualValue(src.getThreadName(), out);
 		eventTypeCtx.encodeContextualValue(src.getEventType(), out);
 		eventSubTypeCtx.encodeContextualValue(src.getEventSubType(), out);
+		eventClassNameCtx.encodeContextualValue(src.getEventClassName(), out);
 		eventMethodNameCtx.encodeContextualValue(src.getEventMethodName(), out);
 		String eventMethodDetail = src.getEventMethodDetail();
 		out.writeBoolean(eventMethodDetail != null);
@@ -66,6 +68,7 @@ public class EventCompressionContext implements Externalizable {
 		res.setThreadName(threadNameCtx.decodeContextualValue(in));
 		res.setEventType(eventTypeCtx.decodeContextualValue(in));
 		res.setEventSubType(eventSubTypeCtx.decodeContextualValue(in));
+		res.setEventClassName(eventClassNameCtx.decodeContextualValue(in));
 		res.setEventMethodName(eventMethodNameCtx.decodeContextualValue(in));
 		boolean isEventMethodDetail = in.readBoolean();
 		if (isEventMethodDetail) {
@@ -125,6 +128,7 @@ public class EventCompressionContext implements Externalizable {
 		threadNameCtx.writeExternal2(out);
 		eventTypeCtx.writeExternal2(out); 
 		eventSubTypeCtx.writeExternal2(out); 
+		eventClassNameCtx.writeExternal2(out);
 		eventMethodNameCtx.writeExternal2(out);
 		
 		objectStreamClassCtx.writeExternal2(out);
@@ -136,7 +140,8 @@ public class EventCompressionContext implements Externalizable {
 	public void readExternal2(DataInput in) throws IOException {
 		threadNameCtx.readExternal2(in);
 		eventTypeCtx.readExternal2(in); 
-		eventSubTypeCtx.readExternal2(in); 
+		eventSubTypeCtx.readExternal2(in);
+		eventClassNameCtx.readExternal2(in);
 		eventMethodNameCtx.readExternal2(in);
 
 		objectStreamClassCtx.readExternal2(in);
@@ -146,6 +151,7 @@ public class EventCompressionContext implements Externalizable {
 		threadNameCtx.clear();
 		eventTypeCtx.clear(); 
 		eventSubTypeCtx.clear(); 
+		eventClassNameCtx.clear();
 		eventMethodNameCtx.clear();
 		
 		objectStreamClassCtx.clear();
@@ -158,6 +164,7 @@ public class EventCompressionContext implements Externalizable {
 		return "thread:" + threadNameCtx.toStringSize()
 			+ ", type:" + eventTypeCtx.toStringSize()
 			+ ", subType:" + eventSubTypeCtx.toStringSize() 
+			+ ", className:" + eventClassNameCtx.toStringSize()
 			+ ", methodName:" + eventMethodNameCtx.toStringSize()
 			+ ", objectStreamClass:" + objectStreamClassCtx.toStringSize()
 			+ "]";

@@ -16,6 +16,7 @@ public class RecordEventSummary implements Serializable {
 	private String threadName;
 	private String eventType;
 	private String eventSubType;
+	private String eventClassName;
 	private String eventMethodName;
 	private String eventMethodDetail;
 
@@ -30,7 +31,8 @@ public class RecordEventSummary implements Serializable {
 	}
 
 	public RecordEventSummary(int eventId, Date eventDate, String threadName, 
-			String eventType, String eventSubType, 
+			String eventType, String eventSubType,
+			String eventClassName,
 			String eventMethodName,
 			String eventMethodDetail, 
 			int internalEventStoreDataAddress) {
@@ -40,6 +42,7 @@ public class RecordEventSummary implements Serializable {
 		this.threadName = threadName;
 		this.eventType = eventType;
 		this.eventSubType = eventSubType;
+		this.eventClassName = eventClassName;
 		this.eventMethodName = eventMethodName;
 		this.eventMethodDetail = eventMethodDetail;
 		this.internalEventStoreDataAddress = internalEventStoreDataAddress;
@@ -51,6 +54,7 @@ public class RecordEventSummary implements Serializable {
 		this.threadName = src.threadName;
 		this.eventType = src.eventType;
 		this.eventSubType = src.eventSubType;
+		this.eventClassName = src.eventClassName;
 		this.eventMethodName = src.eventMethodName;
 		this.eventMethodDetail = src.eventMethodDetail;
 		this.correlatedEventId = src.correlatedEventId;
@@ -59,12 +63,14 @@ public class RecordEventSummary implements Serializable {
 	
 	public static RecordEventSummary snewDefault(
 			String eventType, String eventSubType, 
+			String eventClassName,
 			String eventMethodName) {
 		RecordEventSummary e = new RecordEventSummary(-1);
 		e.setEventDate(new Date());
 		e.setThreadName(Thread.currentThread().getName());
 		e.setEventType(eventType);
 		e.setEventSubType(eventSubType);
+		e.setEventClassName(eventClassName);
 		e.setEventMethodName(eventMethodName);
 		return e;
 	}
@@ -106,21 +112,29 @@ public class RecordEventSummary implements Serializable {
 	public void setEventSubType(String p) {
 		this.eventSubType = p;
 	}
+	
+	public String getEventClassName() {
+		return eventClassName;
+	}
+
+	public void setEventClassName(String p) {
+		this.eventClassName = p;
+	}
 
 	public String getEventMethodName() {
 		return eventMethodName;
 	}
 
-	public void setEventMethodName(String eventMethodName) {
-		this.eventMethodName = eventMethodName;
+	public void setEventMethodName(String p) {
+		this.eventMethodName = p;
 	}
 
 	public String getEventMethodDetail() {
 		return eventMethodDetail;
 	}
 
-	public void setEventMethodDetail(String eventMethodDetail) {
-		this.eventMethodDetail = eventMethodDetail;
+	public void setEventMethodDetail(String p) {
+		this.eventMethodDetail = p;
 	}
 	
 	public int getCorrelatedEventId() {
@@ -150,6 +164,7 @@ public class RecordEventSummary implements Serializable {
 			+ ((eventSubType != null)? " " + eventSubType : "") 
 			+ " " + eventDate
 			+ " " + threadName
+			+ " " + eventClassName 
 			+ " " + eventMethodName 
 			+ ((eventMethodDetail != null)? " " + eventMethodDetail : "")
 			+ " @" + internalEventStoreDataAddress

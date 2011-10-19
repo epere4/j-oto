@@ -73,9 +73,10 @@ public class RecordEventStoreTableModel extends AbstractTableModel {
 		case 1: return rowEvent.getEventDate();
 		case 2: return rowEvent.getEventType();
 		case 3: return rowEvent.getEventSubType();
-		case 4: return rowEvent.getEventMethodName();
-		case 5: return rowEvent.getEventMethodDetail();
-		case 6: return rowEvent.getInternalEventStoreDataAddress();
+		case 4: return rowEvent.getEventClassName();
+		case 5: return rowEvent.getEventMethodName();
+		case 6: return rowEvent.getEventMethodDetail();
+		case 7: return rowEvent.getInternalEventStoreDataAddress();
 		default: return null;
 		}
 	}

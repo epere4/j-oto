@@ -149,7 +149,8 @@ public class AsyncRecordEventWriterTest extends AbstractRecordEventStoreTestHelp
 		RecordEventSummary e = RecordEventSummary.snewDefault(
 					"testEventType" + (randSeed%5), 
 					"testEventSubType" + (randSeed%10), 
-					"testMeth" + (randSeed%50));
+					"testClass" + (randSeed%3), 
+					"testMeth" + (randSeed%20));
 		Serializable objData = TestObjFactory.createSimpleIntFieldA();
 		eventWriter.addEvent(e, objData, null);
 	}
@@ -176,7 +177,8 @@ public class AsyncRecordEventWriterTest extends AbstractRecordEventStoreTestHelp
 		RecordEventSummary e = RecordEventSummary.snewDefault(
 				"testEventType" + (randSeed%5), 
 				"testEventSubType" + (randSeed%10), 
-				"testMeth" + (randSeed%50));
+				"testClass" + (randSeed%3), 
+				"testMeth" + (randSeed%20));
 		Serializable objData = TestObjFactory.createAnySerializableBean(randSeed);
 		writer.addEvent(e, objData, callback);
 	}

@@ -215,8 +215,9 @@ public class AbstractRecordEventStoreTestHelper extends TestCase {
 	protected RecordEventData generateEvent(RecordEventStore eventStore, int randSeed) {
 		RecordEventSummary e = RecordEventSummary.snewDefault(
 					"testEventType" + (randSeed%5), 
-					"testEventSubType" + (randSeed%10), 
-					"testMeth" + (randSeed%50));
+					"testEventSubType" + (randSeed%10),
+					"testClass" + (randSeed%3),
+					"testMeth" + (randSeed%20));
 		Serializable objData = TestObjFactory.createAnySerializableBean(randSeed);
 		RecordEventData res = eventStore.addEvent(e, objData);
 		return res;
@@ -233,7 +234,8 @@ public class AbstractRecordEventStoreTestHelper extends TestCase {
 		RecordEventSummary e = RecordEventSummary.snewDefault(
 					"testEventType" + (randSeed%5), 
 					"testEventSubType" + (randSeed%10), 
-					"testMeth" + (randSeed%50));
+					"testClass" + (randSeed%3),
+					"testMeth" + (randSeed%20));
 		Serializable objData = TestObjFactory.createSimpleIntFieldA();
 		RecordEventData res = eventStore.addEvent(e, objData);
 		return res;
