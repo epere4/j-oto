@@ -14,6 +14,9 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.writer.AbstractRecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback;
 
 /**
  * abstract helper base-class for RecordEventStore implementations
@@ -37,6 +40,8 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 	 * exclusive last event id... also serves as idGenerator!
 	 */
 	private int lastEventId = 1; // exclusive
+	
+	private RecordEventWriter eventWriterAdapter = new RecordEventWriterAdapter(this);
 	
 	// ------------------------------------------------------------------------
 
@@ -160,6 +165,14 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 		return eventData;
 	}
 
+	/**
+	 * @return RecordEventWriter interface adapter for this object 
+	 */
+	@Override
+	public RecordEventWriter getEventWriter() {
+		return eventWriterAdapter;
+	}
+
 	abstract RecordEventData doAddEvent(RecordEventSummary eventInfo, Serializable objData);
 
 	protected static List<RecordEventSummary> eventDataListToEventHandleList(List<RecordEventData> eventDataList) {
@@ -197,6 +210,33 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 				log.warn("Failed to fire event to listener ... ignore, no rethrow!", ex);
 			}
 		}
+	}
+	
+	/**
+	 * adapter class for RecordEventStore -> RecordEventWriter
+	 * 
+	 * for writing event using RecordEventWriter api into eventstore using SPI
+	 */
+	private static class RecordEventWriterAdapter extends AbstractRecordEventWriter {
+
+		private RecordEventStore eventStore;
+		
+		// -------------------------------------------------------------------------
+		
+		public RecordEventWriterAdapter(RecordEventStore eventStore) {
+			this.eventStore = eventStore;
+		}
+
+		// -------------------------------------------------------------------------
+		
+		public void addEvent(RecordEventSummary info, Serializable objData, 
+					RecordEventWriterCallback callback) {
+			RecordEventData eventData = eventStore.addEvent(info, objData);
+			if (callback != null) {
+				callback.onStore(eventData);
+			}
+		}
+			
 	}
 	
 }

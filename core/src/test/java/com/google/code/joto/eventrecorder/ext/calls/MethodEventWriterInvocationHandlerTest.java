@@ -9,13 +9,8 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.ext.calls.EventMethodRequestData;
-import com.google.code.joto.eventrecorder.ext.calls.EventMethodResponseData;
-import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterInvocationHandler;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
-import com.google.code.joto.eventrecorder.writer.DefaultRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.SerializableObj;
 
@@ -25,15 +20,10 @@ import com.google.code.joto.testobj.SerializableObj;
  */
 public class MethodEventWriterInvocationHandlerTest extends TestCase {
 
-	public static IFoo createFooProxyRecorder(IFoo targetObjCallToRecord, RecordEventStore eventStore) {
-		RecordEventWriter eventGen = new DefaultRecordEventWriter(eventStore); 
-		return createFooProxyRecorder(targetObjCallToRecord, eventGen);
-	}
-
-	public static IFoo createFooProxyRecorder(IFoo targetObjCallToRecord, RecordEventWriter eventGen) {
+	public static IFoo createFooProxyRecorder(IFoo targetObjCallToRecord, RecordEventWriter eventWriter) {
 		ClassLoader classLoader = targetObjCallToRecord.getClass().getClassLoader();
 		InvocationHandler h = 
-			new MethodEventWriterInvocationHandler(targetObjCallToRecord, eventGen, 
+			new MethodEventWriterInvocationHandler(targetObjCallToRecord, eventWriter, 
 						"methCall", "request", "response");
 						// TOADD eventMethodDetail... add name of obj?
 		IFoo fooProxy = (IFoo) Proxy.newProxyInstance(classLoader, new Class[] { IFoo.class }, h );
@@ -43,14 +33,14 @@ public class MethodEventWriterInvocationHandlerTest extends TestCase {
 	private static class TestData {
 		IFoo impl;
 		DefaultMemoryRecordEventStore eventStore;
-		RecordEventWriter eventGen;
+		RecordEventWriter eventWriter;
 		IFoo fooProxy;
 		
 		public TestData() {
 			impl = new DefaultSerializableFoo();
 			eventStore = new DefaultMemoryRecordEventStore();
-			eventGen = new DefaultRecordEventWriter(eventStore); 
-			fooProxy = createFooProxyRecorder(impl, eventGen);
+			eventWriter = eventStore.getEventWriter(); 
+			fooProxy = createFooProxyRecorder(impl, eventWriter);
 		}
 	}
 	

@@ -48,11 +48,8 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 		}
 		
 		RecordEventSummary eventInfo = new RecordEventSummary(-1);
-		LogbackEventData eventData = new LogbackEventData();
 
 		eventInfo.setEventType(eventType);
-		eventData.setLevel(eventInfo, p.getLevel().toString());
-
 		eventInfo.setThreadName(p.getThreadName());
 		eventInfo.setEventDate(new Date(p.getTimeStamp()));
 		eventInfo.setEventMethodName(p.getLoggerName());
@@ -61,7 +58,12 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 		// => use "... {0} .. {1} .." to compress event summary encoding
 		eventInfo.setEventMethodDetail(p.getMessage()); 
 		
+		if (!eventWriter.isEnable(eventInfo)) {
+			return;
+		}
 
+		LogbackEventData eventData = new LogbackEventData();
+		eventData.setLevel(eventInfo, p.getLevel().toString());
 		eventData.setFormattedMessage(p.getFormattedMessage());
 		eventData.setArgumentArray(p.getArgumentArray());
 

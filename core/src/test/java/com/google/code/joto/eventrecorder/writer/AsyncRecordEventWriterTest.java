@@ -23,8 +23,8 @@ public class AsyncRecordEventWriterTest extends AbstractRecordEventStoreTestHelp
 	}
 
 	public void test1() {
-		CyclicBufferRecordEventStore eventStore = new CyclicBufferRecordEventStore(); 
-		AsyncQueueRecordEventWriter writer = new AsyncQueueRecordEventWriter(eventStore);
+		CyclicBufferRecordEventStore eventStore = new CyclicBufferRecordEventStore();
+		AsyncQueueRecordEventWriter writer = new AsyncQueueRecordEventWriter(eventStore.getEventWriter());
 
 		int count = 0;
 		assertEquals(1, eventStore.getLastEventId());
@@ -77,7 +77,7 @@ public class AsyncRecordEventWriterTest extends AbstractRecordEventStoreTestHelp
 			setupRollingFileTest(fileName, maxRollingFiles, maxFileSize);
 		try {
 			eventStore.open("rw");
-			AsyncQueueRecordEventWriter writer = new AsyncQueueRecordEventWriter(eventStore); 
+			AsyncQueueRecordEventWriter writer = new AsyncQueueRecordEventWriter(eventStore.getEventWriter()); 
 			writer.startQueue();
 			
 			doRunBenchmarkWriteSimple(eventStore, repeatCount, writeCount);

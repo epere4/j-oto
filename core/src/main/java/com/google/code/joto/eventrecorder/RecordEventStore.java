@@ -3,6 +3,8 @@ package com.google.code.joto.eventrecorder;
 import java.io.Serializable;
 import java.util.List;
 
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+
 /**
  *
  */
@@ -47,9 +49,14 @@ public interface RecordEventStore {
 	public void purgeEvents(int toEventId);
 
 	/**
+	 * @return RecordEventWriter interface adapter for this object 
+	 */
+	public RecordEventWriter getEventWriter();
+	
+	/**
 	 * SPI to add a new stored event
-	 * You should typically call this only from helper class RecordEventStoreWriter,
-	 * which can offer simpler api methods, and can be enabled/disabled at runtime. 
+	 * You should typically call this only from helper class RecordEventWriter,
+	 * which can offer simpler api methods, and can be chained with filtering and async support classes. 
 	 */
 	public RecordEventData addEvent(RecordEventSummary eventInfo, Serializable objData);
 
