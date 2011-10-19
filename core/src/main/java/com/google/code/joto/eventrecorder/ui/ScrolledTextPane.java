@@ -70,6 +70,10 @@ public class ScrolledTextPane {
 		return mainPanel;
 	}
 	
+	public JToolBar getToolbar() {
+		return southToolBar;
+	}
+	
 	public void setPreferredScrollableSize(Dimension preferredSize) {
 		scrollPane.setPreferredSize(preferredSize);
 	}

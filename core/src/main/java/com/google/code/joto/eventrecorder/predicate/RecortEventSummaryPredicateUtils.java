@@ -4,14 +4,34 @@ import java.io.Serializable;
 
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.collections.PredicateUtils;
+import org.apache.commons.collections.functors.AndPredicate;
+import org.apache.commons.collections.functors.EqualPredicate;
+import org.apache.commons.collections.functors.NotPredicate;
+import org.apache.commons.collections.functors.OrPredicate;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.thoughtworks.xstream.XStream;
 
 /**
  * Utility Predicate classes for RecortEventSummary 
  */
 public class RecortEventSummaryPredicateUtils {
 
+	public static XStream createDefaultPredicateXStream() {
+		XStream res = new XStream();
+		registerDefaultPredicateXStreamAlias(res);
+		return res;
+	}
+	
+	public static void registerDefaultPredicateXStreamAlias(XStream res) {
+		res.alias("and", AndPredicate.class);
+		res.alias("or", OrPredicate.class);
+		res.alias("not", NotPredicate.class);
+		res.alias("equal", EqualPredicate.class);
+		res.alias("MatchesEvent", DefaultEventTypeRecordEventSummaryPredicate.class);
+		res.alias("MatchesEventType", EventTypeRecordEventSummaryPredicate.class);
+	}
+	
 	public static RecordEventSummaryPredicate byFields(
 			Predicate eventIdPredicate, 
 			Predicate eventDatePredicate,
