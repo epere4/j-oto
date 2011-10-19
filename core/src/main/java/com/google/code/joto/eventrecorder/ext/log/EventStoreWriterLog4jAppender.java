@@ -70,6 +70,7 @@ public class EventStoreWriterLog4jAppender extends AppenderSkeleton {
 				}
 			}
 			
+			@SuppressWarnings("unchecked")
 			Map<String,String> properties = p.getProperties();
 			if (properties != null && !properties.isEmpty()) {
 				eventData.setProperties(properties);
@@ -85,9 +86,5 @@ public class EventStoreWriterLog4jAppender extends AppenderSkeleton {
 		}
 		
 	}
-
-
-	// -------------------------------------------------------------------------
-	
 	
 }

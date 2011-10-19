@@ -15,6 +15,19 @@ import com.thoughtworks.xstream.converters.reflection.FieldDictionary;
 
 /**
  * base class of AST hierarchy for object tree values (or fragment of values)
+ * 
+ * This is an in-memory replacement of real objects by generic ones:
+ *   transform real java Object => Map < Map < Field,Value> > 
+ * 
+ * This is done for several purpose:
+ * <ul>
+ * <li> Objects graph can be traversed in both direction : every object records the list of pointer to itself</li>
+ * <li> Object elements (instance, fields, array elements) are all first-class-citizen objects, and can be annotated with key=values markers for internal algorithms</li>
+ * <li> The reflection api is called only once, to build the generic equivalent form. </li>
+ * <li> The reflection API is rather complex to access private field (using native call to jdk specific methods, using XStream implementation helpers) </li>
+ * </ul>
+ * 
+ * It allows treating similar objects like List,ArrayList,UnmodifiableList...  
  */
 public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	
@@ -35,7 +48,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 		 return attributeSupport;
 	}
 
-    public static Class wrapperTypeFor(Class primitiveType) {
+    public static Class<?> wrapperTypeFor(Class<?> primitiveType) {
         if (primitiveType == Boolean.TYPE) return Boolean.class;
         if (primitiveType == Byte.TYPE) return Byte.class;
         if (primitiveType == Character.TYPE) return Character.class;
@@ -434,14 +447,15 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 	public static class PrimitiveArrayValueHolder<T> extends AbstractObjectValueHolder {
 
  		private Class<?> componentWrapperType;
-		private PrimitiveArrayEltValueHolder[] holderArray;
+		private PrimitiveArrayEltValueHolder<T>[] holderArray;
 		
+		@SuppressWarnings("unchecked")
 		public PrimitiveArrayValueHolder(Class<?> arrayObjType, int len) {
 			super(arrayObjType);
 			componentWrapperType = wrapperTypeFor(arrayObjType.getComponentType());
 			holderArray = new PrimitiveArrayEltValueHolder[len];
 			for (int i = 0; i < len; i++) {
-				holderArray[i] = new PrimitiveArrayEltValueHolder(this, i);
+				holderArray[i] = new PrimitiveArrayEltValueHolder<T>(this, i);
 			}
 		}
 
@@ -454,11 +468,11 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			return v.casePrimitiveArray(this, a);
 		}
 
-		public PrimitiveArrayEltValueHolder[] getHolderArray() {
+		public PrimitiveArrayEltValueHolder<T>[] getHolderArray() {
 			return holderArray;
 		}
 
-		public PrimitiveArrayEltValueHolder getHolderArrayAt(int index) {
+		public PrimitiveArrayEltValueHolder<T> getHolderArrayAt(int index) {
 			return holderArray[index];
 		}
 		
@@ -577,7 +591,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			this(ArrayList.class, new ArrayList<CollectionEltRefValueHolder>());
 		}
 
-		public CollectionValueHolder(Class type, Collection<CollectionEltRefValueHolder> value) {
+		public CollectionValueHolder(Class<?> type, Collection<CollectionEltRefValueHolder> value) {
 			super(type);
 			this.elts = value;
 		}
@@ -597,7 +611,7 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 		}
 
 		public Collection<AbstractObjectValueHolder> getElts() {
-			Collection<AbstractObjectValueHolder> res = new ArrayList(elts.size());
+			Collection<AbstractObjectValueHolder> res = new ArrayList<AbstractObjectValueHolder>(elts.size());
 			for(CollectionEltRefValueHolder elt : elts) {
 				res.add(elt.getTo());
 			}

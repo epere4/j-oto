@@ -23,8 +23,8 @@ public interface ValueHolderVisitor2<R,A> {
 	R casePrimitiveField(PrimitiveFieldValueHolder p, A arg);
 	R caseRefField(RefFieldValueHolder p, A arg);
 	
-	R casePrimitiveArray(PrimitiveArrayValueHolder p, A arg);
-	R casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p, A arg);
+	R casePrimitiveArray(PrimitiveArrayValueHolder<?> p, A arg);
+	R casePrimitiveArrayElt(PrimitiveArrayEltValueHolder<?> p, A arg);
 
 	R caseRefArray(RefArrayValueHolder p, A arg);
 	R caseRefArrayElt(ArrayEltRefValueHolder p, A arg);

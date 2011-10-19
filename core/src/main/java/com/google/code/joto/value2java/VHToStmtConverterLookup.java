@@ -28,8 +28,8 @@ public class VHToStmtConverterLookup {
 		new PriorityList<RefObjectVHToStmtConverter>();
 	
 	/** lazy computed field, from objConverters */
-	private Map<Class,ObjectVHToStmtConverter> cachedTypeToConverter = 
-		new HashMap<Class,ObjectVHToStmtConverter>(); 
+	private Map<Class<?>,ObjectVHToStmtConverter> cachedTypeToConverter = 
+		new HashMap<Class<?>,ObjectVHToStmtConverter>(); 
 	
 	/** lazy computed field, from objConverters */
 	private Map<RefClassToClassKey,RefObjectVHToStmtConverter> cachedRefKeyToRefObjConverter = 
@@ -99,11 +99,11 @@ public class VHToStmtConverterLookup {
 	 * internal
 	 */
 	private static class RefClassToClassKey {
-		private final Class fromClass;
+		private final Class<?> fromClass;
 		private final String[] path;
-		private final Class toClass;
+		private final Class<?> toClass;
 		
-		public RefClassToClassKey(Class fromClass, String[] path, Class toClass) {
+		public RefClassToClassKey(Class<?> fromClass, String[] path, Class<?> toClass) {
 			super();
 			this.fromClass = fromClass;
 			this.path = new String[path.length];

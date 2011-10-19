@@ -14,9 +14,9 @@ import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.SimpleNameExpr;
 
 /**
- * Visitor design pattern, for BeanInitAST class hierarchy
+ * Visitor design pattern, for BeanAST class hierarchy
  * 
- * See also BeanInitVisitor2 with arg/return. 
+ * See also BeanASTVisitor2 with arg/return. 
  */
 public interface BeanASTVisitor {
 

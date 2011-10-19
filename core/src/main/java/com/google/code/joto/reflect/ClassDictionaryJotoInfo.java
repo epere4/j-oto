@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ClassDictionaryJotoInfo {
 
-	private Map<Class,ClassJotoInfo> classMap = new HashMap<Class,ClassJotoInfo>();
+	private Map<Class<?>,ClassJotoInfo> classMap = new HashMap<Class<?>,ClassJotoInfo>();
 	
 	// -------------------------------------------------------------------------
 	

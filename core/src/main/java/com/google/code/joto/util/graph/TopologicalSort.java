@@ -216,6 +216,7 @@ public class TopologicalSort<Vertex> {
 			add(priority - 1, obj);
 		}
 
+		
 		public List<T> getSubQueue(int priority) {
 //			Integer key = Integer.valueOf(priority);
 //			List<T> res = subQueues.get(key);
@@ -227,7 +228,7 @@ public class TopologicalSort<Vertex> {
 			if (priority >= len) {
 				// alloc!
 				for(int i = len; i <= priority; i++) {
-					subQueues.add(new ArrayList());
+					subQueues.add(new ArrayList<T>());
 				}
 			}
 			List<T> res = subQueues.get(priority);

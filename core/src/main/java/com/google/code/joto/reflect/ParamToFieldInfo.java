@@ -4,12 +4,12 @@ import java.lang.reflect.Field;
 
 public class ParamToFieldInfo {
 
-	private final Class parameterType;
+	private final Class<?> parameterType;
 	private Field targetAssignedField;
 
 	// -------------------------------------------------------------------------
 	
-	public ParamToFieldInfo(Class parameterType, Field targetAssignedField) {
+	public ParamToFieldInfo(Class<?> parameterType, Field targetAssignedField) {
 		super();
 		this.parameterType = parameterType;
 		this.targetAssignedField = targetAssignedField;
@@ -17,7 +17,7 @@ public class ParamToFieldInfo {
 
 	// -------------------------------------------------------------------------
 
-	public Class getParameterType() {
+	public Class<?> getParameterType() {
 		return parameterType;
 	}
 

@@ -41,10 +41,11 @@ public class DefaultAttributeSupport implements IAttributeSupport {
 		return res;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> T getAttrOrPutNewInstance(Object key, Class<T> classToInstanciante) {
 		T res = null;
 		if (attributes == null) {
-			attributes = new HashMap();
+			attributes = new HashMap<Object,Object>();
 		}
 		res = (T) attributes.get(key);
 		if (res == null) {
@@ -60,7 +61,7 @@ public class DefaultAttributeSupport implements IAttributeSupport {
 
 	public Object putAttr(Object key, Object value) {
 		if (attributes == null) {
-			attributes = new HashMap();
+			attributes = new HashMap<Object,Object>();
 		}
 		return attributes.put(key, value);
 	}

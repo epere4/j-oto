@@ -9,6 +9,33 @@ import com.google.code.joto.util.attr.DefaultAttributeSupport;
 import com.google.code.joto.util.attr.IAttributeSupport;
 import com.google.code.joto.util.attr.IAttributeSupportDelegate;
 
+/**
+ * AST for java code relative to javabean handling.<BR/>
+ * very simplified AST sub-part of the java langage! 
+ * <p/>
+ * 
+ * Typically, it allows writing code like
+ * <pre>
+ *   MyClass bean = new MyClass();
+ *   bean.setField1(123);
+ *   bean.addElt(new MyClassElement());
+ * </pre>
+ * 
+ * Such code can be created programmatically by
+ * <pre>
+ *   // line 1: "MyClass bean = new MyClass();"
+ *   VarDeclStmt beanVarDecl = new VarDeclStmt(MyClass.class, "bean", new NewObjectExpr(MyClass.class));
+ *   
+ *   // line 2: "bean.setField1(123);"
+ *   BeanExpr expr2 = new MethodApplyExpr(new SimpleNameExpr("bean"), "setField1", singletonList(new LiteralExpr(123)));
+ *   ExprStmt stmt2 = new ExprStmt(expr2);
+ *   
+ *   // line 3: "bean.addElt(new MyClassElement());"
+ *   BeanExpr expr3 = new MethodApplyExpr(new SimpleNameExpr("bean"), "addElt", new NewObjectExpr(MyClassElement.class));
+ *   ExprStmt stmt3 = new ExprStmt(expr3);
+ * </pre>
+ * 
+ */
 public abstract class BeanAST implements IAttributeSupportDelegate {
 
 	private IAttributeSupport attributeSupport;
@@ -187,18 +214,18 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 	 * 
 	 */
 	public static class NewObjectExpr extends BeanExpr {
-		Class newClss;
+		Class<?> newClss;
 		List<BeanExpr> args = new ArrayList<BeanExpr>();
 		
-		public NewObjectExpr(Class clss) {
-			this(clss, (List) null);
+		public NewObjectExpr(Class<?> clss) {
+			this(clss, (List<BeanExpr>) null);
 		}
 
-		public NewObjectExpr(Class clss, BeanExpr... args) {
+		public NewObjectExpr(Class<?> clss, BeanExpr... args) {
 			this(clss, Arrays.asList(args));
 		}
 		
-		public NewObjectExpr(Class clss, List<BeanExpr> args) {
+		public NewObjectExpr(Class<?> clss, List<BeanExpr> args) {
 			super();
 			this.newClss = clss;
 			if (args != null) {
@@ -214,7 +241,7 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 			return v.caseNewObject(this, arg);
 		}
 
-		public Class getNewClss() {
+		public Class<?> getNewClss() {
 			return newClss;
 		}
 
@@ -228,17 +255,17 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 	 * 
 	 */
 	public static class NewArrayExpr extends BeanExpr {
-		private Class newArrayClass;
+		private Class<?> newArrayClass;
 		private int length;
 		private BeanExpr[] initExprs;
 		
-		public NewArrayExpr(Class newArrayClass, int length) {
+		public NewArrayExpr(Class<?> newArrayClass, int length) {
 			super();
 			this.newArrayClass = newArrayClass;
 			this.length = length;
 		}
 
-		public NewArrayExpr(Class newArrayClass, int length, BeanExpr[] initExprs) {
+		public NewArrayExpr(Class<?> newArrayClass, int length, BeanExpr[] initExprs) {
 			super();
 			this.newArrayClass = newArrayClass;
 			this.length = length;
@@ -253,7 +280,7 @@ public abstract class BeanAST implements IAttributeSupportDelegate {
 			return v.caseNewArray(this, arg);
 		}
 
-		public Class getNewArrayClass() {
+		public Class<?> getNewArrayClass() {
 			return newArrayClass;
 		}
 

@@ -30,7 +30,7 @@ public class DispatcherRecordEventsProcessor<T> implements RecordEventsProcessor
 
 		@Override
 		public RecordEventsProcessor create(T result) {
-			return new DispatcherRecordEventsProcessor(eventTypeToFactory, defaultFactory, result);
+			return new DispatcherRecordEventsProcessor<T>(eventTypeToFactory, defaultFactory, result);
 		}
 
 		public void registerEventTypeProcessorFactory(String eventType, RecordEventsProcessorFactory<T> eventTypeFactory) {

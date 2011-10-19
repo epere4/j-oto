@@ -6,16 +6,43 @@ import java.util.Date;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.RecordEventStoreCallback.CorrelatedEventSetterCallback;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback.CorrelatedEventSetterCallback;
 
 /**
- * AOP-Alliance support class for recording events to EventStore 
+ * AOP-Alliance support class for recording method call events to RecordEventWriter
+ * 
+ * pseudo code:
+ * <pre>
+ * {@code
+ * @Override // implements org.aopalliance.intercept.MethodInterceptor
+ * public Object invoke(MethodInvocation methInvocation) throws Throwable {
+ *
+ * 	// record beginning of method:
+ * 	RecordEventSummary requestEvent = new RecordEventSummary(...);
+ *  EventMethodRequestData requestData = new EventMethodRequestData(methodObject, methodArguments); 
+ *  eventWriter.addEvent(evt, reqObjData, ...);  
+ *  int requestEventId = ...  // pseudo-code: retreived eventId (with async callbacks)
+ * 
+ *  // the method..
+ *  // *** do call ***
+ *  Object res = method.invoke(target, args);
+ *  
+ *  // record end of method
+ *  RecordEventSummary responseEvent = new RecordEventSummary(...);
+ *  responseEvent.setCorrelatedEventId(requestEventId); // pseudo-code ... (with in async callback)
+ *  EventMethodResponseData responseData = new EventMethodResponseData(methodResult, methodException) 
+ *  eventWriter.addEvent(responseEvent, responseData, ...);
+ * 
+ *  return res;
+ * }
+ * }</pre>
+ * 
  */
 public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 
-	private RecordEventStoreGenerator eventGenerator;
+	private RecordEventWriter eventWriter;
 	
 	private String eventType;
 	private String requestEventSubType;
@@ -26,12 +53,12 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 	//-------------------------------------------------------------------------
 
 	public MethodEventGeneratorAopInterceptor(
-			RecordEventStoreGenerator eventGenerator,
+			RecordEventWriter eventWriter,
 			String eventType,
 			String requestEventSubType,
 			String responseEventSubType
 			) {
-		this.eventGenerator = eventGenerator;
+		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 		this.requestEventSubType = requestEventSubType;
 		this.responseEventSubType = responseEventSubType;
@@ -57,7 +84,7 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 		Object target = methInvocation.getThis();
 		Object[] args = methInvocation.getArguments(); 
 
-		boolean enable = eventGenerator.isEnableGenerator();
+		boolean enable = eventWriter.isEnable();
 		if (!enable) {
 			// *** do call ***
 			Object res = method.invoke(target, args);
@@ -67,7 +94,7 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 
 			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
 			Object replTarget = target;
-			Object[] replArgs = args; // TODO not required to replace arg sin current version?
+			Object[] replArgs = args; // TODO not required to replace args in current version?
 			if (objectReplacementMap != null) {
 				replTarget = objectReplacementMap.checkReplace(replTarget);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
@@ -78,7 +105,7 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 			CorrelatedEventSetterCallback callbackForEventId =
 				new CorrelatedEventSetterCallback(responseEvt);
 			
-			eventGenerator.addEvent(evt, reqObjData, callbackForEventId);
+			eventWriter.addEvent(evt, reqObjData, callbackForEventId);
 
 			try {
 				// *** do call ***
@@ -89,13 +116,13 @@ public class MethodEventGeneratorAopInterceptor implements MethodInterceptor {
 					replRes = objectReplacementMap.checkReplace(res);
 				}
 				EventMethodResponseData respObjData = new EventMethodResponseData(replRes, null);
-				eventGenerator.addEvent(responseEvt, respObjData, null);
+				eventWriter.addEvent(responseEvt, respObjData, null);
 
 				return res;
 	
 			} catch(Exception ex) {
 				EventMethodResponseData respObjData = new EventMethodResponseData(null, ex);
-				eventGenerator.addEvent(responseEvt, respObjData, null);
+				eventWriter.addEvent(responseEvt, respObjData, null);
 	
 				throw ex; // rethow!
 			}

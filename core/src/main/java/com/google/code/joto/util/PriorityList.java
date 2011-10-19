@@ -23,8 +23,8 @@ public class PriorityList<T> implements Iterable<T> {
 
 	//-------------------------------------------------------------------------
 
-    public void add(Object item, int priority) {
-        this.set.add(new PrioritizedItem(item, priority, ++idGenerator));
+    public void add(T item, int priority) {
+        this.set.add(new PrioritizedItem<T>(item, priority, ++idGenerator));
     }
 
     /**
@@ -64,7 +64,9 @@ public class PriorityList<T> implements Iterable<T> {
         }
 
         public boolean equals(Object obj) {
-            return this.id == ((PrioritizedItem)obj).id;
+        	if (obj == this) return true;
+        	if (!(obj instanceof PrioritizedItem<?>)) return false;
+            return this.id == ((PrioritizedItem<?>)obj).id;
         }
 
     }

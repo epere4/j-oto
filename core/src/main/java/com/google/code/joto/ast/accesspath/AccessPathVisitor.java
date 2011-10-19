@@ -11,7 +11,7 @@ import com.google.code.joto.ast.accesspath.AccessPathAST.MapAccess;
 import com.google.code.joto.ast.accesspath.AccessPathAST.ObjectFieldAccess;
 
 /**
- * Visitor for JPathEltAST class hierarchy
+ * Visitor for AcessPathEltAST class hierarchy
  */
 public interface AccessPathVisitor {
 	

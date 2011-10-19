@@ -143,7 +143,7 @@ public class ReflectUtils {
 
 	public static List<Field> findAssignableFieldsForValueType(Class<?> targetClass, Class<?> valueType) {
 		List<Field> res = new ArrayList<Field>();
-		for (Iterator<Field> iterator = fieldDictionary.fieldsFor(targetClass); iterator.hasNext();) {
+		for (Iterator<Field> iterator = fieldsFor(targetClass); iterator.hasNext();) {
             Field field = iterator.next();
             Class<?> fieldClass = field.getDeclaringClass();
             if (fieldClass.isAssignableFrom(valueType)) {
@@ -151,6 +151,11 @@ public class ReflectUtils {
             }
 		}
 		return res;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Iterator<Field> fieldsFor(Class<?> targetClass) {
+		return fieldDictionary.fieldsFor(targetClass);
 	}
 
 	public static Class<?> primitiveTypeToWrapperType(Class<?> t) {

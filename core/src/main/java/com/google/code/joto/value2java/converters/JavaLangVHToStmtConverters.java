@@ -102,7 +102,7 @@ public class JavaLangVHToStmtConverters {
 		protected BeanExpr doConvertValue(VHToStmt owner,
 				AbstractObjectValueHolder obj, ObjectStmtInfo objInfo,
 				Object value) {
-			Class clss = (Class) value;
+			Class<?> clss = (Class<?>) value;
 			String simpleName = clss.getSimpleName(); // todo use fully qualified name instead??
 			return new ClassExpr(simpleName);
 		}
@@ -134,7 +134,7 @@ public class JavaLangVHToStmtConverters {
 			args.add(new LiteralExpr(methodName));
 			if (!isUniqByName) {
 				// not uniq => <<className>>.class.getMethod(<<methodName>>, new Class[] { type0, type1, ...typeN});
-				Class[] paramTypes = meth.getParameterTypes();
+				Class<?>[] paramTypes = meth.getParameterTypes();
 				BeanExpr[] paramTypeExprs = new BeanExpr[paramTypes.length];
 				for (int i = 0; i < paramTypes.length; i++) {
 					String paramTypeName = paramTypes[i].getSimpleName(); // TOCHECK use simple name...

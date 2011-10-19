@@ -5,8 +5,8 @@ import java.lang.reflect.Method;
 import java.util.Date;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.RecordEventStoreGenerator;
-import com.google.code.joto.eventrecorder.RecordEventStoreCallback.CorrelatedEventSetterCallback;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback.CorrelatedEventSetterCallback;
 
 /**
  * default implementation of java Proxy reflection, 
@@ -16,7 +16,7 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 
 	private Object target;
 	
-	private RecordEventStoreGenerator eventGenerator;
+	private RecordEventWriter eventWriter;
 	
 	private String eventType;
 	private String requestEventSubType;
@@ -27,13 +27,13 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 	//-------------------------------------------------------------------------
 
 	public MethodEventGeneratorInvocationHandler(Object target,
-			RecordEventStoreGenerator eventGenerator,
+			RecordEventWriter eventWriter,
 			String eventType,
 			String requestEventSubType,
 			String responseEventSubType
 			) {
 		this.target = target;
-		this.eventGenerator = eventGenerator;
+		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 		this.requestEventSubType = requestEventSubType;
 		this.responseEventSubType = responseEventSubType;
@@ -70,7 +70,7 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 		} 
 
 		// generate event for method request
-		boolean enable = eventGenerator.isEnableGenerator();
+		boolean enable = eventWriter.isEnable();
 		if (!enable) {
 			// *** do call ***
 			Object res = method.invoke(target, args);
@@ -90,7 +90,7 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 			CorrelatedEventSetterCallback callbackForEventId =
 				new CorrelatedEventSetterCallback(respEvt);
 			
-			eventGenerator.addEvent(evt, reqObjData, callbackForEventId);
+			eventWriter.addEvent(evt, reqObjData, callbackForEventId);
 
 
 			try {
@@ -102,13 +102,13 @@ public class MethodEventGeneratorInvocationHandler implements InvocationHandler 
 					replRes = objectReplacementMap.checkReplace(res);
 				}
 				EventMethodResponseData respObjData = new EventMethodResponseData(replRes, null);
-				eventGenerator.addEvent(respEvt, respObjData, null);
+				eventWriter.addEvent(respEvt, respObjData, null);
 
 				return res;
 
 			} catch(Exception ex) {
 				EventMethodResponseData respObjData = new EventMethodResponseData(null, ex);
-				eventGenerator.addEvent(respEvt, respObjData, null);
+				eventWriter.addEvent(respEvt, respObjData, null);
 	
 				throw ex; // rethow!
 			}
