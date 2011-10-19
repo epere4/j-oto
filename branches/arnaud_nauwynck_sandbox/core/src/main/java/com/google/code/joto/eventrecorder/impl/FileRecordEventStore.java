@@ -25,7 +25,7 @@ import com.google.code.joto.util.io.ByteArrayOutputStream2;
 import com.google.code.joto.util.io.SerializableUtil;
 
 /**
- * 
+ * file implementation of RecordEventStore
  */
 public class FileRecordEventStore extends AbstractRecordEventStore {
 

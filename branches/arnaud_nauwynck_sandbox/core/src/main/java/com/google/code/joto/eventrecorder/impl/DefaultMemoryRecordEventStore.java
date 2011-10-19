@@ -10,7 +10,7 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordE
 import com.google.code.joto.util.ArrayList2;
 
 /**
- *
+ * in-memory implementation of RecordEventStore
  */
 public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
 	
