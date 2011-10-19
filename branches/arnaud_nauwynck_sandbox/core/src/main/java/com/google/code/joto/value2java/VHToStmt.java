@@ -234,7 +234,6 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 		String putMethodName = "put";
 		
 		Collection<MapEntryValueHolder> entryVHs = p.getEntries();
-		int eltIndex = 0;
 		for(MapEntryValueHolder entryVH : entryVHs) {
 			// *** recurse ***
 			BeanExpr keyExpr = objToLhsExpr(entryVH.getKey(), keyNamePrefix);
@@ -242,7 +241,6 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 			
 			MethodApplyExpr eltAddExpr = new MethodApplyExpr(lsExpr, putMethodName, keyExpr, valueExpr); 
 			objInfo.addInitStmt(new ExprStmt(eltAddExpr));
-			eltIndex++;
 		}
 		return initExpr;
 	}
@@ -268,8 +266,8 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 	}
 
 	@Override
-	public BeanAST casePrimitiveArray(PrimitiveArrayValueHolder p, ObjectStmtInfo objInfo) {
-		PrimitiveArrayEltValueHolder[] arrayVH = p.getHolderArray();
+	public BeanAST casePrimitiveArray(PrimitiveArrayValueHolder<?> p, ObjectStmtInfo objInfo) {
+		PrimitiveArrayEltValueHolder<?>[] arrayVH = p.getHolderArray();
 		int len = arrayVH.length;
 		Class<?> compClass = p.getObjClass().getComponentType();
 		BeanExpr initExpr = new NewArrayExpr(compClass, len);
@@ -277,7 +275,7 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 		BeanExpr lhsArrayExpr = objToLhsExpr(objInfo);
 		
 		for(int i = 0; i < len; i++) {
-			PrimitiveArrayEltValueHolder eltVH = arrayVH[i];
+			PrimitiveArrayEltValueHolder<?> eltVH = arrayVH[i];
 			// *** recurse ***
 			BeanExpr eltExpr = new LiteralExpr(eltVH.getValue());
 			// TODO test if it is not necessary to set default values.... array[i] = 0; 0l; 0.0f; 0.0; false; '0' ...
@@ -325,7 +323,7 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 	
 	
 	@Override
-	public BeanAST casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p, ObjectStmtInfo objInfo) {
+	public BeanAST casePrimitiveArrayElt(PrimitiveArrayEltValueHolder<?> p, ObjectStmtInfo objInfo) {
 		// NOT USED ... see casePrimitiveArray() 
 		return null;
 	}

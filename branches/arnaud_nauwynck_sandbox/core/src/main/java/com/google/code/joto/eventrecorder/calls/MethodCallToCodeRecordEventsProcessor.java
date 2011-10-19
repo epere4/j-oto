@@ -111,16 +111,18 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 	}
 
 	private String prepareGenerateObj(Class<?> declaredObjClass, Object obj, String exprVarName) {
+		// check for replacement
 		if (obj instanceof ObjectInstanceReplacement) {
 			ObjectInstanceReplacement obj2 = (ObjectInstanceReplacement) obj;
 			return obj2.getReplacedObjName();
 		}
-		// TOCHECK also use objectReplacementMap...
+		// also use objectReplacementMap
+		obj = objectReplacementMap.checkReplace(obj);
 		
 		if (declaredObjClass != null && declaredObjClass.isPrimitive() 
 				&& ReflectUtils.primitiveTypeToWrapperType(declaredObjClass) == obj.getClass() // check!
 		) {
-			// encode primitive value directly!
+			// encode primitive value directly
 			return BeanASTPrettyPrinter.litteralToJava(obj);
 		}
 		StringBuilder stmtBuffer = new StringBuilder();

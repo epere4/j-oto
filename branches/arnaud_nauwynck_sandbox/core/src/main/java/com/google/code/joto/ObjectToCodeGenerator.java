@@ -65,7 +65,7 @@ public class ObjectToCodeGenerator {
 	 * @param objName
 	 * @return
 	 */
-	public String objToStmtsString(Class declaredObjClass, Object obj, String objName,
+	public String objToStmtsString(Class<?> declaredObjClass, Object obj, String objName,
 			StringBuilder resStmtsText) {
 		if (obj == null) {
 			return null;

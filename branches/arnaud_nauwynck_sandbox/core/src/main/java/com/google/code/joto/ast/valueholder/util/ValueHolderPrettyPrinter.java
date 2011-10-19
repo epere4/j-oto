@@ -27,6 +27,11 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectValueHolder;
 
+/**
+ * PrettyPrinter for  AbstractObjectValueHolder to String representation.
+ * <p/>
+ * Implemented as a Visitor design pattern on AbstractObjectValueHolder class hierarchy
+ */
 public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 
 	private PrintStream out;
@@ -138,22 +143,18 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 		AbstractObjectValueHolder refVH = node.getTo();
 		if (refVH == null) {
 			println(" = Null");
-		} else {
-			if (refVH != null) {
-				visitOrPrintRef(refVH);
-			} else {
-				println("ERROR null valueHolder");
-			}
+		} else if (refVH != null) {
+			visitOrPrintRef(refVH);
 		}
 	}
 
 	@Override
-	public void casePrimitiveArray(PrimitiveArrayValueHolder p) {
-		PrimitiveArrayEltValueHolder[] array = p.getHolderArray();
+	public void casePrimitiveArray(PrimitiveArrayValueHolder<?> p) {
+		PrimitiveArrayEltValueHolder<?>[] array = p.getHolderArray();
 		int len = array.length;
 		print(p.getObjClass().getComponentType().getName() + "[" + len + "] = { ");
 		for (int i = 0; i < len; i++) {
-			PrimitiveArrayEltValueHolder elt = array[i];
+			PrimitiveArrayEltValueHolder<?> elt = array[i];
 			elt.visit(this);
 			if (i + 1 < len) {
 				print(", ");
@@ -163,7 +164,7 @@ public class ValueHolderPrettyPrinter implements ValueHolderVisitor {
 	}
 
 	@Override
-	public void casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p) {
+	public void casePrimitiveArrayElt(PrimitiveArrayEltValueHolder<?> p) {
 		Object valueElt = p.getValue();
 		if (valueElt != null) {
 			print(valueElt.toString());

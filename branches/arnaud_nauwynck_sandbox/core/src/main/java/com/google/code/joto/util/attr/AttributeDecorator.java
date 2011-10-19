@@ -26,11 +26,13 @@ public interface AttributeDecorator<T,K,V> {
 			return attrSupport.containsAttr(key);
 		}
 
+		@SuppressWarnings("unchecked")
 		public V getAttr(T target, K key) {
 			IAttributeSupport attrSupport = getAttrSupport(target);
 			return (V) attrSupport.getAttr(key);
 		}
 
+		@SuppressWarnings("unchecked")
 		public V putAttr(T target, K key, V value) {
 			IAttributeSupport attrSupport = getAttrSupport(target);
 			return (V) attrSupport.putAttr(key, value);

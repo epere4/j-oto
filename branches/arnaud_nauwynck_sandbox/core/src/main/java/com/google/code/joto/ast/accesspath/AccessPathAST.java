@@ -182,7 +182,7 @@ public abstract class AccessPathAST {
 //		private Method setIndexedMethod;
 //		private Method removeMethod;
 
-		public CollectionMethods(Class clss) {
+		public CollectionMethods(Class<?> clss) {
 			this.iteratorMethod = ReflectUtils.findMethod(clss, "iterator");
 			this.getIndexedMethod = ReflectUtils.findMethod(clss, "get", int.class);
 			this.addMethod = ReflectUtils.findMethod(clss, "add");

@@ -9,16 +9,16 @@ public class SerializableMethodRef implements Serializable {
 	/** */
 	private static final long serialVersionUID = 1L;
 	
-	private final Class methodClass;
+	private final Class<?> methodClass;
 	private final String methodName;
-	private final Class[] methodSignature;
+	private final Class<?>[] methodSignature;
 	private transient Method method;
 	
 	//-------------------------------------------------------------------------
 
 
 	public SerializableMethodRef(
-			Class methodClass, String methodName, Class[] methodSignature) {
+			Class<?> methodClass, String methodName, Class<?>[] methodSignature) {
 		super();
 		this.methodClass = methodClass;
 		this.methodName = methodName;
@@ -32,7 +32,7 @@ public class SerializableMethodRef implements Serializable {
 
 	//-------------------------------------------------------------------------
 
-	public Class getMethodClass() {
+	public Class<?> getMethodClass() {
 		return methodClass;
 	}
 
@@ -40,7 +40,7 @@ public class SerializableMethodRef implements Serializable {
 		return methodName;
 	}
 
-	public Class[] getMethodSignature() {
+	public Class<?>[] getMethodSignature() {
 		return methodSignature;
 	}
 

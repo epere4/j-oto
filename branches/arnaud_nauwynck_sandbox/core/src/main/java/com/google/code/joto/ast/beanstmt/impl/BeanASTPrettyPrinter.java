@@ -80,8 +80,6 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 		if (p.getLhsExpr() != null) {
 			p.getLhsExpr().visit(this);
 			print(".");
-		} else {
-			int dbg = 0; dbg++;
 		}
 		print(p.getMethodName());
 		print("(");

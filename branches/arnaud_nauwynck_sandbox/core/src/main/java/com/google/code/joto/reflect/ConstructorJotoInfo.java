@@ -19,17 +19,17 @@ public class ConstructorJotoInfo extends MemberJotoInfo {
 
 	private static Logger log = LoggerFactory.getLogger(ConstructorJotoInfo.class);
 
-	private final Constructor targetConstructor;
+	private final Constructor<?> targetConstructor;
 
 	private List<ParamToFieldInfo> paramToFieldInfos = new ArrayList<ParamToFieldInfo>();  
 	
 	// -------------------------------------------------------------------------
 	
-	public ConstructorJotoInfo(ClassJotoInfo parent, Constructor targetConstructor) {
+	public ConstructorJotoInfo(ClassJotoInfo parent, Constructor<?> targetConstructor) {
 		super(parent);
 		this.targetConstructor = targetConstructor;
 
-		Class[] paramTypes = targetConstructor.getParameterTypes();
+		Class<?>[] paramTypes = targetConstructor.getParameterTypes();
 		int paramLength = paramTypes.length;
 		if (paramLength != 0) {
 			Field[] paramToFields = new Field[paramLength];
@@ -47,7 +47,7 @@ public class ConstructorJotoInfo extends MemberJotoInfo {
 
 	// -------------------------------------------------------------------------
 
-	public Constructor getTargetConstructor() {
+	public Constructor<?> getTargetConstructor() {
 		return targetConstructor;
 	}
 
@@ -82,10 +82,10 @@ public class ConstructorJotoInfo extends MemberJotoInfo {
 	private boolean resolveNonAmbiguousFields(Field[] paramToFields) {
 		boolean res = true;
 		Class<?> targetClass = parent.getTargetClass();
-		Class[] paramTypes = targetConstructor.getParameterTypes();
+		Class<?>[] paramTypes = targetConstructor.getParameterTypes();
 		int len = paramTypes.length;
 		for(int i = 0; i < len; i++) {
-			Class paramType = paramTypes[i];
+			Class<?> paramType = paramTypes[i];
 			// find if type is assignable to a field, without ambiguity
 			List<Field> assignableFields = ReflectUtils.findAssignableFieldsForValueType(targetClass, paramType);
 			if (assignableFields.size() == 1) {

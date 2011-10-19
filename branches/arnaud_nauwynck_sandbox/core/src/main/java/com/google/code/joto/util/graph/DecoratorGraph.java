@@ -28,7 +28,8 @@ public class DecoratorGraph<Vertex extends IAttributeSupportDelegate> implements
 	public void addVertex(Vertex p) {
 		vertexes.add(p);	
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	public void addLink(Vertex from, Vertex to) {
 		IAttributeSupport fromAttr = from.getAttributeSupport();
 		List<Vertex> vertexFrom_ToAttrList = 
@@ -45,10 +46,12 @@ public class DecoratorGraph<Vertex extends IAttributeSupportDelegate> implements
 		return vertexes;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<Vertex> getVertexFromList(Vertex p) {
 		return (List<Vertex>) p.getAttributeSupport().getAttr(InnerGraphAttr.ATTR_KEY_FROM_VERTEXES);
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<Vertex> getVertexToList(Vertex p) {
 		return (List<Vertex>) p.getAttributeSupport().getAttr(InnerGraphAttr.ATTR_KEY_TO_VERTEXES);
 	}

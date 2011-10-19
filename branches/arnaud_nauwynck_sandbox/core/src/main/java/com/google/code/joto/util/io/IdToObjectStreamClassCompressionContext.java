@@ -22,7 +22,7 @@ public class IdToObjectStreamClassCompressionContext implements Externalizable {
 	
 	private int idGenerator = 1;
 	private ArrayList<ObjectStreamClass> idToValue = new ArrayList<ObjectStreamClass>();
-	private Map<Class,Integer> valueToId = new HashMap<Class,Integer>();
+	private Map<Class<?>,Integer> valueToId = new HashMap<Class<?>,Integer>();
 
 	//-------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ public class IdToObjectStreamClassCompressionContext implements Externalizable {
 			id = -id;
 			res = doReadValue(in);
 			
-			Class value = res.forClass();
+			Class<?> value = res.forClass();
 			// register newly id (not needed when re-reading from context)
 			if (id > idGenerator) {
 				idGenerator = id + 1; //??
@@ -100,7 +100,7 @@ public class IdToObjectStreamClassCompressionContext implements Externalizable {
 	private ObjectStreamClass doReadValue(DataInput in) throws IOException {
 		ObjectStreamClass res;
 		String className = in.readUTF(); // TODO decode read real ObjectStreamClass instead of className?... cf corresponding doWriteValue()
-		Class clss;
+		Class<?> clss;
 		try {
 			clss = Class.forName(className);
 		} catch(Exception ex) {

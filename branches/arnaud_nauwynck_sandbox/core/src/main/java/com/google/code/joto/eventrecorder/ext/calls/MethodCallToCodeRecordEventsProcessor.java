@@ -115,7 +115,7 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 			ObjectInstanceReplacement obj2 = (ObjectInstanceReplacement) obj;
 			return obj2.getReplacedObjName();
 		}
-		// TOCHECK also use objectReplacementMap...
+		obj = objectReplacementMap.checkReplace(obj);
 		
 		if (declaredObjClass != null && declaredObjClass.isPrimitive() 
 				&& ReflectUtils.primitiveTypeToWrapperType(declaredObjClass) == obj.getClass() // check!

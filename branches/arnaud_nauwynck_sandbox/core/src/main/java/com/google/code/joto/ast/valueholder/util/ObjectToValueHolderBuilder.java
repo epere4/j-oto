@@ -21,7 +21,9 @@ import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 
 
 /**
- *
+ * Convert a "real" jvm Object, into a generic AST tree instance AbstractObjectValueHolder 
+ * (a sort of Map<Map<Key,Value>> representation)
+ * 
  */
 public class ObjectToValueHolderBuilder {
 
@@ -45,16 +47,16 @@ public class ObjectToValueHolderBuilder {
 		if (obj == null) {
 			return null; // NullValueHolder.getInstance();
 		} if (obj.getClass().isArray()) {
-			Class compType = obj.getClass().getComponentType();
+			Class<?> compType = obj.getClass().getComponentType();
 			if (compType.isPrimitive()) {
 				return casePrimitiveArray(obj);
 			} else {
 				return caseRefArray((Object[]) obj);
 			}
 		} if (obj instanceof Collection) {
-			return caseCollection((Collection) obj);
+			return caseCollection((Collection<?>) obj);
 		} else if (obj instanceof Map) {
-			return caseMap((Map) obj);
+			return caseMap((Map<?,?>) obj);
 		} else if (ReflectUtils.isPrimitiveWrapperType(obj.getClass())
 				|| obj instanceof String) {
 			return caseImmutableObject(obj);
@@ -85,6 +87,7 @@ public class ObjectToValueHolderBuilder {
 		return res;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected PrimitiveArrayValueHolder casePrimitiveArray(Object obj) {
 		PrimitiveArrayValueHolder res = (PrimitiveArrayValueHolder) identityMap.get(obj);
 		if (res == null) {
@@ -112,7 +115,7 @@ public class ObjectToValueHolderBuilder {
 	}
 
 
-	protected CollectionValueHolder caseCollection(Collection obj) {
+	protected CollectionValueHolder caseCollection(Collection<?> obj) {
 		if (obj == null) {
 			return null;
 		}
@@ -126,7 +129,7 @@ public class ObjectToValueHolderBuilder {
 		return res;
 	}
 
-	protected MapValueHolder caseMap(Map obj) {
+	protected MapValueHolder caseMap(Map<?,?> obj) {
 		MapValueHolder res = (MapValueHolder) identityMap.get(obj);
 		if (res == null) {
 			res = new MapValueHolder();
@@ -145,7 +148,10 @@ public class ObjectToValueHolderBuilder {
 		final ReflectionProvider reflectionProvider = ReflectUtils.getReflectionProvider();
 		
 		reflectionProvider.visitSerializableFields(obj, new ReflectionProvider.Visitor() {
-			public void visit(String fieldName, Class fieldType, 
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void visit(String fieldName, 
+					Class fieldType, 
 					Class definedIn, Object value
 					) {
 				Field field = reflectionProvider.getField(definedIn, fieldName);
@@ -165,9 +171,11 @@ public class ObjectToValueHolderBuilder {
 		});
 	}
 
-	protected void casePrimitiveArray(final Object obj, final PrimitiveArrayValueHolder valueHolder) {
+	@SuppressWarnings("unchecked")
+	protected void casePrimitiveArray(final Object obj, 
+			@SuppressWarnings("rawtypes") final PrimitiveArrayValueHolder valueHolder) {
 		int len = Array.getLength(obj);
-		Class compType = obj.getClass().getComponentType();
+		Class<?> compType = obj.getClass().getComponentType();
 		
 		if (compType == Boolean.TYPE) {
 			boolean[] array = (boolean[]) obj;
@@ -222,7 +230,7 @@ public class ObjectToValueHolderBuilder {
 		}
 	}
 
-	protected void caseCollection(Collection obj, CollectionValueHolder valueHolder) {
+	protected void caseCollection(Collection<?> obj, CollectionValueHolder valueHolder) {
 		for(Object objElt : obj) {
 			AbstractObjectValueHolder eltVH = buildValue(objElt);
 			valueHolder.addRefElt(eltVH);
@@ -230,7 +238,7 @@ public class ObjectToValueHolderBuilder {
 	}
 
 	protected <K,T> void caseMap(Map<K,T> obj, MapValueHolder valueHolder) {
-		for(Map.Entry entry : obj.entrySet()) {
+		for(Map.Entry<K,T> entry : obj.entrySet()) {
 			AbstractObjectValueHolder keyVH = buildValue(entry.getKey());
 			AbstractObjectValueHolder valueVH = buildValue(entry.getValue());
 			valueHolder.putEntry(keyVH, valueVH);

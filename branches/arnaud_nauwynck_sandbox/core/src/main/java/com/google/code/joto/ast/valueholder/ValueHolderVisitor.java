@@ -24,8 +24,8 @@ public interface ValueHolderVisitor {
 	void casePrimitiveField(PrimitiveFieldValueHolder node);
 	void caseRefField(RefFieldValueHolder node);
 
-	void casePrimitiveArray(PrimitiveArrayValueHolder p);
-	void casePrimitiveArrayElt(PrimitiveArrayEltValueHolder p);
+	void casePrimitiveArray(PrimitiveArrayValueHolder<?> p);
+	void casePrimitiveArrayElt(PrimitiveArrayEltValueHolder<?> p);
 	
 	void caseRefArray(RefArrayValueHolder p);
 	void caseRefArrayElt(ArrayEltRefValueHolder p);
