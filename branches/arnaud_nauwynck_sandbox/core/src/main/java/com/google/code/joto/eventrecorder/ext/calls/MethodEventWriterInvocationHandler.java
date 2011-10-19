@@ -72,12 +72,17 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 		// generate event for method request
 		boolean enable = eventWriter.isEnable();
 		if (!enable) {
-			// *** do call ***
+			// *** do call (case 1/3, no event) ***
 			Object res = method.invoke(target, args);
 			return res;
 		} else {
- 		
 			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
+			if (!eventWriter.isEnable(evt)) {
+				// *** do call (case 2/3, no event) ***
+				Object res = method.invoke(target, args);
+				return res;
+			}
+
 			Object replTarget = target;
 			Object[] replArgs = args; // TODO not required to replace arg sin current version?
 			if (objectReplacementMap != null) {
@@ -94,7 +99,7 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 
 
 			try {
-				// *** do call ***
+				// *** do call (case 3/3, with events) ***
 				Object res = method.invoke(target, args);
 				
 				Object replRes = res;

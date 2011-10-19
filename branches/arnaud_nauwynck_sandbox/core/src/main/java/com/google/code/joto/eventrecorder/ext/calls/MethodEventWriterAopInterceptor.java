@@ -12,6 +12,33 @@ import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback.Corre
 
 /**
  * AOP-Alliance support class for recording events to EventStore 
+ *
+  * pseudo code:
+ * <pre>
+ * {@code
+ * @Override // implements org.aopalliance.intercept.MethodInterceptor
+ * public Object invoke(MethodInvocation methInvocation) throws Throwable {
+ *
+ * 	// record beginning of method:
+ * 	RecordEventSummary requestEvent = new RecordEventSummary(...);
+ *  EventMethodRequestData requestData = new EventMethodRequestData(methodObject, methodArguments); 
+ *  eventWriter.addEvent(evt, reqObjData, ...);  
+ *  int requestEventId = ...  // pseudo-code: retreived eventId (with async callbacks)
+ * 
+ *  // the method..
+ *  // *** do call ***
+ *  Object res = method.invoke(target, args);
+ *  
+ *  // record end of method
+ *  RecordEventSummary responseEvent = new RecordEventSummary(...);
+ *  responseEvent.setCorrelatedEventId(requestEventId); // pseudo-code ... (with in async callback)
+ *  EventMethodResponseData responseData = new EventMethodResponseData(methodResult, methodException) 
+ *  eventWriter.addEvent(responseEvent, responseData, ...);
+ * 
+ *  return res;
+ * }
+ * }</pre>
+ * 
  */
 public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 
@@ -59,15 +86,19 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 
 		boolean enable = eventWriter.isEnable();
 		if (!enable) {
-			// *** do call ***
+			// *** do call (case 1/3, no event) ***
 			Object res = method.invoke(target, args);
 			return res;
 		} else {
-			// generate event for method request
-
 			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
+			if (!eventWriter.isEnable(evt)) {
+				// *** do call (case 2/3, no event) ***
+				Object res = method.invoke(target, args);
+				return res;
+			}
+
 			Object replTarget = target;
-			Object[] replArgs = args; // TODO not required to replace arg sin current version?
+			Object[] replArgs = args; // TODO not required to replace args in current version?
 			if (objectReplacementMap != null) {
 				replTarget = objectReplacementMap.checkReplace(replTarget);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
@@ -81,7 +112,7 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 			eventWriter.addEvent(evt, reqObjData, callbackForEventId);
 
 			try {
-				// *** do call ***
+				// *** do call (case 3/3, with events) ***
 				Object res = method.invoke(target, args);
 	
 				Object replRes = res;
