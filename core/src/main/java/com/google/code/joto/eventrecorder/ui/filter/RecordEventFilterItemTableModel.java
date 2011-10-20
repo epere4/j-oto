@@ -6,13 +6,11 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
-
 /**
  * simple swing TableModel for RecordEventSummaryPredicate 
  *
  */
-public class RecordEventFilterTableModel extends AbstractTableModel {
+public class RecordEventFilterItemTableModel extends AbstractTableModel {
 
 	/** internal for java.io.Serializable */
 	private static final long serialVersionUID = 1L;
@@ -74,25 +72,36 @@ public class RecordEventFilterTableModel extends AbstractTableModel {
 	
 	
 	
-	private List<RecordEventFilter> rows = new ArrayList<RecordEventFilter>();
+	private List<RecordEventFilterItem> rows = new ArrayList<RecordEventFilterItem>();
 	
 	// ------------------------------------------------------------------------
 
-	public RecordEventFilterTableModel() {
+	public RecordEventFilterItemTableModel() {
 	}
 
 	// ------------------------------------------------------------------------
 
 
-	public RecordEventFilter getRow(int rowIndex) {
+	public RecordEventFilterItem getRow(int rowIndex) {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return null; // should not occur!
 		return rows.get(rowIndex);
 	}
 
-	public void addRow(RecordEventFilter p) {
+	public void addRow(RecordEventFilterItem p) {
+		int firstRow = rows.size();
 		rows.add(p);
+		int lastRow = firstRow + 1;
+		super.fireTableRowsInserted(firstRow, lastRow);
 	}
-	
+
+	public void removeRow(RecordEventFilterItem item) {
+		int index = rows.indexOf(item);
+		if (index != -1) {
+			rows.remove(index);
+			super.fireTableRowsDeleted(index, index + 1);
+		}
+	}
+
 	// implements swing TableModel
 	// ------------------------------------------------------------------------
 	
@@ -105,11 +114,11 @@ public class RecordEventFilterTableModel extends AbstractTableModel {
 	public int getColumnCount() {
 		return ColumnInfo.STD_COLS.length;
 	}
-
+	
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return null; // should not occur!
-		RecordEventFilter row = getRow(rowIndex);
+		RecordEventFilterItem row = getRow(rowIndex);
 		switch(ColumnInfo.fromOrdinal(columnIndex)) {
 		case name: return row.getName();
 		case description: return row.getDescription();
@@ -153,7 +162,7 @@ public class RecordEventFilterTableModel extends AbstractTableModel {
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex) {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return; // should not occur!
-		RecordEventFilter row = getRow(rowIndex);
+		RecordEventFilterItem row = getRow(rowIndex);
 		switch(ColumnInfo.fromOrdinal(columnIndex)) {
 		case name: row.setName((String) value); break;
 		case description: row.setDescription((String) value); break;

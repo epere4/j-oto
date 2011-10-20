@@ -13,6 +13,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableRowSorter;
 
 import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
@@ -29,9 +30,10 @@ import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordE
 import com.thoughtworks.xstream.XStream;
 
 /**
- * Swing panel for record/pause/continue buttons + show details ... 
+ * Swing panel for selecting RecordEvent in table, 
+ * and show pluggeable representations as Xml / JavaCode / JUnit / ... 
  */
-public class RecordEventPanel {
+public class RecordEventsTableAndConvertersPanel {
 
 	private RecordEventStore eventStore;
 	
@@ -58,13 +60,14 @@ public class RecordEventPanel {
 	
 	// -------------------------------------------------------------------------
 
-	public RecordEventPanel(RecordEventStore eventStore) {
+	public RecordEventsTableAndConvertersPanel(RecordEventStore eventStore) {
 		this.eventStore = eventStore;
 		
 		this.recordEventTableModel = new RecordEventStoreTableModel(eventStore);
-
 		
 		this.recordEventTable = new JTable(recordEventTableModel);
+		recordEventTable.setRowSorter(new TableRowSorter<RecordEventStoreTableModel>(recordEventTableModel));
+		
 		this.recordEventScrollPane = new JScrollPane(recordEventTable);
 		
 		this.selectionTabbedPane = new JTabbedPane();
@@ -150,4 +153,3 @@ public class RecordEventPanel {
 	}
 
 }
-	
