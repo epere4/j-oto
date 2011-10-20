@@ -7,7 +7,7 @@ import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
 /**
  * 
  */
-public class RecordEventFilter {
+public class RecordEventFilterItem {
 
 	private String name;
 
@@ -29,7 +29,7 @@ public class RecordEventFilter {
 
 	// ------------------------------------------------------------------------
 
-	public RecordEventFilter() {
+	public RecordEventFilterItem() {
 	}
 
 	// ------------------------------------------------------------------------
@@ -138,4 +138,35 @@ public class RecordEventFilter {
 		this.correlatedEventIdPredicateDescription = p;
 	}
 
+	
+	public void set(RecordEventFilterItem src) {
+		this.name = src.name;
+		this.description = src.description;
+		this.persistentFile = src.persistentFile;
+
+		this.eventPredicate = src.eventPredicate;
+
+		this.eventIdPredicateDescription = src.eventIdPredicateDescription;
+		this.eventDatePredicateDescription = src.eventDatePredicateDescription;
+		this.threadNamePredicateDescription = src.threadNamePredicateDescription;
+		this.eventTypePredicateDescription = src.eventTypePredicateDescription;
+		this.eventSubTypePredicateDescription = src.eventSubTypePredicateDescription;
+		this.eventClassNamePredicateDescription = src.eventClassNamePredicateDescription; 
+		this.eventMethodNamePredicateDescription = src.eventMethodNamePredicateDescription;
+		this.eventMethodDetailPredicateDescription = src.eventMethodDetailPredicateDescription;
+		this.correlatedEventIdPredicateDescription = src.correlatedEventIdPredicateDescription;
+	}
+
+	// ------------------------------------------------------------------------
+	
+	@Override
+	public String toString() {
+		return "RecordEventFilterItem [" 
+				+ "name=" + name 
+				+ ", description=" + description 
+				+ ", persistentFile=" + persistentFile 
+				+ "]";
+	}
+
+	
 }

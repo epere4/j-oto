@@ -95,7 +95,7 @@ public class UiTestMain {
 		}
 		
 		
-		RecordEventPanel recordEventPanel = new RecordEventPanel(eventStore);
+		RecordEventsTableAndConvertersPanel recordEventPanel = new RecordEventsTableAndConvertersPanel(eventStore);
 		
 		JFrame frame = new JFrame();
 		frame.getContentPane().add(recordEventPanel.getJComponent());
