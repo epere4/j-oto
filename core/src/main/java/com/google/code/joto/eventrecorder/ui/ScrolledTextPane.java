@@ -11,10 +11,12 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import org.slf4j.Logger;
@@ -104,5 +106,45 @@ public class ScrolledTextPane {
 		StringSelection contents = new StringSelection(getText());
 		clipboard.setContents(contents, contents);
 	}
+
+	// ------------------------------------------------------------------------
 	
+	public JButton createInsertTextButton(String label, String textToInsert) {
+		JButton res = new JButton(label);
+		res.addActionListener(createInsertTextActionListener(textToInsert));
+		return res;
+	}
+
+	public JMenuItem createInsertTextMenuItem(String label, String textToInsert) {
+		JMenuItem res = new JMenuItem(label);
+		res.addActionListener(createInsertTextActionListener(textToInsert));
+		return res;
+	}
+
+	public ActionListener createInsertTextActionListener(String textToInsert) {
+		return new InsertTextActionListener(textPane, textToInsert);
+	}
+	
+	public static class InsertTextActionListener implements ActionListener {
+		JTextPane textPane;
+		String textToInsert;
+		public InsertTextActionListener(JTextPane textPane, String textToInsert) {
+			super();
+			this.textPane = textPane;
+			this.textToInsert = textToInsert;
+		}
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int pos = textPane.getCaretPosition();
+			Document doc = textPane.getDocument();
+			if (pos < 0) {
+				pos = doc.getLength();
+			}
+			try {
+				doc.insertString(pos, textToInsert, null);
+			} catch (BadLocationException ex) {
+				log.error("Failed to insert text " + ex.getMessage() + " ... ignore, no rethrow!");
+			}
+		}
+	}
 }

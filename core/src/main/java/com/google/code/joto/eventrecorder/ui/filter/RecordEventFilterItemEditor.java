@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -13,10 +15,21 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
+import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections.functors.AndPredicate;
+import org.apache.commons.collections.functors.EqualPredicate;
+import org.apache.commons.collections.functors.NotPredicate;
+import org.apache.commons.collections.functors.OrPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.ClassMethodEqualsRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.DefaultEventTypeRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.TypeSubTypeEqualsRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.WithClassMethodRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.WithEventMethodNameRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.WithTypeSubTypeRecordEventSummaryPredicate;
 import com.google.code.joto.eventrecorder.ui.ScrolledTextPane;
 import com.google.code.joto.util.JotoRuntimeException;
 import com.google.code.joto.util.io.XStreamUtils;
@@ -137,7 +150,8 @@ public class RecordEventFilterItemEditor {
 			detailedXmlPredicateTextPane = new ScrolledTextPane();
 			xmlForm.addLabelCompFill2Rows("xml text (XStream format)", detailedXmlPredicateTextPane.getJComponent());
 		
-			
+			JToolBar toolbar = detailedXmlPredicateTextPane.getToolbar();
+			addStandardXmlInsertTextActions(toolbar);
 		}
 		
 		detailedViewerToolbar = new JToolBar();
@@ -149,7 +163,7 @@ public class RecordEventFilterItemEditor {
 			applyEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("apply"), "Apply Edit", this, "onApplyEditFilterFileButton");
 			detailedViewerToolbar.add(applyEditFilterFileButton);
 
-			undoEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("apply"), "Undo Edit", this, "onUndoEditFilterFileButton");
+			undoEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("undo"), "Undo Edit", this, "onUndoEditFilterFileButton");
 			detailedViewerToolbar.add(undoEditFilterFileButton);
 
 			saveFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("save"), "Save File", this, "onSaveFilterFileButton");
@@ -167,7 +181,40 @@ public class RecordEventFilterItemEditor {
 		}
 
 	}
+	
+	private void addStandardXmlInsertTextActions(JToolBar toolbar) {
+		Predicate dummy1 = new TypeSubTypeEqualsRecordEventSummaryPredicate("eventType", null, null);
+		List<String> dummyIncludes = new ArrayList<String>();
+		dummyIncludes.add(".*");
+		Predicate dummy2 = new ClassMethodEqualsRecordEventSummaryPredicate(null, dummyIncludes, null);
+		
+		addXmlInsertTextAction("and", AndPredicate.getInstance(dummy1, dummy2));
+		addXmlInsertTextAction("or", OrPredicate.getInstance(dummy1, dummy2));
+		addXmlInsertTextAction("not", NotPredicate.getInstance(dummy1));
 
+		Predicate dummyEventTypeEquals = EqualPredicate.getInstance("eventType1");
+		Predicate dummyEventSubTypeEquals = EqualPredicate.getInstance("eventSubType1");
+		Predicate dummyClassNameEquals = EqualPredicate.getInstance("class1");
+		Predicate dummyMethodNameEquals = EqualPredicate.getInstance("meth1");
+		
+		// default
+		addXmlInsertTextAction("MatchesEvent", new DefaultEventTypeRecordEventSummaryPredicate(null, null, null, 
+				dummyEventTypeEquals, dummyEventSubTypeEquals, 
+				dummyClassNameEquals, dummyMethodNameEquals, null, null));
+		addXmlInsertTextAction("With Type,SubType", new WithTypeSubTypeRecordEventSummaryPredicate(dummyEventTypeEquals, dummyEventSubTypeEquals));
+		addXmlInsertTextAction("With Class.Method", new WithClassMethodRecordEventSummaryPredicate(dummyClassNameEquals, dummyMethodNameEquals, null));
+		
+		// with compound predicates
+		addXmlInsertTextAction("method.equal", new WithEventMethodNameRecordEventSummaryPredicate(dummyMethodNameEquals));
+	}
+
+	private void addXmlInsertTextAction(String label, Predicate predicate) {
+		String xml = predicateXStream.toXML(predicate);
+		JButton button = detailedXmlPredicateTextPane.createInsertTextButton(label, xml);
+		detailedXmlPredicateTextPane.getToolbar().add(button);
+	}
+
+	
 	// ------------------------------------------------------------------------
 
 	public JComponent getJComponent() {
