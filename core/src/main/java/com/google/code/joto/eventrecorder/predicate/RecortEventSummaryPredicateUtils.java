@@ -4,12 +4,12 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.collections.functors.AndPredicate;
 import org.apache.commons.collections.functors.EqualPredicate;
+import org.apache.commons.collections.functors.FalsePredicate;
 import org.apache.commons.collections.functors.NotPredicate;
 import org.apache.commons.collections.functors.OrPredicate;
+import org.apache.commons.collections.functors.TruePredicate;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.util.PatternsPredicate;
@@ -27,70 +27,22 @@ public class RecortEventSummaryPredicateUtils {
 	}
 	
 	public static void registerDefaultPredicateXStreamAlias(XStream res) {
-		res.alias("and", AndPredicate.class);
-		res.alias("or", OrPredicate.class);
-		res.alias("not", NotPredicate.class);
-		res.alias("equal", EqualPredicate.class);
+		res.alias("And", AndPredicate.class);
+		res.alias("Or", OrPredicate.class);
+		res.alias("Not", NotPredicate.class);
+
+		res.alias("Equal", EqualPredicate.class);
+		res.alias("True", TruePredicate.class);
+		res.alias("False", FalsePredicate.class);
+
 		res.alias("DefaultEventPredicate", DefaultEventTypeRecordEventSummaryPredicate.class);
-
-		res.alias("WithTypeSubType", WithTypeSubTypeRecordEventSummaryPredicate.class);
-		res.alias("WithClassMethodType", WithClassMethodRecordEventSummaryPredicate.class);
 		
-		res.alias("ClassMethodEquals", ClassMethodEqualsRecordEventSummaryPredicate.class);
-		res.alias("TypeSubTypeEquals", TypeSubTypeEqualsRecordEventSummaryPredicate.class);
+		res.alias("ClassMethodEquals", ClassMethodPatternRecordEventSummaryPredicate.class);
+		res.alias("TypeSubTypeEquals", TypeSubTypePatternRecordEventSummaryPredicate.class);
 		
-		res.alias("WithEventType", WithEventTypeRecordEventSummaryPredicate.class);
-		res.alias("WithEventSubType", WithEventSubTypeRecordEventSummaryPredicate.class);
-		res.alias("WithEventClassName", WithEventClassNameRecordEventSummaryPredicate.class);
-		res.alias("WithEventMethodName", WithEventMethodNameRecordEventSummaryPredicate.class);
-		res.alias("WithEventMethodDetail", WithEventMethodDetailRecordEventSummaryPredicate.class);
 	}
 	
-	public static RecordEventSummaryPredicate withFields(
-			Predicate eventIdPredicate, 
-			Predicate eventDatePredicate,
-			Predicate threadNamePredicate, 
-			Predicate eventTypePredicate,
-			Predicate eventSubTypePredicate,
-			Predicate eventClassNamePredicate,
-			Predicate eventMethodNamePredicate,
-			Predicate eventMethodDetailPredicate,
-			Predicate correlatedEventIdPredicate) {
-		return new DefaultEventTypeRecordEventSummaryPredicate(eventIdPredicate, eventDatePredicate, 
-				threadNamePredicate, eventTypePredicate, eventSubTypePredicate, 
-				eventClassNamePredicate, eventMethodNamePredicate, 
-				eventMethodDetailPredicate, correlatedEventIdPredicate);
-	}
 	
-	public static RecordEventSummaryPredicate withEventType(Predicate/*<String>*/ predicate) {
-		return new WithEventTypeRecordEventSummaryPredicate(predicate);
-	}
-
-	public static RecordEventSummaryPredicate withEventSubType(Predicate/*<String>*/ predicate) {
-		return new WithEventSubTypeRecordEventSummaryPredicate(predicate);
-	}
-
-	public static RecordEventSummaryPredicate withEventClassName(Predicate/*<String>*/ predicate) {
-		return new WithEventSubTypeRecordEventSummaryPredicate(predicate);
-	}
-
-	public static RecordEventSummaryPredicate withEventMethodName(Predicate/*<String>*/ predicate) {
-		return new WithEventSubTypeRecordEventSummaryPredicate(predicate);
-	}
-
-	public static RecordEventSummaryPredicate withEventMethodDetail(Predicate/*<String>*/ predicate) {
-		return new WithEventSubTypeRecordEventSummaryPredicate(predicate);
-	}
-
-	
-	
-	public static RecordEventSummaryPredicate withEventTypeEqual(String eventType) {
-		return withEventType(PredicateUtils.equalPredicate(eventType));
-	}
-
-	public static RecordEventSummaryPredicate withEventSubTypeEqual(String eventType) {
-		return withEventSubType(PredicateUtils.equalPredicate(eventType));
-	}
 
 	// ------------------------------------------------------------------------
 	
@@ -106,135 +58,11 @@ public class RecortEventSummaryPredicateUtils {
 		}
 		
 	}
-	
-	// ------------------------------------------------------------------------
-	
-	/**
-	 * default Predicate for RecordEventSummary with (optional) sub-predicate for each field  
-	 */
-	public static class DefaultEventTypeRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<int>*/ eventIdPredicate;
-		private final Predicate/*<Date>*/ eventDatePredicate;
-		private final Predicate/*<String>*/ threadNamePredicate;
-		private final Predicate/*<String>*/ eventTypePredicate;
-		private final Predicate/*<String>*/ eventSubTypePredicate;
-		private final Predicate/*<String>*/ eventClassNamePredicate;
-		private final Predicate/*<String>*/ eventMethodNamePredicate;
-		private final Predicate/*<String>*/ eventMethodDetailPredicate;
-		private final Predicate/*<int>*/ correlatedEventIdPredicate; 
-
-		public DefaultEventTypeRecordEventSummaryPredicate(
-				Predicate eventIdPredicate, 
-				Predicate eventDatePredicate,
-				Predicate threadNamePredicate, 
-				Predicate eventTypePredicate,
-				Predicate eventSubTypePredicate,
-				Predicate eventClassNamePredicate,
-				Predicate eventMethodNamePredicate,
-				Predicate eventMethodDetailPredicate,
-				Predicate correlatedEventIdPredicate) {
-			super();
-			this.eventIdPredicate = eventIdPredicate;
-			this.eventDatePredicate = eventDatePredicate;
-			this.threadNamePredicate = threadNamePredicate;
-			this.eventTypePredicate = eventTypePredicate;
-			this.eventSubTypePredicate = eventSubTypePredicate;
-			this.eventClassNamePredicate = eventClassNamePredicate;
-			this.eventMethodNamePredicate = eventMethodNamePredicate;
-			this.eventMethodDetailPredicate = eventMethodDetailPredicate;
-			this.correlatedEventIdPredicate = correlatedEventIdPredicate;
-		}
-
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			if (eventIdPredicate != null 
-					&& !eventIdPredicate.evaluate(Integer.valueOf(evt.getEventId()))) {
-				return false;
-			}
-			if (eventDatePredicate != null 
-					&& !eventDatePredicate.evaluate(evt.getEventDate())) {
-				return false;
-			}
-			if (threadNamePredicate != null 
-					&& !threadNamePredicate.evaluate(evt.getThreadName())) {
-				return false;
-			}
-			if (eventTypePredicate != null 
-					&& !eventTypePredicate.evaluate(evt.getEventType())) {
-				return false;
-			}
-			if (eventSubTypePredicate != null 
-					&& !eventSubTypePredicate.evaluate(evt.getEventSubType())) {
-				return false;
-			}
-			if (eventClassNamePredicate != null 
-					&& !eventClassNamePredicate.evaluate(evt.getEventClassName())) {
-				return false;
-			}
-			if (eventMethodNamePredicate != null 
-					&& !eventMethodNamePredicate.evaluate(evt.getEventMethodName())) {
-				return false;
-			}
-			if (eventMethodDetailPredicate != null 
-					&& !eventMethodDetailPredicate.evaluate(evt.getEventMethodDetail())) {
-				return false;
-			}
-			if (correlatedEventIdPredicate != null 
-					&& !correlatedEventIdPredicate.evaluate(evt.getCorrelatedEventId())) {
-				return false;
-			}
-			
-			return true;
-		}
-		
-	}
-
-	
-
-	// ------------------------------------------------------------------------
-	
-	/**
-	 * Predicate for composing condition with <code>eventType</code> and <code>eventSubType</code>   
-	 */
-	public static class WithTypeSubTypeRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventTypePredicate;
-		private final Predicate/*<String>*/ eventSubTypePredicate;
-
-		public WithTypeSubTypeRecordEventSummaryPredicate(
-				Predicate eventTypePredicate, Predicate eventSubTypePredicate) {
-			super();
-			this.eventTypePredicate = eventTypePredicate;
-			this.eventSubTypePredicate = eventSubTypePredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			if (eventTypePredicate != null 
-					&& !eventTypePredicate.evaluate(evt.getEventType())) {
-				return false;
-			}
-			if (eventSubTypePredicate != null 
-					&& !eventSubTypePredicate.evaluate(evt.getEventSubType())) {
-				return false;
-			}
-			return true;
-		}
-		
-	}
 
 	/**
 	 * Predicate with basic conditions on <code>eventType</code> and <code>eventSubType</code>   
 	 */
-	public static class TypeSubTypeEqualsRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
+	public static class TypeSubTypePatternRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
 
 		/** internal for java.io.Serializable */
 		private static final long serialVersionUID = 1L;
@@ -246,7 +74,7 @@ public class RecortEventSummaryPredicateUtils {
 		/** transient, computed from eventSubTypeIncludes,eventSubTypeExcludes */
 		transient private PatternsPredicate _cachedEventSubTypePatterns;
 		
-		public TypeSubTypeEqualsRecordEventSummaryPredicate(
+		public TypeSubTypePatternRecordEventSummaryPredicate(
 				String eventTypeValue, 
 				Collection<String> eventSubTypeIncludes, Collection<String> eventSubTypeExcludes) {
 			super();
@@ -275,69 +103,35 @@ public class RecortEventSummaryPredicateUtils {
 	}
 	
 	
-	/**
-	 * Predicate for composing condition with <code>ClassName</code>, <code>MethodName</code> and <code>MethodDetail</code>
-	 */
-	public static class WithClassMethodRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventClassNamePredicate;
-		private final Predicate/*<String>*/ eventMethodNamePredicate;
-		private final Predicate/*<String>*/ eventMethodDetailPredicate;
-
-		public WithClassMethodRecordEventSummaryPredicate(
-				Predicate eventClassNamePredicate,
-				Predicate eventMethodNamePredicate,
-				Predicate eventMethodDetailPredicate) {
-			super();
-			this.eventClassNamePredicate = eventClassNamePredicate;
-			this.eventMethodNamePredicate = eventMethodNamePredicate;
-			this.eventMethodDetailPredicate = eventMethodDetailPredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			if (eventClassNamePredicate != null 
-					&& !eventClassNamePredicate.evaluate(evt.getEventClassName())) {
-				return false;
-			}
-			if (eventMethodNamePredicate != null 
-					&& !eventMethodNamePredicate.evaluate(evt.getEventMethodName())) {
-				return false;
-			}
-			if (eventMethodDetailPredicate != null 
-					&& !eventMethodDetailPredicate.evaluate(evt.getEventMethodDetail())) {
-				return false;
-			}
-			return true;
-		}
-		
-	}
-	
 
 	/**
 	 * Predicate with basic conditions on <code>ClassName</code>, <code>MethodName</code>
 	 */
-	public static class ClassMethodEqualsRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
+	public static class ClassMethodPatternRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
 
 		/** internal for java.io.Serializable */
 		private static final long serialVersionUID = 1L;
 		
-		private final String className;
+		private final List<String> classNameIncludes;
+		private final List<String> classNameExcludes;
+
 		private final List<String> methodNameIncludes;
 		private final List<String> methodNameExcludes;		
 		
+		/** transient, computed from classNameIncludes,classNameExcludes */
+		transient private PatternsPredicate _cachedClassNamePatterns;
 		/** transient, computed from methodNameIncludes,methodNameExcludes */
 		transient private PatternsPredicate _cachedMethodNamePatterns;
 		
-		public ClassMethodEqualsRecordEventSummaryPredicate(
-				String className,
+		public ClassMethodPatternRecordEventSummaryPredicate(
+				List<String> classNameIncludes,
+				List<String> classNameExcludes,
 				List<String> methodNameIncludes,
 				List<String> methodNameExcludes) {
 			super();
-			this.className = className;
+			this.classNameIncludes = classNameIncludes;
+			this.classNameExcludes = classNameExcludes;
+			this._cachedClassNamePatterns = PatternsPredicate.snewCompilePatterns(classNameIncludes, classNameExcludes);
 			this.methodNameIncludes = methodNameIncludes;
 			this.methodNameExcludes = methodNameExcludes;
 			this._cachedMethodNamePatterns = PatternsPredicate.snewCompilePatterns(methodNameIncludes, methodNameExcludes);
@@ -345,8 +139,11 @@ public class RecortEventSummaryPredicateUtils {
 
 		@Override
 		public boolean evaluate(RecordEventSummary evt) {
-			if (className != null 
-					&& !className.equals(evt.getEventClassName())) {
+			if (_cachedClassNamePatterns == null) {
+				this._cachedClassNamePatterns = PatternsPredicate.snewCompilePatterns(classNameIncludes, classNameExcludes);
+			}
+			if (_cachedClassNamePatterns != null 
+					&& !_cachedClassNamePatterns.evaluate(evt.getEventClassName())) {
 				return false;
 			}
 			if (_cachedMethodNamePatterns == null) {
@@ -357,120 +154,6 @@ public class RecortEventSummaryPredicateUtils {
 				return false;
 			}
 			return true;
-		}
-		
-	}
-	
-	
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Predicate for composing condition with <pre>event.getEventType()</pre>  
-	 */
-	public static class WithEventTypeRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventTypePredicate;
-		
-		public WithEventTypeRecordEventSummaryPredicate(Predicate eventTypePredicate) {
-			super();
-			this.eventTypePredicate = eventTypePredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			return eventTypePredicate.evaluate(evt.getEventType());
-		}
-		
-	}
-	
-
-	/**
-	 * Predicate for composing with condition with <pre>event.getEventSubType()</pre>  
-	 */
-	public static class WithEventSubTypeRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventSubTypePredicate;
-		
-		public WithEventSubTypeRecordEventSummaryPredicate(Predicate eventSubTypePredicate) {
-			super();
-			this.eventSubTypePredicate = eventSubTypePredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			return eventSubTypePredicate.evaluate(evt.getEventSubType());
-		}
-		
-	}
-	
-	/**
-	 * Predicate for composing with condition with <pre>event.getEventClassName()</pre>  
-	 */
-	public static class WithEventClassNameRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventClassNamePredicate;
-		
-		public WithEventClassNameRecordEventSummaryPredicate(Predicate eventClassNamePredicate) {
-			super();
-			this.eventClassNamePredicate = eventClassNamePredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			return eventClassNamePredicate.evaluate(evt.getEventClassName());
-		}
-		
-	}
-	
-	/**
-	 * Predicate for composing with condition with <pre>event.getEventMethodName()</pre>  
-	 */
-	public static class WithEventMethodNameRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventMethodNamePredicate;
-		
-		public WithEventMethodNameRecordEventSummaryPredicate(Predicate eventMethodNamePredicate) {
-			super();
-			this.eventMethodNamePredicate = eventMethodNamePredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			return eventMethodNamePredicate.evaluate(evt.getEventMethodName());
-		}
-		
-	}
-	
-	/**
-	 * Predicate for composing with condition with <pre>event.getEventMethodDetail()</pre>  
-	 */
-	public static class WithEventMethodDetailRecordEventSummaryPredicate extends AbstractRecordEventSummaryPredicate {
-
-		/** internal for java.io.Serializable */
-		private static final long serialVersionUID = 1L;
-		
-		private final Predicate/*<String>*/ eventMethodDetailPredicate;
-		
-		public WithEventMethodDetailRecordEventSummaryPredicate(Predicate eventMethodDetailPredicate) {
-			super();
-			this.eventMethodDetailPredicate = eventMethodDetailPredicate;
-		}
-
-		@Override
-		public boolean evaluate(RecordEventSummary evt) {
-			return eventMethodDetailPredicate.evaluate(evt.getEventMethodDetail());
 		}
 		
 	}

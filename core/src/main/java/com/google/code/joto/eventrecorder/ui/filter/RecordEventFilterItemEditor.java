@@ -16,6 +16,7 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.collections.functors.AndPredicate;
 import org.apache.commons.collections.functors.EqualPredicate;
 import org.apache.commons.collections.functors.NotPredicate;
@@ -23,13 +24,11 @@ import org.apache.commons.collections.functors.OrPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.code.joto.eventrecorder.predicate.DefaultEventTypeRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
 import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.ClassMethodEqualsRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.DefaultEventTypeRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.TypeSubTypeEqualsRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.WithClassMethodRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.WithEventMethodNameRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.WithTypeSubTypeRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.ClassMethodPatternRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.TypeSubTypePatternRecordEventSummaryPredicate;
 import com.google.code.joto.eventrecorder.ui.ScrolledTextPane;
 import com.google.code.joto.util.JotoRuntimeException;
 import com.google.code.joto.util.io.XStreamUtils;
@@ -45,10 +44,11 @@ public class RecordEventFilterItemEditor {
 	
 	private static Logger log = LoggerFactory.getLogger(RecordEventFilterItemEditor.class);
 	
+	private RecordEventFilterItem model;
+
 	private JPanel panel;
 	
 	private JTabbedPane tabbedPane;
-	private RecordEventFilterItem model;
 	
 	private JCheckBox activeField;
 
@@ -183,11 +183,10 @@ public class RecordEventFilterItemEditor {
 	}
 	
 	private void addStandardXmlInsertTextActions(JToolBar toolbar) {
-		Predicate dummy1 = new TypeSubTypeEqualsRecordEventSummaryPredicate("eventType", null, null);
-		List<String> dummyIncludes = new ArrayList<String>();
-		dummyIncludes.add(".*");
-		Predicate dummy2 = new ClassMethodEqualsRecordEventSummaryPredicate(null, dummyIncludes, null);
+		toolbar.add(JButtonUtils.snew("CheckParse", this, "onButtonCheckParse"));
 		
+		Predicate dummy1 = PredicateUtils.truePredicate();
+		Predicate dummy2 = PredicateUtils.truePredicate();
 		addXmlInsertTextAction("and", AndPredicate.getInstance(dummy1, dummy2));
 		addXmlInsertTextAction("or", OrPredicate.getInstance(dummy1, dummy2));
 		addXmlInsertTextAction("not", NotPredicate.getInstance(dummy1));
@@ -197,15 +196,17 @@ public class RecordEventFilterItemEditor {
 		Predicate dummyClassNameEquals = EqualPredicate.getInstance("class1");
 		Predicate dummyMethodNameEquals = EqualPredicate.getInstance("meth1");
 		
-		// default
-		addXmlInsertTextAction("MatchesEvent", new DefaultEventTypeRecordEventSummaryPredicate(null, null, null, 
+		// default for compound
+		addXmlInsertTextAction("MatchesEvent", new DefaultEventTypeRecordEventSummaryPredicate(
+				null, null, null, 
 				dummyEventTypeEquals, dummyEventSubTypeEquals, 
 				dummyClassNameEquals, dummyMethodNameEquals, null, null));
-		addXmlInsertTextAction("With Type,SubType", new WithTypeSubTypeRecordEventSummaryPredicate(dummyEventTypeEquals, dummyEventSubTypeEquals));
-		addXmlInsertTextAction("With Class.Method", new WithClassMethodRecordEventSummaryPredicate(dummyClassNameEquals, dummyMethodNameEquals, null));
-		
-		// with compound predicates
-		addXmlInsertTextAction("method.equal", new WithEventMethodNameRecordEventSummaryPredicate(dummyMethodNameEquals));
+
+		// simple patterns
+		List<String> includes = new ArrayList<String>();
+		includes.add(".*");
+		addXmlInsertTextAction("Type,SubType", new TypeSubTypePatternRecordEventSummaryPredicate("eventType", includes, null));
+		addXmlInsertTextAction("Class.Method", new ClassMethodPatternRecordEventSummaryPredicate(includes, null, includes, null));
 	}
 
 	private void addXmlInsertTextAction(String label, Predicate predicate) {
@@ -225,6 +226,10 @@ public class RecordEventFilterItemEditor {
 		return detailedViewerToolbar;
 	}
 
+	public RecordEventFilterItem getModel() {
+		return model;
+	}
+	
 	public void setModel(RecordEventFilterItem p) {
 		if (model != null) {
 //			model.removePropertyChangeListener(innerPropChangeListener);
@@ -232,8 +237,8 @@ public class RecordEventFilterItemEditor {
 		this.model = p;
 		if (model != null) {
 //			model.addPropertyChangeListener(innerPropChangeListener);
-			updateModel2View();
 		}		
+		updateModel2View();
 	}
 
 	public void updateModel2View() {
@@ -261,6 +266,7 @@ public class RecordEventFilterItemEditor {
 	}
 	
 	public void updateView2Model(RecordEventFilterItem m) {
+		if (m == null) return;
 		m.setName(nameField.getText());
 		m.setDescription(descriptionField.getText());
 
@@ -277,8 +283,15 @@ public class RecordEventFilterItemEditor {
 		m.setEventMethodDetailPredicateDescription(eventMethodDetailPredicateDescription.getText());
 		m.setCorrelatedEventIdPredicateDescription(correlatedEventIdPredicateDescription.getText());
 
-		String xstreamPredicateXml = predicateXStream.toXML(m.getEventPredicate());
-		detailedXmlPredicateTextPane.setText(xstreamPredicateXml);
+		String xstreamPredicateXml = detailedXmlPredicateTextPane.getText();
+		Predicate eventPredicate;
+		try {
+			eventPredicate = (Predicate) predicateXStream.fromXML(xstreamPredicateXml);
+		} catch(Exception ex) {
+			log.error("Failed to parse Predicate as xml (XStream format) ... using null, text : " + xstreamPredicateXml, ex);
+			eventPredicate = null; // Error, failed to parse !!!
+		}
+		m.setEventPredicate(eventPredicate);
 		
 	}
 
@@ -333,4 +346,18 @@ public class RecordEventFilterItemEditor {
 		JotoRuntimeException.NOT_IMPLEMENTED_YET();
 	}
 
+
+	public void onButtonCheckParse(ActionEvent event) {
+		String inputText = detailedXmlPredicateTextPane.getText();
+		String reformatText; 
+		try {
+			Predicate parsedPredicate = (Predicate) predicateXStream.fromXML(inputText);
+			reformatText = predicateXStream.toXML(parsedPredicate);
+		} catch(Exception ex) {
+			reformatText = "<!-- PARSE ERROR ... " + ex.getMessage() + " -->\n" + 
+					inputText;
+		}
+		detailedXmlPredicateTextPane.setText(reformatText);
+	}
+	
 }
