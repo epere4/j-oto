@@ -1,21 +1,26 @@
 package com.google.code.joto.eventrecorder.ui.filter;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 
-import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
+import javax.swing.event.SwingPropertyChangeSupport;
+
+import org.apache.commons.collections.Predicate;
 
 /**
  * 
  */
 public class RecordEventFilterItem {
 
+	private SwingPropertyChangeSupport changeSupport = new SwingPropertyChangeSupport(this);
+	
 	private String name;
 
 	private String description;
 
 	private File persistentFile;
 
-	private RecordEventSummaryPredicate eventPredicate;
+	private Predicate eventPredicate;
 
 	private String eventIdPredicateDescription;
 	private String eventDatePredicateDescription;
@@ -34,12 +39,22 @@ public class RecordEventFilterItem {
 
 	// ------------------------------------------------------------------------
 
+	public void addPropertyChangeSupport(PropertyChangeListener p) {
+		this.changeSupport.addPropertyChangeListener(p);
+	}
+
+	public void removePropertyChangeSupport(PropertyChangeListener p) {
+		this.changeSupport.removePropertyChangeListener(p);
+	}
+
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setName(String p) {
+		String old = this.name;
+		this.name = p;
+		changeSupport.firePropertyChange("name", old, p);
 	}
 
 	public String getDescription() {
@@ -47,7 +62,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setDescription(String p) {
+		String old = description;
 		this.description = p;
+		changeSupport.firePropertyChange("description", old, p);
 	}
 
 	public File getPersistentFile() {
@@ -55,15 +72,19 @@ public class RecordEventFilterItem {
 	}
 
 	public void setPersistentFile(File p) {
+		File old = persistentFile;
 		this.persistentFile = p;
+		changeSupport.firePropertyChange("persistentFile", old, p);
 	}
 
-	public RecordEventSummaryPredicate getEventPredicate() {
+	public Predicate getEventPredicate() {
 		return eventPredicate;
 	}
 
-	public void setEventPredicate(RecordEventSummaryPredicate p) {
+	public void setEventPredicate(Predicate p) {
+		Predicate old = eventPredicate;
 		this.eventPredicate = p;
+		changeSupport.firePropertyChange("eventPredicate", old, p);
 	}
 
 	public String getEventIdPredicateDescription() {
@@ -71,7 +92,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventIdPredicateDescription(String p) {
+		String old = eventIdPredicateDescription;
 		this.eventIdPredicateDescription = p;
+		changeSupport.firePropertyChange("eventIdPredicateDescription", old, p);
 	}
 
 	public String getEventDatePredicateDescription() {
@@ -79,7 +102,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventDatePredicateDescription(String p) {
+		String old = eventDatePredicateDescription;
 		this.eventDatePredicateDescription = p;
+		changeSupport.firePropertyChange("eventDatePredicateDescription", old, p);
 	}
 
 	public String getThreadNamePredicateDescription() {
@@ -87,7 +112,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setThreadNamePredicateDescription(String p) {
+		String old = threadNamePredicateDescription;
 		this.threadNamePredicateDescription = p;
+		changeSupport.firePropertyChange("threadNamePredicateDescription", old, p);
 	}
 
 	public String getEventTypePredicateDescription() {
@@ -95,7 +122,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventTypePredicateDescription(String p) {
+		String old = eventTypePredicateDescription;
 		this.eventTypePredicateDescription = p;
+		changeSupport.firePropertyChange("eventTypePredicateDescription", old, p);
 	}
 
 	public String getEventSubTypePredicateDescription() {
@@ -103,7 +132,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventSubTypePredicateDescription(String p) {
+		String old = eventSubTypePredicateDescription;
 		this.eventSubTypePredicateDescription = p;
+		changeSupport.firePropertyChange("eventSubTypePredicateDescription", old, p);
 	}
 
 	public String getEventClassNamePredicateDescription() {
@@ -111,7 +142,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventClassNamePredicateDescription(String p) {
+		String old = eventClassNamePredicateDescription;
 		this.eventClassNamePredicateDescription = p;
+		changeSupport.firePropertyChange("eventClassNamePredicateDescription", old, p);
 	}
 
 	public String getEventMethodNamePredicateDescription() {
@@ -119,7 +152,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventMethodNamePredicateDescription(String p) {
+		String old = eventMethodNamePredicateDescription;
 		this.eventMethodNamePredicateDescription = p;
+		changeSupport.firePropertyChange("eventMethodNamePredicateDescription", old, p);
 	}
 
 	public String getEventMethodDetailPredicateDescription() {
@@ -127,7 +162,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setEventMethodDetailPredicateDescription(String p) {
+		String old = eventMethodDetailPredicateDescription;
 		this.eventMethodDetailPredicateDescription = p;
+		changeSupport.firePropertyChange("eventMethodDetailPredicateDescription", old, p);
 	}
 
 	public String getCorrelatedEventIdPredicateDescription() {
@@ -135,7 +172,9 @@ public class RecordEventFilterItem {
 	}
 
 	public void setCorrelatedEventIdPredicateDescription(String p) {
+		String old = correlatedEventIdPredicateDescription;
 		this.correlatedEventIdPredicateDescription = p;
+		changeSupport.firePropertyChange("correlatedEventIdPredicateDescription", old, p);
 	}
 
 	
@@ -155,6 +194,8 @@ public class RecordEventFilterItem {
 		this.eventMethodNamePredicateDescription = src.eventMethodNamePredicateDescription;
 		this.eventMethodDetailPredicateDescription = src.eventMethodDetailPredicateDescription;
 		this.correlatedEventIdPredicateDescription = src.correlatedEventIdPredicateDescription;
+
+		changeSupport.firePropertyChange("all", Boolean.FALSE, this);
 	}
 
 	// ------------------------------------------------------------------------

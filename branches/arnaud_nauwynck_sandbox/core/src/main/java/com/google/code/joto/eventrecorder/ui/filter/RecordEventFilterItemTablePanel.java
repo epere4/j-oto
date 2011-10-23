@@ -3,6 +3,8 @@ package com.google.code.joto.eventrecorder.ui.filter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,9 +39,11 @@ public class RecordEventFilterItemTablePanel {
 	private JTable filterItemsTable;
 	
 	private RecordEventFilterItemEditor detailedEditorPane;
+	private PropertyChangeListener innerDetailedEditorPaneChangeListener; 
 
 	private JButton newFilterButton;
 	private JButton deleteFilterButton;
+	
 	
 	// ------------------------------------------------------------------------
 
@@ -60,14 +64,32 @@ public class RecordEventFilterItemTablePanel {
 
 		tableDetailSplitPane.setTopComponent(filterItemsTablePane);
 		filterItemsTable.setPreferredScrollableViewportSize(new Dimension(500, 200));
-		
+
+		innerDetailedEditorPaneChangeListener =
+			new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+				RecordEventFilterItemTableModel tm = (RecordEventFilterItemTableModel) filterItemsTable.getModel();
+				tm.fireTableDataChanged();
+			}
+		};
 		filterItemsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				int rowIndex = e.getFirstIndex();
-				RecordEventFilterItemTableModel tm = (RecordEventFilterItemTableModel) filterItemsTable.getModel();
-				RecordEventFilterItem row = (rowIndex != -1)? tm.getRow(rowIndex) : null;
-				detailedEditorPane.setModel(row);
+				if (e.getValueIsAdjusting()) return;
+				RecordEventFilterItem selectedRow = null;
+				if (filterItemsTable.getSelectedRowCount() == 1) {
+					int selectedRowIndex = filterItemsTable.getSelectedRow();
+					RecordEventFilterItemTableModel tm = (RecordEventFilterItemTableModel) filterItemsTable.getModel();
+					selectedRow = (selectedRowIndex != -1)? tm.getRow(selectedRowIndex) : null;
+				}
+				RecordEventFilterItem oldModel = detailedEditorPane.getModel();
+				if (oldModel != null) {
+					oldModel.removePropertyChangeSupport(innerDetailedEditorPaneChangeListener);
+				}
+				detailedEditorPane.setModel(selectedRow);
+				if (selectedRow != null) {
+					selectedRow.addPropertyChangeSupport(innerDetailedEditorPaneChangeListener);
+				}
 			}
 		});
 		
