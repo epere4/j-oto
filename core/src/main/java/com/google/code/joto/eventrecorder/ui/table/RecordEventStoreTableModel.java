@@ -1,36 +1,29 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.eventrecorder.ui.table;
 
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.table.AbstractTableModel;
 
 import com.google.code.joto.eventrecorder.DefaultVisitorRecordEventListener;
 import com.google.code.joto.eventrecorder.RecordEventChangeVisitor;
 import com.google.code.joto.eventrecorder.RecordEventListener;
 import com.google.code.joto.eventrecorder.RecordEventStore;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.StartRecordingEvent;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.StopRecordingEvent;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.util.ArrayList2;
 
 /**
  *
  */
-public class RecordEventStoreTableModel extends AbstractTableModel {
+public class RecordEventStoreTableModel extends DefaultRecordEventStoreTableModel {
 
 	/** */
 	private static final long serialVersionUID = 1L;
 	
 	private RecordEventStore eventStore;
-	
-	/** local copy of displayed events, receoved from underlying eventStore 
-	 * can be truncated / cleared / reloaded from eventStore 
-	 */
-	private final ArrayList2<RecordEventSummary> eventRows = new ArrayList2<RecordEventSummary>();
-	
+		
 	private int maxEventRows = -1;
 	
 	private RecordEventChangeVisitor eventHandler = new InnerRecordEventChangeVisitor();
@@ -55,37 +48,9 @@ public class RecordEventStoreTableModel extends AbstractTableModel {
 
 	//-------------------------------------------------------------------------
 
-	/** implements TableModel */
-	public int getColumnCount() {
-		return 7;
-	}
-
-	/** implements TableModel */
-	public int getRowCount() {
-		return eventRows.size();
-	}
-
-	/** implements TableModel */
-	public Object getValueAt(int rowIndex, int columnIndex) {
-		RecordEventSummary rowEvent = eventRows.get(rowIndex);
-		switch(columnIndex) {
-		case 0: return rowEvent.getEventId();
-		case 1: return rowEvent.getEventDate();
-		case 2: return rowEvent.getEventType();
-		case 3: return rowEvent.getEventSubType();
-		case 4: return rowEvent.getEventClassName();
-		case 5: return rowEvent.getEventMethodName();
-		case 6: return rowEvent.getEventMethodDetail();
-		case 7: return rowEvent.getInternalEventStoreDataAddress();
-		default: return null;
-		}
-	}
-
 	/** callback from inner eventStore listener */
 	private void onAddEvent(AddRecordEventStoreEvent p) {
-		eventRows.add(p.getEventSummary());
-		int len = eventRows.size();
-		fireTableRowsInserted(len, len);
+		addEventRow(p.getEventSummary());
 	}
 
 	
@@ -94,11 +59,12 @@ public class RecordEventStoreTableModel extends AbstractTableModel {
 	private void onEventStoreTruncate(TruncateRecordEventStoreEvent p) {
 		List<RecordEventSummary> optTruncateEventSummaries = p.getOptTruncateEventSummaries();
 		if (optTruncateEventSummaries != null) {
-			eventRows.removeAll(optTruncateEventSummaries);
+			removeRows(optTruncateEventSummaries);
 		} else {
 			// truncated events not available... scan from range eventId
 			int fromEventId = p.getFromEventId();
 			int toEventId = p.getFromEventId();
+			List<RecordEventSummary> eventRows = super.getEventRows();
 			for (Iterator<RecordEventSummary> iter = eventRows.iterator(); iter.hasNext();) {
 				RecordEventSummary e = iter.next();
 				int eId = e.getEventId();
@@ -118,34 +84,23 @@ public class RecordEventStoreTableModel extends AbstractTableModel {
 
 	// -------------------------------------------------------------------------
 
+	
 	public int getMaxEventRows() {
 		return maxEventRows;
 	}
 
 	public void setMaxEventRows(int p) {
 		this.maxEventRows = p;
-		int truncatedLen = eventRows.truncateHeadForMaxRows(maxEventRows);
-		if (truncatedLen != 0) {
-			fireTableRowsDeleted(0, truncatedLen);
-		}
+		super.truncateEventRows(maxEventRows);
 	}
-		
-	public RecordEventSummary getEventRow(int row) {
-		return eventRows.get(row);
-	}
-
-	public void clearEventRows() {
-		eventRows.clear();
-		fireTableDataChanged();
-	}
-
+	
 	public void reloadEventRows(int fromEventId, int toEventId) {
 		// TODO use SwingWorker ... 
-		List<RecordEventSummary> newEventRows = eventStore.getEvents(fromEventId, toEventId);
-		eventRows.clear();
-		eventRows.addAll(newEventRows);
-		eventRows.truncateHeadForMaxRows(maxEventRows);
-		fireTableDataChanged();
+		List<RecordEventSummary> events = eventStore.getEvents(fromEventId, toEventId);
+		ArrayList2<RecordEventSummary> tmpNewRows = new ArrayList2<RecordEventSummary>(); 
+		tmpNewRows.addAll(events);
+		tmpNewRows.truncateHeadForMaxRows(maxEventRows);
+		super.setRowElts(tmpNewRows);
 	}
 
 

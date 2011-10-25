@@ -25,16 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.predicate.DefaultEventTypeRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
 import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils;
 import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.ClassMethodPatternRecordEventSummaryPredicate;
 import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.TypeSubTypePatternRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.ui.ScrolledTextPane;
 import com.google.code.joto.util.JotoRuntimeException;
 import com.google.code.joto.util.io.XStreamUtils;
 import com.google.code.joto.util.ui.GridBagLayoutFormBuilder;
 import com.google.code.joto.util.ui.IconUtils;
 import com.google.code.joto.util.ui.JButtonUtils;
+import com.google.code.joto.util.ui.ScrolledTextPane;
 import com.thoughtworks.xstream.XStream;
 
 /**

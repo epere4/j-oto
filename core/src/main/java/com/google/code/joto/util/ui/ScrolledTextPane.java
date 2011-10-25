@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.util.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

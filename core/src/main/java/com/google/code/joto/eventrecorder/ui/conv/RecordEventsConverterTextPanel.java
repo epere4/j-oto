@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.eventrecorder.ui.conv;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -10,6 +10,7 @@ import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
+import com.google.code.joto.util.ui.ScrolledTextPane;
 
 /**
  * a TextPanel (with ScrolledPane and misc toolbars), 

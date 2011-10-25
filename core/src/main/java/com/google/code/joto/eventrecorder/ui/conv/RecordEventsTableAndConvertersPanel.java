@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.eventrecorder.ui.conv;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -17,7 +17,6 @@ import javax.swing.table.TableRowSorter;
 
 import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.ext.calls.MethodCallToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
@@ -27,6 +26,8 @@ import com.google.code.joto.eventrecorder.processor.DispatcherRecordEventsProces
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
 import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.ui.JotoContext;
+import com.google.code.joto.eventrecorder.ui.table.RecordEventStoreTableModel;
 import com.thoughtworks.xstream.XStream;
 
 /**
@@ -35,7 +36,7 @@ import com.thoughtworks.xstream.XStream;
  */
 public class RecordEventsTableAndConvertersPanel {
 
-	private RecordEventStore eventStore;
+	private JotoContext context;
 	
 	private JSplitPane splitPane;
 	
@@ -60,10 +61,10 @@ public class RecordEventsTableAndConvertersPanel {
 	
 	// -------------------------------------------------------------------------
 
-	public RecordEventsTableAndConvertersPanel(RecordEventStore eventStore) {
-		this.eventStore = eventStore;
+	public RecordEventsTableAndConvertersPanel(JotoContext context) {
+		this.context = context;
 		
-		this.recordEventTableModel = new RecordEventStoreTableModel(eventStore);
+		this.recordEventTableModel = new RecordEventStoreTableModel(context.getEventStore());
 		
 		this.recordEventTable = new JTable(recordEventTableModel);
 		recordEventTable.setRowSorter(new TableRowSorter<RecordEventStoreTableModel>(recordEventTableModel));
@@ -141,7 +142,7 @@ public class RecordEventsTableAndConvertersPanel {
 		List<RecordEventData> selectedEventDataList = new ArrayList<RecordEventData>();
 		for (int selectedRow : selectedRows) {
 			RecordEventSummary eventHandle = recordEventTableModel.getEventRow(selectedRow);
-			RecordEventData eventData = eventStore.getEventData(eventHandle);
+			RecordEventData eventData = context.getEventStore().getEventData(eventHandle);
 			selectedEventDataList.add(eventData);
 		}
 		

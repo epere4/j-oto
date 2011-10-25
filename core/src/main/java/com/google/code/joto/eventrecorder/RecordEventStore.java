@@ -3,6 +3,7 @@ package com.google.code.joto.eventrecorder;
 import java.io.Serializable;
 import java.util.List;
 
+import com.google.code.joto.eventrecorder.writer.AsyncQueueRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
@@ -49,9 +50,14 @@ public interface RecordEventStore {
 	public void purgeEvents(int toEventId);
 
 	/**
-	 * @return RecordEventWriter interface adapter for this object 
+	 * @return RecordEventWriter interface adapter for this eventStore object 
 	 */
 	public RecordEventWriter getEventWriter();
+	
+	/**
+	 * @return Asynchronous RecordEventWriter interface adapter for this eventStore object
+	 */
+	public RecordEventWriter getAsyncEventWriter();
 	
 	/**
 	 * SPI to add a new stored event

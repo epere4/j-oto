@@ -11,10 +11,11 @@ import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventListener;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.writer.AbstractRecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.AsyncQueueRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback;
 
@@ -41,11 +42,15 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 	 */
 	private int lastEventId = 1; // exclusive
 	
-	private RecordEventWriter eventWriterAdapter = new RecordEventWriterAdapter(this);
+	private RecordEventWriter eventWriterAdapter;
+
+	private AsyncQueueRecordEventWriter asyncEventWriter;
 	
 	// ------------------------------------------------------------------------
 
 	public AbstractRecordEventStore() {
+		eventWriterAdapter = new RecordEventWriterAdapter(this);
+		asyncEventWriter = new AsyncQueueRecordEventWriter(eventWriterAdapter);
 	}
 
 	// ------------------------------------------------------------------------
@@ -165,14 +170,18 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 		return eventData;
 	}
 
-	/**
-	 * @return RecordEventWriter interface adapter for this object 
-	 */
+	/** implements RecordEventStore */
 	@Override
 	public RecordEventWriter getEventWriter() {
 		return eventWriterAdapter;
 	}
 
+	/** implements RecordEventStore */
+	@Override
+	public RecordEventWriter getAsyncEventWriter() {
+		return asyncEventWriter;
+	}
+	
 	abstract RecordEventData doAddEvent(RecordEventSummary eventInfo, Serializable objData);
 
 	protected static List<RecordEventSummary> eventDataListToEventHandleList(List<RecordEventData> eventDataList) {

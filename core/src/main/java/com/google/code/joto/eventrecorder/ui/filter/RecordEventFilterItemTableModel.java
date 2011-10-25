@@ -7,8 +7,9 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 /**
- * simple swing TableModel for RecordEventSummaryPredicate 
+ * simple swing TableModel for List<RecordEventFilterItem> 
  *
+ * used to display/edit filters (=predicate item) to apply at record time or display time.
  */
 public class RecordEventFilterItemTableModel extends AbstractTableModel {
 
