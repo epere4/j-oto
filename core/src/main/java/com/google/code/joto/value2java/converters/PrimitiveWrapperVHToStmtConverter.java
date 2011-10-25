@@ -1,8 +1,5 @@
 package com.google.code.joto.value2java.converters;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.LiteralExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
@@ -16,6 +13,9 @@ import com.google.code.joto.value2java.ObjectVHToStmtConverter;
 import com.google.code.joto.value2java.VHToStmt;
 import com.google.code.joto.value2java.VHToStmtConverterLookup;
 import com.google.code.joto.value2java.impl.ObjectStmtInfo;
+
+import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
  * Converter for ObjectValueHolder -> Stmt , for primitive wrapper 
@@ -35,6 +35,8 @@ public class PrimitiveWrapperVHToStmtConverter implements ObjectVHToStmtConverte
     private static final PrimitiveWrapperVHToStmtConverter FloatConv = new PrimitiveWrapperVHToStmtConverter(Float.class);
     private static final PrimitiveWrapperVHToStmtConverter DoubleConv = new PrimitiveWrapperVHToStmtConverter(Double.class);
 
+    private static final EnumVHToStmtConverter EnumConv = new EnumVHToStmtConverter();
+
     public static void registerDefaultConverters(VHToStmtConverterLookup p) {
     	p.registerConverter(BooleanConv, 0);
     	p.registerConverter(CharacterConv, 0);
@@ -44,6 +46,9 @@ public class PrimitiveWrapperVHToStmtConverter implements ObjectVHToStmtConverte
     	p.registerConverter(LongConv, 0);
     	p.registerConverter(FloatConv, 0);
     	p.registerConverter(DoubleConv, 0);
+
+    	p.registerConverter(EnumConv, 0);
+    
     }
 	
 //	private final Class<?> primitiveType;

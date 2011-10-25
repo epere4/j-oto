@@ -5,14 +5,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.util.ArrayList2;
 
 /**
  * in-memory implementation of RecordEventStore
  */
 public class DefaultMemoryRecordEventStore extends AbstractRecordEventStore {
+	
+
+	/** Factory pattern for RecordEventStore */
+	public static class DefaultMemoryRecordEventStoreFactory implements RecordEventStoreFactory {
+		/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+		
+		public DefaultMemoryRecordEventStoreFactory() {
+		}
+
+		public RecordEventStore create() {
+			return new DefaultMemoryRecordEventStore();
+		}
+	}
 	
 	protected ArrayList2<RecordEventData> eventDataList = new ArrayList2<RecordEventData>();
 	

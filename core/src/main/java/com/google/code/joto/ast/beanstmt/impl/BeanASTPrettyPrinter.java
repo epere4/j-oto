@@ -172,7 +172,7 @@ public class BeanASTPrettyPrinter implements BeanASTVisitor {
 
 
 	public void caseFieldExpr(FieldExpr p) {
-		p.visit(this);
+		p.getLhs().visit(this);
 		print(".");
 		print(p.getFieldName());
 	}

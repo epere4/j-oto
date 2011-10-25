@@ -109,6 +109,10 @@ public class ScrolledTextPane {
 
 	// ------------------------------------------------------------------------
 	
+	public void addToolbarComp(JComponent comp) {
+		southToolBar.add(comp);
+	}
+	
 	public JButton createInsertTextButton(String label, String textToInsert) {
 		JButton res = new JButton(label);
 		res.addActionListener(createInsertTextActionListener(textToInsert));

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
+import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
@@ -15,11 +16,38 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.TruncateRecordE
  */
 public class CyclicBufferRecordEventStore extends DefaultMemoryRecordEventStore {
 
-	private int maxEventCount = 500; 
+	public static final int DEFAULT_MAX_EVENT_COUNT = 500;
+	
+	/** Factory pattern for RecordEventStore */
+	public static class CyclicBufferRecordEventStoreFactory implements RecordEventStoreFactory {
+		/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+		
+		int maxEventCount = DEFAULT_MAX_EVENT_COUNT;
+		
+		public CyclicBufferRecordEventStoreFactory() {
+		}
+
+		public CyclicBufferRecordEventStoreFactory(int maxEventCount) {
+			this();
+			this.maxEventCount = maxEventCount;
+		}
+
+		public RecordEventStore create() {
+			return new CyclicBufferRecordEventStore();
+		}
+	}
+
+	private int maxEventCount = DEFAULT_MAX_EVENT_COUNT;
 	
 	// ------------------------------------------------------------------------
 
 	public CyclicBufferRecordEventStore() {
+	}
+
+	public CyclicBufferRecordEventStore(int maxEventCount) {
+		this();
+		this.maxEventCount = maxEventCount;
 	}
 
 	

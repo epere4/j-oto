@@ -1,17 +1,6 @@
 package com.google.code.joto.value2java;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
+import com.google.code.joto.JotoConfig;
 import com.google.code.joto.ast.beanstmt.BeanAST;
 import com.google.code.joto.ast.beanstmt.BeanAST.AssignExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.BeanExpr;
@@ -22,9 +11,8 @@ import com.google.code.joto.ast.beanstmt.BeanAST.LiteralExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.MethodApplyExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewArrayExpr;
 import com.google.code.joto.ast.beanstmt.BeanAST.NewObjectExpr;
-import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
 import com.google.code.joto.ast.beanstmt.BeanAST.SimpleNameExpr;
-import com.google.code.joto.ast.valueholder.ValueHolderVisitor2;
+import com.google.code.joto.ast.beanstmt.BeanAST.VarDeclStmt;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionEltRefValueHolder;
@@ -41,12 +29,25 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayValueHo
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveFieldValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderVisitor2;
 import com.google.code.joto.reflect.ClassDictionaryJotoInfo;
 import com.google.code.joto.reflect.ClassJotoInfo;
 import com.google.code.joto.reflect.ConstructorJotoInfo;
 import com.google.code.joto.reflect.ParamToFieldInfo;
 import com.google.code.joto.util.NameGenerator;
 import com.google.code.joto.value2java.impl.ObjectStmtInfo;
+
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  *
@@ -56,18 +57,20 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 	private Map<AbstractObjectValueHolder,ObjectStmtInfo> objStmtInfoMap = 
 		new IdentityHashMap<AbstractObjectValueHolder,ObjectStmtInfo>();
 	
-	private ClassDictionaryJotoInfo classDicInfo = new ClassDictionaryJotoInfo();
-	
 	private NameGenerator nameGenerator = new NameGenerator(); 
 	
 	private VarDeclStmt logVarDeclStmt;
+
+	private JotoConfig config;
 	
-	private VHToStmtConverterLookup vhToStmtConverterLookup = 
-		new VHToStmtConverterLookup(true);
+	// may move in JotoContext??? (but not JotoConfig since nothing is supposed to be persistent / serializable)
+	// contains mainly static cached data, computed from Class
+	private ClassDictionaryJotoInfo classDicInfo = ClassDictionaryJotoInfo.getDefaultInstance();
 	
 	// -------------------------------------------------------------------------
 	
-	public VHToStmt() {
+	public VHToStmt(JotoConfig config) {
+		this.config = config;
 	}
 	
 	// ------------------------------------------------------------------------
@@ -75,63 +78,94 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 	public Map<AbstractObjectValueHolder, ObjectStmtInfo> getResultObjInitInfoMap() {
 		return objStmtInfoMap;
 	}
-
-	public VHToStmtConverterLookup getVhToStmtConverterLookup() {
-		return vhToStmtConverterLookup;
+	
+	public JotoConfig getConfig() {
+		return config;
 	}
 
-	public void setVhToStmtConverterLookup(VHToStmtConverterLookup p) {
-		this.vhToStmtConverterLookup = p;
+	public void setConfig(JotoConfig config) {
+		this.config = config;
 	}
+
+//	public VHToStmtConverterLookup getVhToStmtConverterLookup() {
+//		return vhToStmtConverterLookup;
+//	}
+//
+//	public void setVhToStmtConverterLookup(VHToStmtConverterLookup p) {
+//		this.vhToStmtConverterLookup = p;
+//	}
 
 	public void visitRootObject(AbstractObjectValueHolder objVH, String name) {
 		objToInitInfo(objVH, name);
 	}
 	
+	public ClassJotoInfo getClassInfo(Class<?> objClass) {
+		return classDicInfo.getClassInfo(objClass);
+	}
 
 	// implements ValueHolderVisitor2
 	// -------------------------------------------------------------------------
 
 	@Override
 	public BeanAST caseObject(ObjectValueHolder p, ObjectStmtInfo objInfo) {
+		BeanExpr initExpr;
 		Class<?> objClass = p.getObjClass();
-		Map<Field,FieldValueHolder> fieldsToSet = new HashMap<Field,FieldValueHolder>(p.getFieldsValuesMap());
 		
-		// choose one ctor, public, with @ConstructorProperties..
-		ClassJotoInfo classInfo = classDicInfo.getClassInfo(objClass);
-		// List<ConstructorJotoInfo> ctorInfos = classInfo.getConstructorInfos();
-		ConstructorJotoInfo ctorInfo = classInfo.choosePublicCtorWithInfo();
-
-		List<BeanExpr> ctorExprs = new ArrayList<BeanExpr>();
-		if (ctorInfo != null) {
-			List<ParamToFieldInfo> ctorParamToFieldInfos = ctorInfo.getParamToFieldInfos();
-			for(ParamToFieldInfo elt : ctorParamToFieldInfos) {
-				Field field = elt.getTargetAssignedField();
-				FieldValueHolder vh = fieldsToSet.remove(field);
-				// convert field -> value -> BeanExpr   (not BeanStmt using visitor)
-				BeanExpr valueExpr;
-				if (vh instanceof PrimitiveFieldValueHolder) {
-					PrimitiveFieldValueHolder vh2 = (PrimitiveFieldValueHolder) vh;
-					Object value = vh2.getValue();
-					valueExpr = new LiteralExpr(value);
-				} else { // (vh instanceof RefObjectFieldValueNode)
-					RefFieldValueHolder vh2 = (RefFieldValueHolder) vh;
-					AbstractObjectValueHolder fieldVH = vh2.getTo();
-					String prefixName = field.getName();
-					valueExpr = objToLhsExpr(fieldVH, prefixName);
+		
+		ObjectVHToStmtConverter converter = config.lookupConverter(objClass);
+		if (converter != null && converter.canConvert(objClass)) {
+			converter.convert(this, objInfo.getObjectVH(), objInfo); // ??? TOCHECK
+			
+			initExpr = objInfo.getVarDeclStmt().getInitExpr(); // ??
+		} else {
+			
+			Map<Field,FieldValueHolder> fieldsToSet = new HashMap<Field,FieldValueHolder>(p.getFieldsValuesMap());
+			
+			// choose one ctor, public, with @ConstructorProperties..
+			ClassJotoInfo classInfo = getClassInfo(objClass);
+			// List<ConstructorJotoInfo> ctorInfos = classInfo.getConstructorInfos();
+			ConstructorJotoInfo ctorInfo = classInfo.choosePublicCtorWithInfo();
+	
+			List<BeanExpr> ctorExprs = new ArrayList<BeanExpr>();
+			if (ctorInfo != null) {
+				List<ParamToFieldInfo> ctorParamToFieldInfos = ctorInfo.getParamToFieldInfos();
+				for(ParamToFieldInfo elt : ctorParamToFieldInfos) {
+					Field field = elt.getTargetAssignedField();
+					FieldValueHolder vh = fieldsToSet.remove(field);
+					// convert field -> value -> BeanExpr   (not BeanStmt using visitor)
+					BeanExpr valueExpr;
+					if (vh instanceof PrimitiveFieldValueHolder) {
+						PrimitiveFieldValueHolder vh2 = (PrimitiveFieldValueHolder) vh;
+						Object value = vh2.getValue();
+						valueExpr = new LiteralExpr(value);
+					} else { // (vh instanceof RefObjectFieldValueNode)
+						RefFieldValueHolder vh2 = (RefFieldValueHolder) vh;
+						AbstractObjectValueHolder fieldVH = vh2.getTo();
+						String prefixName = field.getName();
+						valueExpr = objToLhsExpr(fieldVH, prefixName);
+					}
+					ctorExprs.add(valueExpr);
 				}
-				ctorExprs.add(valueExpr);
-			}
-		}				
-		// use field values expr as ctor parameters
-		BeanExpr initExpr = doNewDefaultObjInstanceExpr(objInfo, p, ctorExprs);
-		doSetObjInitExpr(objInfo, initExpr);
+			}				
+			// use field values expr as ctor parameters
+			initExpr = doNewDefaultObjInstanceExpr(objInfo, p, ctorExprs);
+			doSetObjInitExpr(objInfo, initExpr);
+	
+// TODO TEMPORARY HACK
+String className = objClass.getName();
+final boolean recurseInObj = !(className.startsWith("com.lyxor.model.businessobject."));
+if (!recurseInObj) {
+	return initExpr;
+}
 
-		// convert remaining field values to setter stmt
-		for(Map.Entry<Field,FieldValueHolder> e : fieldsToSet.entrySet()) {
-			FieldValueHolder fieldVH = e.getValue();
-			BeanStmt fieldStmt = (BeanStmt) fieldVH.visit(this, objInfo);
-			objInfo.addInitStmt(fieldStmt);
+			// convert remaining field values to setter stmt
+// TODO TEMPORARY HACK: sort by field name
+
+			for(Map.Entry<Field,FieldValueHolder> e : fieldsToSet.entrySet()) {
+				FieldValueHolder fieldVH = e.getValue();
+				BeanStmt fieldStmt = (BeanStmt) fieldVH.visit(this, objInfo);
+				objInfo.addInitStmt(fieldStmt);
+			}
 		}
 		return initExpr;
 	}
@@ -149,7 +183,7 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 		BeanExpr lhsExpr = objToLhsExpr(objInfo);
 		String namePrefix = p.getField().getName();
 		AbstractObjectValueHolder refVH = p.getTo();
-		
+
 		// ** recurse **
 		ObjectStmtInfo refObjInfo = objToInitInfo(refVH, namePrefix);
 		
@@ -424,6 +458,9 @@ public class VHToStmt implements ValueHolderVisitor2<BeanAST,ObjectStmtInfo> {
 	public static PropertyDescriptor findPropertyDesc(Field field) {
 		PropertyDescriptor res = null;
 		String fieldName = field.getName();
+		if (fieldName.startsWith("_")) {
+			fieldName = fieldName.substring(1); // standard convention on field "_foo" => getFoo()...
+		}
 		Class<?> beanClass = field.getDeclaringClass();
 		BeanInfo beanInfo;
 		try {

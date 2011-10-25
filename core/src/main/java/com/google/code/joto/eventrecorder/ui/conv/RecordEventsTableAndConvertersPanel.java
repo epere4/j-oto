@@ -1,5 +1,6 @@
 package com.google.code.joto.eventrecorder.ui.conv;
 
+import java.awt.Component;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,16 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComponent;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableRowSorter;
 
 import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.eventrecorder.RecordEventData;
+import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.ext.calls.MethodCallToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
@@ -27,7 +26,8 @@ import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory
 import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.ui.JotoContext;
-import com.google.code.joto.eventrecorder.ui.table.RecordEventStoreTableModel;
+import com.google.code.joto.eventrecorder.ui.table.AbstractRecordEventTableModel;
+import com.google.code.joto.eventrecorder.ui.table.RecordEventTablePane;
 import com.thoughtworks.xstream.XStream;
 
 /**
@@ -40,9 +40,7 @@ public class RecordEventsTableAndConvertersPanel {
 	
 	private JSplitPane splitPane;
 	
-	private RecordEventStoreTableModel recordEventTableModel;
-	private JScrollPane recordEventScrollPane;
-	private JTable recordEventTable;
+	private RecordEventTablePane recordEventTablePane;
 	
 	/**
 	 * contains child component for displaying selected RecordEvent as Text.
@@ -56,76 +54,100 @@ public class RecordEventsTableAndConvertersPanel {
 	/** downcast helper... currently redundant with selectionTabbedPane! */
 	private List<RecordEventsConverterTextPanel> selectedEventConverterTextPanes = 
 		new ArrayList<RecordEventsConverterTextPanel>();
-	
-	private ObjectReplacementMap objectReplacementMap;
-	
+		
 	// -------------------------------------------------------------------------
 
-	public RecordEventsTableAndConvertersPanel(JotoContext context) {
+	public RecordEventsTableAndConvertersPanel(JotoContext context, AbstractRecordEventTableModel recordEventTableModel) {
 		this.context = context;
-		
-		this.recordEventTableModel = new RecordEventStoreTableModel(context.getEventStore());
-		
-		this.recordEventTable = new JTable(recordEventTableModel);
-		recordEventTable.setRowSorter(new TableRowSorter<RecordEventStoreTableModel>(recordEventTableModel));
-		
-		this.recordEventScrollPane = new JScrollPane(recordEventTable);
+		this.recordEventTablePane = new RecordEventTablePane(recordEventTableModel); 
 		
 		this.selectionTabbedPane = new JTabbedPane();
 
 		this.splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
-				recordEventScrollPane, selectionTabbedPane);
+				recordEventTablePane.getJComponent(), selectionTabbedPane);
 		splitPane.setDividerLocation(0.4);
 		
-		recordEventTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		recordEventTablePane.getRecordEventTable().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				onRecordEventSelectionChanged(e);
 			}
 		});
 
 		// predefined text converters:
-		{// Xml XStream text converter
-			RecordEventsProcessorFactory<PrintStream> eventConverterFactory =
-				new XStreamFormatterRecordEventsProcessor.Factory(new XStream());
-			RecordEventsConverterTextPanel comp = 
-				new RecordEventsConverterTextPanel(eventConverterFactory);
-			selectionTabbedPane.add("xml", comp.getJComponent());
-			selectedEventConverterTextPanes.add(comp);
+		addDefaultXmlTextPanelConverter();
+		addDefaultJavaConverterTextPanel();
+
+	}
+
+	public void addTextPanelConverter(String name, RecordEventsConverterTextPanel comp) {
+		selectionTabbedPane.add(name, comp.getJComponent());
+		selectedEventConverterTextPanes.add(comp);
+	}
+
+	public void removeTextPanelConverter(String name) {
+		int tabLen = selectionTabbedPane.getTabCount();
+		Component comp = null;
+		for (int i = 0; i < tabLen; i++) {
+			String n = selectionTabbedPane.getTitleAt(i);
+			if (n != null && n.equals(name)) {
+				comp = selectionTabbedPane.getTabComponentAt(i);
+				selectionTabbedPane.remove(i);
+				break;
+			}
 		}
-		
-		{// Reverse Java "new/call" text converter
-			ObjectToCodeGenerator objToCode = new ObjectToCodeGenerator();
-			
-			RecordEventsProcessorFactory<PrintStream> objConverterFactory =
-				new ObjToCodeRecordEventsProcessor.Factory(objToCode);
-			
-			RecordEventsProcessorFactory<PrintStream> methCallConverterFactory =
-				new MethodCallToCodeRecordEventsProcessor.Factory(
-					objToCode, objectReplacementMap);
+		RecordEventsConverterTextPanel foundTextPane = null;
+		for(RecordEventsConverterTextPanel elt : selectedEventConverterTextPanes) {
+			if (elt.getJComponent() == comp) {
+				foundTextPane = elt;
+				break;
+			}
+		}
+		selectedEventConverterTextPanes.remove(foundTextPane);
+	}
 	
-			RecordEventsProcessorFactory<PrintStream> logbackToCommentConverterFactory =
-				new LogbackToCodeRecordEventsProcessor.Factory(true);
 
-			RecordEventsProcessorFactory<PrintStream> log4jToCommentConverterFactory =
-				new Log4jToCodeRecordEventsProcessor.Factory(true);
+	public void addDefaultXmlTextPanelConverter() {
+		// Xml XStream text converter
+		RecordEventsProcessorFactory<PrintStream> eventConverterFactory =
+			new XStreamFormatterRecordEventsProcessor.Factory(new XStream());
+		RecordEventsConverterTextPanel comp = 
+			new RecordEventsConverterTextPanel(eventConverterFactory);
+		addTextPanelConverter("xml", comp);
+	}
 
-			Map<String,RecordEventsProcessorFactory<PrintStream>> eventTypeToFactory =
-				new HashMap<String,RecordEventsProcessorFactory<PrintStream>>();
-			eventTypeToFactory.put("testObj", objConverterFactory);
-			eventTypeToFactory.put("methCall", methCallConverterFactory);
-			eventTypeToFactory.put("logback", logbackToCommentConverterFactory);
-			eventTypeToFactory.put("log4j", log4jToCommentConverterFactory);
-			
-			RecordEventsProcessorFactory<PrintStream> dispatcherConverterFactory =
-				new DispatcherRecordEventsProcessor.Factory<PrintStream>(
-						eventTypeToFactory, objConverterFactory);
-			
-			RecordEventsConverterTextPanel comp = 
-				new RecordEventsConverterTextPanel(dispatcherConverterFactory);
-			selectionTabbedPane.add("java", comp.getJComponent());
-			selectedEventConverterTextPanes.add(comp);
-		}
+	public void addDefaultJavaConverterTextPanel() {
 
+		// Reverse Java "new/call" text converter
+		ObjectToCodeGenerator objToCode = new ObjectToCodeGenerator(context.getConfig());
+		
+		RecordEventsProcessorFactory<PrintStream> objConverterFactory =
+			new ObjToCodeRecordEventsProcessor.Factory(objToCode);
+		
+		ObjectReplacementMap objectReplacementMap = context.getObjReplMap();
+		RecordEventsProcessorFactory<PrintStream> methCallConverterFactory =
+			new MethodCallToCodeRecordEventsProcessor.Factory(
+				objToCode, objectReplacementMap);
+
+		RecordEventsProcessorFactory<PrintStream> logbackToCommentConverterFactory =
+			new LogbackToCodeRecordEventsProcessor.Factory(true);
+
+		RecordEventsProcessorFactory<PrintStream> log4jToCommentConverterFactory =
+			new Log4jToCodeRecordEventsProcessor.Factory(true);
+
+		Map<String,RecordEventsProcessorFactory<PrintStream>> eventTypeToFactory =
+			new HashMap<String,RecordEventsProcessorFactory<PrintStream>>();
+		eventTypeToFactory.put("testObj", objConverterFactory);
+		eventTypeToFactory.put("methCall", methCallConverterFactory);
+		eventTypeToFactory.put("logback", logbackToCommentConverterFactory);
+		eventTypeToFactory.put("log4j", log4jToCommentConverterFactory);
+		
+		RecordEventsProcessorFactory<PrintStream> dispatcherConverterFactory =
+			new DispatcherRecordEventsProcessor.Factory<PrintStream>(
+					eventTypeToFactory, objConverterFactory);
+		
+		RecordEventsConverterTextPanel comp = 
+			new RecordEventsConverterTextPanel(dispatcherConverterFactory);
+		addTextPanelConverter("java", comp);
 	}
 
 	//-------------------------------------------------------------------------
@@ -137,12 +159,12 @@ public class RecordEventsTableAndConvertersPanel {
 	// -------------------------------------------------------------------------
 	
 	private void onRecordEventSelectionChanged(ListSelectionEvent e) {
-		int[] selectedRows = recordEventTable.getSelectedRows();
+		List<RecordEventSummary> selectedRows = recordEventTablePane.getSelectedEventRows();
 		
 		List<RecordEventData> selectedEventDataList = new ArrayList<RecordEventData>();
-		for (int selectedRow : selectedRows) {
-			RecordEventSummary eventHandle = recordEventTableModel.getEventRow(selectedRow);
-			RecordEventData eventData = context.getEventStore().getEventData(eventHandle);
+		RecordEventStore eventStore = context.getEventStore();
+		for (RecordEventSummary eventRow : selectedRows) {
+			RecordEventData eventData = eventStore.getEventData(eventRow);
 			selectedEventDataList.add(eventData);
 		}
 		

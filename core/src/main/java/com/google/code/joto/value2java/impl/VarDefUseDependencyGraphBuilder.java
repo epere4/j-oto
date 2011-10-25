@@ -43,7 +43,9 @@ public class VarDefUseDependencyGraphBuilder implements BeanASTVisitor2<Object,B
 
 	@Override
 	public Object caseSimpleName(SimpleNameExpr p, BeanAST parent) {
-		addUseDef(parent, p.getResolvedDecl());
+		if (p.getResolvedDecl() != null) {
+			addUseDef(parent, p.getResolvedDecl());
+		}
 		return null;
 	}
 

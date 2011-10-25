@@ -4,7 +4,12 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.event.SwingPropertyChangeSupport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.code.joto.JotoConfig;
 import com.google.code.joto.eventrecorder.RecordEventStore;
+import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
@@ -14,19 +19,23 @@ import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
  */
 public class JotoContext {
 
-	private RecordEventStore eventStore;
-
-
 	public static final String PROP_RECORDING_STATUS = "recordingStatus";
 	
 	public static enum RecordingStatus {
 		RECORDING,
-//		SUSPENDED_RECORDING,
 		IDDLE
 	}
 	
-	private SwingPropertyChangeSupport changeSupport =
-		new SwingPropertyChangeSupport(this);
+	private static Logger log = LoggerFactory.getLogger(JotoContext.class);
+	
+	// ------------------------------------------------------------------------
+	
+	private JotoConfig config;
+
+	private RecordEventStore eventStore;
+
+	
+	private SwingPropertyChangeSupport changeSupport = new SwingPropertyChangeSupport(this);
 
 	private RecordingStatus recordingStatus = RecordingStatus.IDDLE;
 
@@ -35,11 +44,13 @@ public class JotoContext {
 	protected FilteringRecordEventWriter logsFilteringEventWriter;
 	protected FilteringRecordEventWriter awtEventSpyFilteringEventWriter;
 
+	protected ObjectReplacementMap objReplMap = new ObjectReplacementMap();
 	
 	// ------------------------------------------------------------------------
 	
-	public JotoContext(RecordEventStore eventStore) {
-		this.eventStore = eventStore;
+	public JotoContext(JotoConfig config, RecordEventStore eventStore) {
+		this.config = (config != null)? config : new JotoConfig();
+		this.eventStore = (eventStore != null)? eventStore : this.config.getEventStoreFactory().create();
 
 		RecordEventWriter asyncEventWriter = eventStore.getAsyncEventWriter();
 		methodCallsFilteringEventWriter = new FilteringRecordEventWriter(asyncEventWriter);
@@ -50,16 +61,11 @@ public class JotoContext {
 
 	/** helper constructor, for test */
 	public JotoContext() {
-		this(new DefaultMemoryRecordEventStore());
+		this(new JotoConfig(), new DefaultMemoryRecordEventStore());
 	}
 
 	// ------------------------------------------------------------------------
-
-	public RecordEventStore getEventStore() {
-		return eventStore;
-	}
 	
-
 	public void addPropertyChangeListener(PropertyChangeListener p) {
 		changeSupport.addPropertyChangeListener(p);
 	}
@@ -67,8 +73,18 @@ public class JotoContext {
 		changeSupport.removePropertyChangeListener(p);
 	}
 
-	public RecordEventStore getRecordEventStore() {
+	public RecordEventStore getEventStore() {
 		return eventStore;
+	}
+
+	public JotoConfig getConfig() {
+		return config;
+	}
+
+	public void setConfig(JotoConfig p) {
+		JotoConfig old = config;
+		this.config = p;
+		changeSupport.firePropertyChange("config", old, p);
 	}
 	
 	
@@ -76,7 +92,6 @@ public class JotoContext {
 		if (isEnableStartRecord()) {
 			// do start record..
 			// TODO 
-			
 			
 			setRecordingStatus(RecordingStatus.RECORDING);
 		}
@@ -103,6 +118,7 @@ public class JotoContext {
 		if (p != recordingStatus) {
 			RecordingStatus old = recordingStatus;
 			this.recordingStatus = p;
+			log.info("setRecordingStatus " + p);
 			changeSupport.firePropertyChange(PROP_RECORDING_STATUS, old, p);
 		}
 	}
@@ -131,6 +147,13 @@ public class JotoContext {
 		this.awtEventSpyFilteringEventWriter = p;
 	}
 
+	public ObjectReplacementMap getObjReplMap() {
+		return objReplMap;
+	}
+
+	public void setObjReplMap(ObjectReplacementMap p) {
+		this.objReplMap = p;
+	}
 	
 
 }

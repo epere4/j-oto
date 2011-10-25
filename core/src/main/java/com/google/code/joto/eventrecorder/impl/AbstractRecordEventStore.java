@@ -24,7 +24,7 @@ import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback;
  */
 public abstract class AbstractRecordEventStore implements RecordEventStore {
 
-	private Logger log = LoggerFactory.getLogger(getClass());
+	private static Logger log = LoggerFactory.getLogger(AbstractRecordEventStore.class);
 	
 	protected boolean canRead;
 	protected boolean canWriteAppend;
@@ -48,7 +48,7 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 	
 	// ------------------------------------------------------------------------
 
-	public AbstractRecordEventStore() {
+	protected AbstractRecordEventStore() {
 		eventWriterAdapter = new RecordEventWriterAdapter(this);
 		asyncEventWriter = new AsyncQueueRecordEventWriter(eventWriterAdapter);
 	}

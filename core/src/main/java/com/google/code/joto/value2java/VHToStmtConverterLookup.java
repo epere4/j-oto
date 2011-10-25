@@ -26,13 +26,14 @@ public class VHToStmtConverterLookup {
 	 */
 	private PriorityList<RefObjectVHToStmtConverter> refObjConverters =
 		new PriorityList<RefObjectVHToStmtConverter>();
+
 	
 	/** lazy computed field, from objConverters */
-	private Map<Class<?>,ObjectVHToStmtConverter> cachedTypeToConverter = 
+	private transient Map<Class<?>,ObjectVHToStmtConverter> cachedTypeToConverter = 
 		new HashMap<Class<?>,ObjectVHToStmtConverter>(); 
 	
 	/** lazy computed field, from objConverters */
-	private Map<RefClassToClassKey,RefObjectVHToStmtConverter> cachedRefKeyToRefObjConverter = 
+	private transient Map<RefClassToClassKey,RefObjectVHToStmtConverter> cachedRefKeyToRefObjConverter = 
 		new HashMap<RefClassToClassKey,RefObjectVHToStmtConverter>(); 
 
 	
@@ -48,12 +49,16 @@ public class VHToStmtConverterLookup {
 	
 	public void registerConverter(ObjectVHToStmtConverter p, int priority) { 
 		objConverters.add(p, priority);
-		cachedTypeToConverter.clear(); // clear corresponding cache results
+		if (cachedTypeToConverter != null) {
+			cachedTypeToConverter.clear(); // clear corresponding cache results
+		}
 	}
 
 	public void registerLinkConverter(RefObjectVHToStmtConverter p, int priority) { 
 		refObjConverters.add(p, priority);
-		cachedRefKeyToRefObjConverter.clear(); // clear corresponding cache results
+		if (cachedRefKeyToRefObjConverter != null) {
+			cachedRefKeyToRefObjConverter.clear(); // clear corresponding cache results
+		}
 	}
 
 	
@@ -68,7 +73,8 @@ public class VHToStmtConverterLookup {
 	            }
 	        }
 	        if (res == null) {
-	        	throw new ConversionException("No converter specified for " + type);
+	        	res = null; // throw new ConversionException("No converter specified for " + type);
+	        	// => TODO standard Bean converter ... 
 	        }
         }
         return res;

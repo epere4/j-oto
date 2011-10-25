@@ -1,8 +1,13 @@
 package com.google.code.joto.eventrecorder.ui.capture;
 
-import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import com.google.code.joto.eventrecorder.ui.JotoContext;
+import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemTableModel;
+import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemTablePanel;
+import com.google.code.joto.util.ui.IconUtils;
+import com.google.code.joto.util.ui.JButtonUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -11,14 +16,9 @@ import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.WindowConstants;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.code.joto.eventrecorder.ui.JotoContext;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemTableModel;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemTablePanel;
-import com.google.code.joto.util.ui.IconUtils;
-import com.google.code.joto.util.ui.JButtonUtils;
+import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 
 /**

@@ -9,8 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 
 /**
  * rolling file implementation of RecordEventStore
@@ -23,6 +24,27 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventS
 public class RollingFileRecordEventStore extends AbstractRecordEventStore {
 
 	private static final Logger log = LoggerFactory.getLogger(RollingFileRecordEventStore.class);
+
+	/** Factory pattern for RecordEventStore */
+	public static class RollingFileRecordEventStoreFactory implements RecordEventStoreFactory {
+		/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+		
+		private File parentDir;
+		private String fileBasename;
+		private String fileSuffix;
+
+		public RollingFileRecordEventStoreFactory(File parentDir,
+				String fileBasename, String fileSuffix) {
+			this.parentDir = parentDir;
+			this.fileBasename = fileBasename;
+			this.fileSuffix = fileSuffix;
+		}
+
+		public RecordEventStore create() {
+			return new RollingFileRecordEventStore(parentDir, fileBasename, fileSuffix);
+		}
+	}
 	
 	private File parentDir;
 	private String fileBasename;

@@ -5,6 +5,11 @@ import java.util.Map;
 
 public class ClassDictionaryJotoInfo {
 
+	private static ClassDictionaryJotoInfo DEFAULT_INSTANCE = new ClassDictionaryJotoInfo();
+	public static ClassDictionaryJotoInfo getDefaultInstance() {
+		return DEFAULT_INSTANCE;
+	}
+	
 	private Map<Class<?>,ClassJotoInfo> classMap = new HashMap<Class<?>,ClassJotoInfo>();
 	
 	// -------------------------------------------------------------------------

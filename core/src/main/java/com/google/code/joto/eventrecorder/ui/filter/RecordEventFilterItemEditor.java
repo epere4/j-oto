@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.predicate.DefaultEventTypeRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.ClassMethodPatternRecordEventSummaryPredicate;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.TypeSubTypePatternRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils.ClassMethodPatternRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils.TypeSubTypePatternRecordEventSummaryPredicate;
 import com.google.code.joto.util.JotoRuntimeException;
 import com.google.code.joto.util.io.XStreamUtils;
 import com.google.code.joto.util.ui.GridBagLayoutFormBuilder;
@@ -70,7 +70,7 @@ public class RecordEventFilterItemEditor {
 	private ScrolledTextPane detailedXmlPredicateTextPane;
 	private JToolBar detailedViewerToolbar;
 	
-	private XStream predicateXStream = RecortEventSummaryPredicateUtils.createDefaultPredicateXStream();
+	private XStream predicateXStream = RecordEventSummaryPredicateUtils.createDefaultPredicateXStream();
 
 	private JButton applyEditFilterFileButton;
 	private JButton undoEditFilterFileButton;

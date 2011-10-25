@@ -5,8 +5,9 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import com.google.code.joto.eventrecorder.ui.capture.RecordEventsCapturePanel;
-import com.google.code.joto.eventrecorder.ui.config.JotoContextPanel;
+import com.google.code.joto.eventrecorder.ui.config.JotoConfigPanel;
 import com.google.code.joto.eventrecorder.ui.conv.RecordEventsTableAndConvertersPanel;
+import com.google.code.joto.eventrecorder.ui.table.AbstractRecordEventTableModel;
 
 /**
  * Main UI facade for Joto
@@ -19,9 +20,11 @@ public class JotoContextFacadePanel {
 	
 	protected JTabbedPane tabbedPane;
 
-	protected JotoContextPanel contextPanel;
+	protected JotoConfigPanel configPanel;
 
 	protected RecordEventsCapturePanel capturePanel;
+	
+	protected AbstractRecordEventTableModel selectedRecordEventTableModel;
 	
 	protected RecordEventsTableAndConvertersPanel resultsConverterPanel;
 	
@@ -38,11 +41,11 @@ public class JotoContextFacadePanel {
 		panel.add(tabbedPane);
 
 		{ // tab : general / config
-			contextPanel = new JotoContextPanel(context);
-			tabbedPane.add("Main", contextPanel.getJComponent());
+			configPanel = new JotoConfigPanel(context);
+			tabbedPane.add("Config", configPanel.getJComponent());
 		}
 
-		{ // tab : capture
+		{ // tab : capture (+ capture filter)
 			capturePanel = new RecordEventsCapturePanel(context);
 			tabbedPane.add("Capture", capturePanel.getJComponent());
 		}
@@ -51,16 +54,13 @@ public class JotoContextFacadePanel {
 			
 		}
 
-		{ // tab : display filter
-			
-		}
-
-		{ // tab : selection table
+		{ // tab : selection table (+ display filter)
+			// TODO selectedRecordEventTableModel
 			
 		}
 
 		{ // tab : result converters
-			resultsConverterPanel = new RecordEventsTableAndConvertersPanel(context);
+			resultsConverterPanel = new RecordEventsTableAndConvertersPanel(context, selectedRecordEventTableModel);
 			tabbedPane.add("Results", resultsConverterPanel.getJComponent());
 		}
 		
