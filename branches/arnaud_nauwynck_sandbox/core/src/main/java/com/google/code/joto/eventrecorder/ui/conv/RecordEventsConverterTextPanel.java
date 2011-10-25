@@ -1,9 +1,14 @@
 package com.google.code.joto.eventrecorder.ui.conv;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
@@ -23,11 +28,33 @@ public class RecordEventsConverterTextPanel {
 
 	private ScrolledTextPane textPane;
 
+	protected List<RecordEventData> eventDataList;
+	protected boolean needRecalc = false;
+	
 	//-------------------------------------------------------------------------
 
 	public RecordEventsConverterTextPanel(RecordEventsProcessorFactory<PrintStream> converterFactory) {
 		this.converterFactory = converterFactory;
 		textPane = new ScrolledTextPane();
+		
+		
+		JButton recalcButton = new JButton("calc");
+		recalcButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				recalc();
+			}
+		});
+		textPane.addToolbarComp(recalcButton);
+		
+		textPane.getJComponent().addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentShown(ComponentEvent e) {
+				if (needRecalc) {
+					recalc();
+				}
+			}
+		});
 	}
 
 	//-------------------------------------------------------------------------
@@ -37,6 +64,15 @@ public class RecordEventsConverterTextPanel {
 	}
 	
 	public void setRecordEventDataList(List<RecordEventData> eventDataList) {
+		this.eventDataList = eventDataList;
+		if (textPane.getJComponent().isVisible()) {
+			recalc();
+		} else {
+			needRecalc = true;
+		}
+	}
+	
+	protected void recalc() {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(buffer);
 		try {

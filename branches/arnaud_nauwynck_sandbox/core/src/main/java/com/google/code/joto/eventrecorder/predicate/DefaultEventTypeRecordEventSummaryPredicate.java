@@ -3,7 +3,7 @@ package com.google.code.joto.eventrecorder.predicate;
 import org.apache.commons.collections.Predicate;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils.AbstractRecordEventSummaryPredicate;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils.AbstractRecordEventSummaryPredicate;
 
 /**
  * default Predicate for RecordEventSummary with (optional) sub-predicate for

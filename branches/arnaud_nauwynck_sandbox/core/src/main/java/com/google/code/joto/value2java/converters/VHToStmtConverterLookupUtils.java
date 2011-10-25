@@ -9,6 +9,7 @@ public class VHToStmtConverterLookupUtils {
 	public static void registerDefaultConverters(VHToStmtConverterLookup p) {
 		PrimitiveWrapperVHToStmtConverter.registerDefaultConverters(p);
 		JavaLangVHToStmtConverters.registerDefaultConverters(p); // TODO use default ClassLoader...
+		JavaUtilConverters.registerDefaultConverters(p);
 		
 //        final ReflectionConverter reflectionConverter = 
 //            new ReflectionConverter(mapper, reflectionProvider);

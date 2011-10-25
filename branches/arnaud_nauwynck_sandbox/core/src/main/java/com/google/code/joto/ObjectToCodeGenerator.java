@@ -31,14 +31,22 @@ import com.google.code.joto.value2java.impl.VarDefUseDependencyGraphBuilder;
 public class ObjectToCodeGenerator {
 
 	private static final Logger log = LoggerFactory.getLogger(ObjectToCodeGenerator.class);
+	
 	private boolean debug = false;
 	private boolean debugValueHolder = false;
 	private boolean debugLinksFromValueHolder = false;
 	private boolean debugDependencyGraph = false;
 	
+	private JotoConfig config;
+	
 	//-------------------------------------------------------------------------
 
+	public ObjectToCodeGenerator(JotoConfig config) {
+		this.config = config;
+	}
+
 	public ObjectToCodeGenerator() {
+		this(new JotoConfig());
 	}
 
 	//-------------------------------------------------------------------------
@@ -47,12 +55,12 @@ public class ObjectToCodeGenerator {
 		this.debug = p;
 	}
 	
-	public void setDebugValueHolder(boolean debugValueHolder) {
-		this.debugValueHolder = debugValueHolder;
+	public void setDebugValueHolder(boolean p) {
+		this.debugValueHolder = p;
 	}
 	
-	public void setDebugLinksFromValueHolder(boolean debugLinksFromValueHolder) {
-		this.debugLinksFromValueHolder = debugLinksFromValueHolder;
+	public void setDebugLinksFromValueHolder(boolean p) {
+		this.debugLinksFromValueHolder = p;
 	}
 
 //	public void setDebugDependencyGraph(boolean debugDependencyGraph) {
@@ -123,7 +131,7 @@ public class ObjectToCodeGenerator {
 			log.info(buffer.toString());
 		}
 		
-		VHToStmt b2jVisitor = new VHToStmt();
+		VHToStmt b2jVisitor = new VHToStmt(config);
 		b2jVisitor.visitRootObject(objVH, objName);
 		
 		Map<AbstractObjectValueHolder, ObjectStmtInfo> objInitInfos = 
@@ -139,6 +147,13 @@ public class ObjectToCodeGenerator {
 		if (b2jVisitor.getLogVarDeclStmt() != null) {
 			tmpUnsortedStmts.add(b2jVisitor.getLogVarDeclStmt());
 		}
+
+// TODO TEMPORARY HACK FOR COMPARISON
+boolean debugNoSort = true;
+if (debugNoSort) {
+	return tmpUnsortedStmts;
+}
+		
 		
 		// build graph for topological sort
 		IGraph<BeanAST> graph = new DecoratorGraph<BeanAST>();

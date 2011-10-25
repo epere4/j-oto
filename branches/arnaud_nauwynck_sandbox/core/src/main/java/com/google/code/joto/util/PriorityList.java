@@ -12,7 +12,7 @@ import java.util.TreeSet;
  */
 public class PriorityList<T> implements Iterable<T> {
 
-    private final Set<PrioritizedItem<T>> set = new TreeSet<PrioritizedItem<T>>();
+    private final Set<Item<T>> set = new TreeSet<Item<T>>();
 
     private int idGenerator = 0;
 
@@ -24,7 +24,7 @@ public class PriorityList<T> implements Iterable<T> {
 	//-------------------------------------------------------------------------
 
     public void add(T item, int priority) {
-        this.set.add(new PrioritizedItem<T>(item, priority, ++idGenerator));
+        this.set.add(new Item<T>(item, priority, ++idGenerator));
     }
 
     /**
@@ -33,7 +33,7 @@ public class PriorityList<T> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
     	List<T> tmp = new ArrayList<T>(set.size());
-    	for(PrioritizedItem<T> item : set) {
+    	for(Item<T> item : set) {
     		tmp.add(item.value);
     	}
     	return tmp.iterator();
@@ -44,19 +44,19 @@ public class PriorityList<T> implements Iterable<T> {
     /**
      * internal
      */
-    private static class PrioritizedItem<T> implements Comparable<PrioritizedItem<T>> {
+    private static class Item<T> implements Comparable<Item<T>> {
 
         private final T value;
         private final int priority;
         private final int id; // for comparing with equals priority
 
-        public PrioritizedItem(T value, int priority, int id) {
+        public Item(T value, int priority, int id) {
             this.value = value;
             this.priority = priority;
             this.id = id;
         }
 
-        public int compareTo(PrioritizedItem<T> other) {
+        public int compareTo(Item<T> other) {
             if (this.priority != other.priority) {
                 return (other.priority - this.priority);
             }
@@ -65,8 +65,8 @@ public class PriorityList<T> implements Iterable<T> {
 
         public boolean equals(Object obj) {
         	if (obj == this) return true;
-        	if (!(obj instanceof PrioritizedItem<?>)) return false;
-            return this.id == ((PrioritizedItem<?>)obj).id;
+        	if (!(obj instanceof Item<?>)) return false;
+            return this.id == ((Item<?>)obj).id;
         }
 
     }

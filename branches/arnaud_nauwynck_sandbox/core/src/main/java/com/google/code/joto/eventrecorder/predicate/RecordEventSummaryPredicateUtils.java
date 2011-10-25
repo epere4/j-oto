@@ -16,17 +16,17 @@ import com.google.code.joto.util.PatternsPredicate;
 import com.thoughtworks.xstream.XStream;
 
 /**
- * Utility Predicate classes for RecortEventSummary 
+ * Utility Predicate classes for RecordEventSummary 
  */
-public class RecortEventSummaryPredicateUtils {
+public class RecordEventSummaryPredicateUtils {
 
 	public static XStream createDefaultPredicateXStream() {
 		XStream res = new XStream();
-		registerDefaultPredicateXStreamAlias(res);
+		registerDefaultXStreamAlias(res);
 		return res;
 	}
 	
-	public static void registerDefaultPredicateXStreamAlias(XStream res) {
+	public static void registerDefaultXStreamAlias(XStream res) {
 		res.alias("And", AndPredicate.class);
 		res.alias("Or", OrPredicate.class);
 		res.alias("Not", NotPredicate.class);

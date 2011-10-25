@@ -68,45 +68,67 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 			Method meth = reqData.getMethod();
 			Object[] args = reqData.getArguments();
 			
-			out.println("{ // call eventId:" + event.getEventId() + " \"expr." + meth.getName() + "(...);\"");
-			String exprName = prepareGenerateObj(meth.getReturnType(), expr, "expr");
-			String[] argNames = null;
-			int len = (args != null)? args.length : 0;
-			if (len != 0) {
-				argNames = new String[len];
-				Class<?>[] parameterTypes = meth.getParameterTypes();
-				for (int i = 0; i < len; i++) {
-					argNames[i] = prepareGenerateObj(parameterTypes[i], args[i], "arg" + i);
-				}
-			}
-
-			// out.println("// ... args for \"expr." + meth.getName() + "(...);\"");
-			StringBuilder sb = new StringBuilder();
-			sb.append(exprName);
-			sb.append(".");
-			sb.append(meth.getName());
-			sb.append("(");
-			if (len != 0) {
-				for (int i = 0; i < len; i++) {
-					sb.append(argNames[i]);
-					if (i + 1 < len) {
-						sb.append(", ");
+			out.println("{ // call " // + eventId:" + event.getEventId() + " " 
+					+ meth.getName() + "(...);\"");
+			try {
+				String exprName = prepareGenerateObj(meth.getReturnType(), expr, "expr");
+				String[] argNames = null;
+				int len = (args != null)? args.length : 0;
+				if (len != 0) {
+					argNames = new String[len];
+					Class<?>[] parameterTypes = meth.getParameterTypes();
+					for (int i = 0; i < len; i++) {
+						argNames[i] = prepareGenerateObj(parameterTypes[i], args[i], "arg" + i);
 					}
 				}
-			}			
-			sb.append(");");
+	
+				// out.println("// ... args for \"expr." + meth.getName() + "(...);\"");
+				StringBuilder sb = new StringBuilder();
+				sb.append(exprName);
+				sb.append(".");
+				sb.append(meth.getName());
+				sb.append("(");
+				if (len != 0) {
+					for (int i = 0; i < len; i++) {
+						sb.append(argNames[i]);
+						if (i + 1 < len) {
+							sb.append(", ");
+						}
+					}
+				}			
+				sb.append(");");
 
-			out.println(sb.toString());
-			
-			out.println("} // end call eventId:" + event.getEventId());
+				out.println(sb.toString());
+			} catch(Exception ex) {
+				// ignore, no rethrow!
+				out.println("***FAILED to decode object(method request) to java code: ");
+				ex.printStackTrace(out);
+			}
+			out.println("} // end call"); // eventId:" + event.getEventId()
 			
 		} else {
-			// EventMethodResponseData respData = (EventMethodResponseData) eventData;
+			// method response
+			EventMethodResponseData respData = (EventMethodResponseData) eventData;
 			// ignore real result in current impl...
-			// Object result = respData.getResult();
-			// String stmtsStr = objToCode.objToStmtsString(, "result");
-			// out.print(stmtsStr);
-			out.println("// result = ...");
+			Throwable methodEx = respData.getException();
+			Object result = respData.getResult();
+			
+			out.println("{ // result call"); // eventId:" + event.getEventId()
+			try {
+				if (methodEx != null) {
+					String stmtsStr = objToCode.objToStmtsString(methodEx, "methodException");
+					out.println(stmtsStr);
+				} else {
+					// String stmtsStr = objToCode.objToStmtsString(result, "result");
+					String resExprName = prepareGenerateObj((result!=null)? result.getClass():Object.class, result, "result");
+					out.println("// assert res ... " + resExprName);
+				}
+			} catch(Exception ex) {
+				// ignore, no rethrow!
+				out.println("*** FAILED to decode object(method request) to java code: " + ex.getMessage());
+			}
+
+			out.println("} // end result call"); // eventId:" + event.getEventId()
 		}
 	}
 

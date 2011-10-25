@@ -1,10 +1,15 @@
 package com.google.code.joto.ast.valueholder.util;
 
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Date;
 import java.util.IdentityHashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionValueHolder;
@@ -23,10 +28,12 @@ import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 /**
  * Convert a "real" jvm Object, into a generic AST tree instance AbstractObjectValueHolder 
  * (a sort of Map<Map<Key,Value>> representation)
- * 
+ *
  */
 public class ObjectToValueHolderBuilder {
-
+	
+	private static Logger log = LoggerFactory.getLogger(ObjectToValueHolderBuilder.class);
+	
 	private Map<Object,AbstractObjectValueHolder> identityMap =
 		new IdentityHashMap<Object,AbstractObjectValueHolder>();
 
@@ -145,7 +152,52 @@ public class ObjectToValueHolderBuilder {
 	protected void caseObject(final Object obj, final ObjectValueHolder node) {
 		// BeanInfo beanInfo = Introspector.getBeanInfo(obj.getClass());
 		// final Class<?> objClass = obj.getClass();
+		
+		if (obj instanceof SoftReference) {
+			return;
+		}
+		if (obj instanceof StackTraceElement) {
+			return;
+		}
+		if (obj instanceof ClassLoader) {
+			return;
+		}
+		if (obj instanceof java.security.ProtectionDomain) {
+			return;
+		}
+		String className = obj.getClass().getName();
+		if (className.startsWith("org.apache.log4j.")) {
+			return; //??
+		} else if (className.startsWith("org.hibernate.") || className.startsWith("net.sf.hibernate.")) {
+			return;
+		} else if (className.startsWith("org.springframework.aop.") || className.startsWith("org.springframework.transaction.")) {
+			return; //??
+		}
+		if (obj instanceof java.lang.reflect.InvocationHandler || obj instanceof java.lang.reflect.Proxy) {
+			return;
+		}
+		if (className.startsWith("com.google.code.joto.eventrecorder.")) {
+			return;
+		}
+		if (className.startsWith("GeneratedMethodAccessor")) {
+			return;
+		}
+		if (className.indexOf("EnhancerByCGLIB") != -1) {
+			return;
+		}
+				
 		final ReflectionProvider reflectionProvider = ReflectUtils.getReflectionProvider();
+
+		if (obj instanceof java.util.Date || obj instanceof java.sql.Date ) {
+			Field timeField = reflectionProvider.getField(java.util.Date.class, "fastTime");
+			Date dateObj = (Date) obj;
+			long time = dateObj.getTime();
+			FieldValueHolder fvh = node.getFieldValue(timeField);
+			PrimitiveFieldValueHolder fvh2 = (PrimitiveFieldValueHolder) fvh;
+			fvh2.setValue(time);
+			return;
+		} 
+		
 		
 		reflectionProvider.visitSerializableFields(obj, new ReflectionProvider.Visitor() {
 			@SuppressWarnings("rawtypes")
@@ -154,15 +206,30 @@ public class ObjectToValueHolderBuilder {
 					Class fieldType, 
 					Class definedIn, Object value
 					) {
+				if (fieldName.equals("hashCode")) {
+					return;
+				}
+				if (fieldName.equals("_objParent")) { 
+					return;
+				}
+				String fieldClassName = fieldType.getClass().getName();
+				if (fieldClassName.indexOf("ByCGLIB") != -1) {
+					return;
+				}
+				
 				Field field = reflectionProvider.getField(definedIn, fieldName);
 				FieldValueHolder fvh = node.getFieldValue(field);
 				if (fieldType.isPrimitive()) {
-					PrimitiveFieldValueHolder fvh2 = 
-						(PrimitiveFieldValueHolder) fvh;
+					PrimitiveFieldValueHolder fvh2 = (PrimitiveFieldValueHolder) fvh;
 					fvh2.setValue(value);
 				} else {
-					RefFieldValueHolder fvh2 =
-						(RefFieldValueHolder) fvh;
+					// HACK??
+					if (fieldClassName.startsWith("org.hibernate.") || fieldClassName.startsWith("net.sf.hibernate.")) {
+						return;
+					}
+					
+//					System.out.println("obj:" + obj.getClass() + "  field:" + fieldName + " (" + fieldType + ")");
+					RefFieldValueHolder fvh2 = (RefFieldValueHolder) fvh;
 					//.. recurse
 					AbstractObjectValueHolder valueHolder = buildValue(value);
 					fvh2.setTo(valueHolder);
@@ -231,17 +298,37 @@ public class ObjectToValueHolderBuilder {
 	}
 
 	protected void caseCollection(Collection<?> obj, CollectionValueHolder valueHolder) {
-		for(Object objElt : obj) {
-			AbstractObjectValueHolder eltVH = buildValue(objElt);
-			valueHolder.addRefElt(eltVH);
+		String className = obj.getClass().getName();
+		if (className.startsWith("org.hibernate.") || className.startsWith("net.sf.hibernate.")) {
+			return; // NOT SUPPORTED YET (can have side-effect of lazy loading elts!!) 
+		}
+		try {
+			for(Object objElt : obj) {
+				try {
+					AbstractObjectValueHolder eltVH = buildValue(objElt);
+					valueHolder.addRefElt(eltVH);
+				} catch(Exception ex) {
+					log.error("Failed to build ValueHolder corresponding to collection elt ... ignore!", ex);
+				}
+			}
+		} catch(Exception ex) {
+			log.error("Failed to build ValueHolder corresponding to collection ... ignore!", ex);
 		}
 	}
 
 	protected <K,T> void caseMap(Map<K,T> obj, MapValueHolder valueHolder) {
-		for(Map.Entry<K,T> entry : obj.entrySet()) {
-			AbstractObjectValueHolder keyVH = buildValue(entry.getKey());
-			AbstractObjectValueHolder valueVH = buildValue(entry.getValue());
-			valueHolder.putEntry(keyVH, valueVH);
+		try {
+			for(Map.Entry<K,T> entry : obj.entrySet()) {
+				try {
+					AbstractObjectValueHolder keyVH = buildValue(entry.getKey());
+					AbstractObjectValueHolder valueVH = buildValue(entry.getValue());
+					valueHolder.putEntry(keyVH, valueVH);
+				} catch(Exception ex) {
+					log.error("Failed to build ValueHolder corresponding to Map entry ... ignore!", ex);
+				}
+			}
+		} catch(Exception ex) {
+			log.error("Failed to build ValueHolder corresponding to Map ... ignore!", ex);
 		}
 	}
 

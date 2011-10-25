@@ -1,6 +1,6 @@
 package com.google.code.joto.eventrecorder.ui.filter;
 
-import com.google.code.joto.eventrecorder.predicate.RecortEventSummaryPredicateUtils;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils;
 import com.thoughtworks.xstream.XStream;
 
 /**
@@ -16,7 +16,7 @@ public class RecordEventFilterItemUtils {
 	
 	public static void registerDefaultXStreamAlias(XStream res) {
 		res.alias("eventFilter", RecordEventFilterItem.class);
-		RecortEventSummaryPredicateUtils.registerDefaultPredicateXStreamAlias(res);
+		RecordEventSummaryPredicateUtils.registerDefaultXStreamAlias(res);
 	}
 	
 }

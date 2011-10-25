@@ -17,7 +17,7 @@ import com.google.code.joto.util.ArrayList2;
 /**
  *
  */
-public class RecordEventStoreTableModel extends DefaultRecordEventStoreTableModel {
+public class RecordEventStoreTableModel extends DefaultRecordEventTableModel {
 
 	/** */
 	private static final long serialVersionUID = 1L;

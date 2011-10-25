@@ -1,10 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.google.code.joto</groupId>
+
+<!--  <groupId>com.google.code.joto</groupId> -->
+  <groupId>fr.an.joto</groupId>
   <artifactId>joto</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SANDBOX-AN</version>
+  <version>an-1.0.0</version>
   <name>Joto Object To Code</name>
   <url>http://com.google.code.joto</url>
 
@@ -14,7 +16,29 @@
   	<slf4j.version>1.6.2</slf4j.version>
   	<logback.version>0.9.30</logback.version>
   </properties>
-    
+
+	<distributionManagement>
+<!--
+		<repository>
+			<id>lyxor.repo.release</id>
+			<name>Lyxor</name>
+			<url>https://mccprdmav10.fr.world.socgen:8143/nexus/content/repositories/lyxor</url>
+		</repository>
+		<snapshotRepository>
+			<id>lyxor.repo.snapshot</id>
+			<name>Lyxor Snapshots</name>
+			<url>https://mccprdmav10.fr.world.socgen:8143/nexus/content/repositories/lyxor-snapshots</url>
+			<uniqueVersion>true</uniqueVersion>
+		</snapshotRepository>
+-->
+		<repository>
+			<id>thirdparty</id>
+			<name>Lyxor-Thirdparty</name>
+			<url>http://drxdevweb02.fr.world.socgen:8081/nexus/content/repositories/thirdparty</url>
+		</repository>
+	</distributionManagement>
+
+	
   <dependencies>
   
     <dependency>
@@ -28,6 +52,7 @@
 	  <artifactId>slf4j-api</artifactId>
 	  <version>${slf4j.version}</version>
 	</dependency>
+
 
 	<dependency>
 	  <groupId>commons-collections</groupId>
@@ -84,9 +109,21 @@
 	  <groupId>aopalliance</groupId>
 	  <artifactId>aopalliance</artifactId>
 	  <version>1.0</version>
-	  <scope>provided</scope> <!--  only for 1 extension class, if needed -->
  	  <optional>true</optional>
 	</dependency>
+
+	<dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring-core</artifactId>
+       <version>3.0.2.RELEASE</version>
+       <optional>true</optional>
+    </dependency>
+	<dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring-context</artifactId>
+       <version>3.0.2.RELEASE</version>
+  	   <optional>true</optional>
+    </dependency>
 
 	<!-- For test only -->
     <dependency>
@@ -96,7 +133,8 @@
       <scope>test</scope>
     </dependency>
 
-
+    
+        
   </dependencies>
   
   <build>

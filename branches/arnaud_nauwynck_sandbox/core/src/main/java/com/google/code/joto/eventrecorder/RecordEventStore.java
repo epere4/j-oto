@@ -3,7 +3,6 @@ package com.google.code.joto.eventrecorder;
 import java.io.Serializable;
 import java.util.List;
 
-import com.google.code.joto.eventrecorder.writer.AsyncQueueRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
@@ -11,6 +10,11 @@ import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
  */
 public interface RecordEventStore {
 
+	/** Factory pattern for RecordEventStore */
+	public static interface RecordEventStoreFactory extends Serializable {
+		public RecordEventStore create();
+	}
+	
 	/**
 	 * @param mode one of "ra" (default = read+append), 
 	 *  "rw" (read+append after initial clear file),

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.LoggerContext;
 
+import com.google.code.joto.JotoConfig;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.ext.calls.DefaultSerializableFoo;
@@ -21,7 +22,6 @@ import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterInvocationH
 import com.google.code.joto.eventrecorder.ext.log.EventStoreWriterLog4jAppender;
 import com.google.code.joto.eventrecorder.ext.log.EventStoreWriterLogbackAppender;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
-import com.google.code.joto.eventrecorder.ui.conv.RecordEventsTableAndConvertersPanel;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.Pt;
 import com.google.code.joto.testobj.TestObjFactory;
@@ -31,11 +31,11 @@ public class UiTestMain {
 	private static Logger log = LoggerFactory.getLogger(UiTestMain.class);
 	
 	public static void main(String[] args) {
-		
+		JotoConfig config = new JotoConfig();  
 		RecordEventStore eventStore = new DefaultMemoryRecordEventStore();
 		RecordEventWriter eventWriter = eventStore.getEventWriter(); 
 
-		JotoContext context = new JotoContext(eventStore); 
+		JotoContext context = new JotoContext(config, eventStore); 
 
 		// record Serializable POJO
 		doRecordEventObj(eventStore, "SimpleIntFieldA", TestObjFactory.createSimpleIntFieldA());
@@ -97,10 +97,10 @@ public class UiTestMain {
 			logger.info("test info message multiline\n... message line 2\n...message line 3");
 		}
 		
-		RecordEventsTableAndConvertersPanel recordEventPanel = new RecordEventsTableAndConvertersPanel(context);
+		JotoContextFacadePanel jotoPanel = new JotoContextFacadePanel(context);
 		
 		JFrame frame = new JFrame();
-		frame.getContentPane().add(recordEventPanel.getJComponent());
+		frame.getContentPane().add(jotoPanel.getJComponent());
 		frame.pack();
 		frame.setVisible(true);
 		

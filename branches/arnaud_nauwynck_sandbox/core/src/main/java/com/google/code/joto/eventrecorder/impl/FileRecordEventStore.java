@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.RecordEventData;
+import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.util.io.ByteArrayOutputStream2;
 import com.google.code.joto.util.io.SerializableUtil;
@@ -30,6 +31,23 @@ import com.google.code.joto.util.io.SerializableUtil;
 public class FileRecordEventStore extends AbstractRecordEventStore {
 
 	private static Logger log = LoggerFactory.getLogger(FileRecordEventStore.class.getName());
+	
+
+	/** Factory pattern for RecordEventStore */
+	public static class FileRecordEventStoreFactory implements RecordEventStoreFactory {
+		/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+		
+		private File eventDataFile;
+		
+		public FileRecordEventStoreFactory(File eventDataFile) {
+			this.eventDataFile = eventDataFile;
+		}
+
+		public RecordEventStore create() {
+			return new FileRecordEventStore(eventDataFile);
+		}
+	}
 	
 	private File eventDataFile;
 	
@@ -59,11 +77,14 @@ public class FileRecordEventStore extends AbstractRecordEventStore {
 	// ------------------------------------------------------------------------
 
 	public FileRecordEventStore(File eventDataFile) {
+		super();
 		this.eventDataFile = eventDataFile;
 
 		// to call next... open();
 	}
 
+	// ------------------------------------------------------------------------
+	
 	public void setWriteBufferSize(int p) {
 		this.writeBufferSize = p;
 	}
@@ -88,6 +109,10 @@ public class FileRecordEventStore extends AbstractRecordEventStore {
 	}
 
 	// -------------------------------------------------------------------------
+	
+	public void openRW() {
+		open("rw");
+	}
 	
 	/** implements RecordEventStore */
 	public void open(String mode) {

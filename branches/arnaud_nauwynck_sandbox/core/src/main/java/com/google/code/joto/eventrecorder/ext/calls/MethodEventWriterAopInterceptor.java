@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.framework.ReflectiveMethodInvocation;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
@@ -82,6 +83,11 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 		Method method = methInvocation.getMethod();
 		String methodName = method.getName();
 		Object target = methInvocation.getThis();
+		Object proxy = target;
+		if (methInvocation instanceof ReflectiveMethodInvocation) {
+			ReflectiveMethodInvocation r = (ReflectiveMethodInvocation) methInvocation;
+			proxy = r.getProxy();
+		}
 		Object[] args = methInvocation.getArguments(); 
 
 		boolean enable = eventWriter.isEnable();
@@ -97,13 +103,13 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 				return res;
 			}
 
-			Object replTarget = target;
+			Object replProxy = proxy;
 			Object[] replArgs = args; // TODO not required to replace args in current version?
 			if (objectReplacementMap != null) {
-				replTarget = objectReplacementMap.checkReplace(replTarget);
+				replProxy = objectReplacementMap.checkReplace(replProxy);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
 			}
-			EventMethodRequestData reqObjData = new EventMethodRequestData(replTarget, method, replArgs);
+			EventMethodRequestData reqObjData = new EventMethodRequestData(replProxy, method, replArgs);
 			
 			RecordEventSummary responseEvt = createEvent(methodName, responseEventSubType);
 			CorrelatedEventSetterCallback callbackForEventId =

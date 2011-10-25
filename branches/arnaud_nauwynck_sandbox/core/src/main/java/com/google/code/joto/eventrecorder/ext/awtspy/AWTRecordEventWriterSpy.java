@@ -1,5 +1,11 @@
 package com.google.code.joto.eventrecorder.ext.awtspy;
 
+import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.AWTEvent;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
@@ -7,19 +13,16 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ContainerEvent;
 import java.awt.event.FocusEvent;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.InputMethodEvent;
+import java.awt.event.InvocationEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.TextEvent;
 import java.awt.event.WindowEvent;
 import java.io.Serializable;
 import java.util.Date;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
  * a spy to listen AWT event, and write them as RecordEventSummary 
@@ -239,7 +242,7 @@ public class AWTRecordEventWriterSpy {
 			eventClassName = "MouseEvent";
 			eventMethodName = "Exited";
 			break;
-		case MouseEvent.MOUSE_WHEEL:
+		case MouseEvent.MOUSE_WHEEL: // cf also MouseWheelEvent
 			typeStr = "MOUSE_WHEEL";
 			eventClassName = "MouseEvent";
 			eventMethodName = "Wheel";
@@ -355,8 +358,13 @@ public class AWTRecordEventWriterSpy {
 	        eventMethodDetail = "item="+e.getItem() + ",stateChange="+stateStr;
         } break;
         
-        // TODO ... 
-        
+        // TextEvent
+        case TextEvent.TEXT_VALUE_CHANGED:
+            typeStr = "TEXT_VALUE_CHANGED";
+            eventClassName = "TextEvent";
+			eventMethodName = "TextValueChanged";
+            break;
+            
 		// InputMethodEvent
 		case InputMethodEvent.INPUT_METHOD_TEXT_CHANGED:
 			typeStr = "INPUT_METHOD_TEXT_CHANGED";
@@ -369,7 +377,44 @@ public class AWTRecordEventWriterSpy {
 			eventMethodName = "CaretPosChanged";
 			break;
 
-		default:
+		// PaintEvent ?? 
+		
+		// InvocationEvent, INVOCATION_EVENT_MASK 
+        case InvocationEvent.INVOCATION_DEFAULT:
+	        typeStr = "INVOCATION_DEFAULT";
+	        eventClassName = "InvocationEvent";
+			eventMethodName = "Default";
+	        break;
+	        
+		// HierarchyEvent, HIERARCHY_EVENT_MASK
+  	  case HierarchyEvent.ANCESTOR_MOVED:
+  		  typeStr = "ANCESTOR_MOVED";
+  		  eventClassName = "HierarchyEvent";
+  		  eventMethodName = "Moved";
+  		  // "("+changed+","+changedParent+")";
+  		  break;
+  	  case HierarchyEvent.ANCESTOR_RESIZED:
+  		  typeStr = "ANCESTOR_RESIZED";
+  		  eventClassName = "HierarchyEvent";
+  		  eventMethodName = "Resized";
+  		  // ("+changed+","+changedParent+")";
+  		  break;
+  	  case HierarchyEvent.HIERARCHY_CHANGED: {
+  		  typeStr = "HIERARCHY_CHANGED";
+  		  eventClassName = "HierarchyEvent";
+  		  eventMethodName = "Changed";
+  	  } break;
+	    
+  	  // HIERARCHY_BOUNDS_EVENT_MASK ??
+  	  
+  	  // MouseWheelEvent, MOUSE_WHEEL_EVENT_MASK ... cf MouseEvent
+  	  
+  	  // WINDOW_STATE_EVENT_MASK ... cf WindowEvent
+  	  
+  	  // WINDOW_FOCUS_EVENT_MASK .. cf WindowEvent
+  	  
+  	  
+  	  default:
 			// TODO cases NOT_IMPLEMENTED YET ...
 			typeStr = "ID:" + event.getID();
 			eventClassName = null;
