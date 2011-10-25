@@ -26,6 +26,10 @@ public class RecordEventSummary implements Serializable {
 	
 	// ------------------------------------------------------------------------
 
+	public RecordEventSummary() {
+		this(-1);
+	}
+
 	public RecordEventSummary(int eventId) {
 		this.eventId = eventId;
 	}

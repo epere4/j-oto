@@ -2,12 +2,13 @@ package com.google.code.joto.eventrecorder.ui.filter;
 
 import org.junit.Test;
 
+import com.google.code.joto.eventrecorder.ui.AbstractJotoUiTestCase;
 import com.google.code.joto.util.io.ui.UiTestUtils;
 
 /**
  * JUnit test for RecordEventFilterTablePanel
  */
-public class RecordEventFilterTablePanelTest {
+public class RecordEventFilterTablePanelTest extends AbstractJotoUiTestCase {
 
 	@Test
 	public void testDoNothing() {
