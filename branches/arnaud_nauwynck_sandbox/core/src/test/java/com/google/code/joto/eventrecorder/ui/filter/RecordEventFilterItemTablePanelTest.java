@@ -9,8 +9,8 @@ public class RecordEventFilterItemTablePanelTest extends AbstractJotoUiTestCase 
 
 	@Test
 	public void testOpenClosePane() {
-		RecordEventFilterItemTableModel model = new RecordEventFilterItemTableModel();
-		RecordEventFilterItemTablePanel pane = new RecordEventFilterItemTablePanel(model);
+		RecordEventFilterFileTableModel model = new RecordEventFilterFileTableModel();
+		RecordEventFilterFileTablePanel pane = new RecordEventFilterFileTablePanel(model);
 		UiTestUtils.showInFrame(pane.getJComponent());
 	}
 }

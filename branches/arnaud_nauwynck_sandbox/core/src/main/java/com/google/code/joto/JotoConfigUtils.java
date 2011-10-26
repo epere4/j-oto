@@ -6,7 +6,7 @@ import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore.Def
 import com.google.code.joto.eventrecorder.impl.FileRecordEventStore.FileRecordEventStoreFactory;
 import com.google.code.joto.eventrecorder.impl.RollingFileRecordEventStore.RollingFileRecordEventStoreFactory;
 import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemUtils;
+import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterFileUtils;
 import com.thoughtworks.xstream.XStream;
 
 public class JotoConfigUtils {
@@ -29,7 +29,7 @@ public class JotoConfigUtils {
 		res.alias("FileRecordEventStoreFactory", FileRecordEventStoreFactory.class); 
 		res.alias("RollingFileRecordEventStoreFactory", RollingFileRecordEventStoreFactory.class); 
 		
-		RecordEventFilterItemUtils.registerDefaultXStreamAlias(res);
+		RecordEventFilterFileUtils.registerDefaultXStreamAlias(res);
 		RecordEventSummaryPredicateUtils.registerDefaultXStreamAlias(res);
 	}
 	

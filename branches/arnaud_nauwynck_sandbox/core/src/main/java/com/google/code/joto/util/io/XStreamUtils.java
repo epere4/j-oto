@@ -23,9 +23,9 @@ public class XStreamUtils {
 			out = new BufferedOutputStream(new FileOutputStream(file));
 			xstream.toXML(obj, out);
 		} catch(IOException ex) {
-			throw JotoRuntimeException.wrapRethrow("Failed to write file " + file, ex);
+			throw JotoRuntimeException.wrapRethrow("Failed to write file '" + file.getAbsolutePath() + "'", ex);
 		} catch(Exception ex) {
-			throw JotoRuntimeException.wrapRethrow("Failed to write xml file " + file, ex);
+			throw JotoRuntimeException.wrapRethrow("Failed to write xml file '" + file.getAbsolutePath() + "'", ex);
 		} finally {
 			IOUtils.closeQuietly(out);
 		}
@@ -35,13 +35,16 @@ public class XStreamUtils {
 	public static Object fromFile(XStream xstream, File file) {
 		Object res = null;
 		InputStream in = null;
+		if (!file.exists()) {
+			throw new JotoRuntimeException("File not found '" + file.getAbsolutePath() + "'");
+		}
 		try {
 			in = new BufferedInputStream(new FileInputStream(file));
 			res = xstream.fromXML(in);
 		} catch(IOException ex) {
-			throw JotoRuntimeException.wrapRethrow("Failed to read file " + file, ex);
+			throw JotoRuntimeException.wrapRethrow("Failed to read file '" + file.getAbsolutePath() + "'", ex);
 		} catch(Exception ex) {
-			throw JotoRuntimeException.wrapRethrow("Failed to read xml file " + file, ex);
+			throw JotoRuntimeException.wrapRethrow("Failed to read xml file '" + file.getAbsolutePath() + "'", ex);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}

@@ -1,5 +1,7 @@
 package com.google.code.joto.eventrecorder.ui.filter;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +13,7 @@ import javax.swing.table.AbstractTableModel;
  *
  * used to display/edit filters (=predicate item) to apply at record time or display time.
  */
-public class RecordEventFilterItemTableModel extends AbstractTableModel {
+public class RecordEventFilterFileTableModel extends AbstractTableModel {
 
 	/** internal for java.io.Serializable */
 	private static final long serialVersionUID = 1L;
@@ -73,33 +75,67 @@ public class RecordEventFilterItemTableModel extends AbstractTableModel {
 	
 	
 	
-	private List<RecordEventFilterItem> rows = new ArrayList<RecordEventFilterItem>();
+	private List<RecordEventFilterFile> rows = new ArrayList<RecordEventFilterFile>();
+	
+	private PropertyChangeListener innerPropertyChangeListener = new PropertyChangeListener() {
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			onRowEltPropertyChange(evt);
+		}
+	};
 	
 	// ------------------------------------------------------------------------
 
-	public RecordEventFilterItemTableModel() {
+	public RecordEventFilterFileTableModel() {
 	}
 
 	// ------------------------------------------------------------------------
 
-
-	public RecordEventFilterItem getRow(int rowIndex) {
+	public List<RecordEventFilterFile> getRows() {
+	    return rows;
+	}
+	
+	public RecordEventFilterFile getRow(int rowIndex) {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return null; // should not occur!
 		return rows.get(rowIndex);
 	}
 
-	public void addRow(RecordEventFilterItem p) {
+	public void addRow(RecordEventFilterFile p) {
 		int firstRow = rows.size();
 		rows.add(p);
+		p.addPropertyChangeSupport(innerPropertyChangeListener);
 		int lastRow = firstRow + 1;
 		super.fireTableRowsInserted(firstRow, lastRow);
 	}
 
-	public void removeRow(RecordEventFilterItem item) {
+	public void removeRow(RecordEventFilterFile item) {
 		int index = rows.indexOf(item);
 		if (index != -1) {
 			rows.remove(index);
+			item.removePropertyChangeSupport(innerPropertyChangeListener);
 			super.fireTableRowsDeleted(index, index + 1);
+		}
+	}
+
+	public void addRows(List<RecordEventFilterFile> elts) {
+		if (elts != null && !elts.isEmpty()) {
+			for(RecordEventFilterFile elt : elts) {
+				addRow(elt);
+			}
+		}
+	}
+
+	private void onRowEltPropertyChange(PropertyChangeEvent evt) {
+		// smart index finding?
+		int foundIndex = -1;
+		if (evt.getSource() instanceof RecordEventFilterFile) {
+			RecordEventFilterFile item = (RecordEventFilterFile) evt.getSource();
+			foundIndex = rows.indexOf(item);
+		}
+		if (foundIndex != -1) {
+			fireTableRowsUpdated(foundIndex, foundIndex+1);
+		} else {
+			fireTableDataChanged();
 		}
 	}
 
@@ -119,7 +155,7 @@ public class RecordEventFilterItemTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return null; // should not occur!
-		RecordEventFilterItem row = getRow(rowIndex);
+		RecordEventFilterFile row = getRow(rowIndex);
 		switch(ColumnInfo.fromOrdinal(columnIndex)) {
 		case name: return row.getName();
 		case description: return row.getDescription();
@@ -163,7 +199,7 @@ public class RecordEventFilterItemTableModel extends AbstractTableModel {
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex) {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return; // should not occur!
-		RecordEventFilterItem row = getRow(rowIndex);
+		RecordEventFilterFile row = getRow(rowIndex);
 		switch(ColumnInfo.fromOrdinal(columnIndex)) {
 		case name: row.setName((String) value); break;
 		case description: row.setDescription((String) value); break;

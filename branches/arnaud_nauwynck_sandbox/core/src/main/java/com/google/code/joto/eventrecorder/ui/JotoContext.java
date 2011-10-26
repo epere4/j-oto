@@ -1,18 +1,21 @@
 package com.google.code.joto.eventrecorder.ui;
 
-import java.beans.PropertyChangeListener;
-
-import javax.swing.event.SwingPropertyChangeSupport;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.code.joto.JotoConfig;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.ui.filter.FilteringRecordEventWriterModel;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.event.SwingPropertyChangeSupport;
+
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -39,25 +42,38 @@ public class JotoContext {
 
 	private RecordingStatus recordingStatus = RecordingStatus.IDDLE;
 
-	
-	protected FilteringRecordEventWriter methodCallsFilteringEventWriter;
-	protected FilteringRecordEventWriter logsFilteringEventWriter;
-	protected FilteringRecordEventWriter awtEventSpyFilteringEventWriter;
+	private FilteringRecordEventWriterModel captureFiltersWriterModel;
+
+    protected Map<String,FilteringRecordEventWriterModel> filteringEventWriterModelCategories = new HashMap<String,FilteringRecordEventWriterModel>();
 
 	protected ObjectReplacementMap objReplMap = new ObjectReplacementMap();
 	
 	// ------------------------------------------------------------------------
 	
-	public JotoContext(JotoConfig config, RecordEventStore eventStore) {
-		this.config = (config != null)? config : new JotoConfig();
-		this.eventStore = (eventStore != null)? eventStore : this.config.getEventStoreFactory().create();
-
+	public JotoContext(JotoConfig optConfig, RecordEventStore optEventStore) {
+		this.config = (optConfig != null)? optConfig : new JotoConfig();
+		this.eventStore = (optEventStore != null)? optEventStore : this.config.getEventStoreFactory().create();
+		
+		
 		RecordEventWriter asyncEventWriter = eventStore.getAsyncEventWriter();
-		methodCallsFilteringEventWriter = new FilteringRecordEventWriter(asyncEventWriter);
-		logsFilteringEventWriter = new FilteringRecordEventWriter(asyncEventWriter);
-		awtEventSpyFilteringEventWriter = new FilteringRecordEventWriter(asyncEventWriter);
 
+		this.captureFiltersWriterModel = new FilteringRecordEventWriterModel(asyncEventWriter);
+		captureFiltersWriterModel.setName("jotoContext.captureFiltersWriterModel");
+		captureFiltersWriterModel.setOwner(this);
+		captureFiltersWriterModel.getResultFilteringEventWriter().setOwner(captureFiltersWriterModel);
+		
+		getOrCreateFilteringEventWriterModelCategory("methodCall");
+//        getOrCreateFilteringEventWriterModelCategory("logs");
+//        getOrCreateFilteringEventWriterModelCategory("AWTSpy");
+
+		eventStore.open("rw");		
 	}
+
+	
+	/** helper constructor, for test */
+    public JotoContext(JotoConfig optConfig) {
+        this(optConfig, null);
+    }
 
 	/** helper constructor, for test */
 	public JotoContext() {
@@ -123,31 +139,55 @@ public class JotoContext {
 		}
 	}
 
-	public FilteringRecordEventWriter getMethodCallsFilteringEventWriter() {
-		return methodCallsFilteringEventWriter;
+    public RecordEventWriter getEventWriter() {
+        return eventStore.getEventWriter();
+    }
+
+    public RecordEventWriter getUnfilteredAsyncEventWriter() {
+	    return eventStore.getAsyncEventWriter();
 	}
 
-	public void setMethodCallsFilteringEventWriter(FilteringRecordEventWriter p) {
-		this.methodCallsFilteringEventWriter = p;
+    public RecordEventWriter getAsyncEventWriter() {
+        return captureFiltersWriterModel.getResultFilteringEventWriter();
+    }
+
+    public FilteringRecordEventWriterModel getCaptureFiltersWriterModel() {
+        return captureFiltersWriterModel;
+    }
+
+	public FilteringRecordEventWriterModel getOrCreateFilteringEventWriterModelCategory(String name) {
+	    FilteringRecordEventWriterModel res = filteringEventWriterModelCategories.get(name);
+	    if (res == null) {
+	        FilteringRecordEventWriter mainAsyncEventWriter = captureFiltersWriterModel.getResultFilteringEventWriter();
+	        res = new FilteringRecordEventWriterModel(mainAsyncEventWriter);
+	        
+	        boolean debugOwner = true;
+	        if (debugOwner) {
+	            res.setOwner(this);
+                res.setName(name);
+                
+	            FilteringRecordEventWriter resFilter = res.getResultFilteringEventWriter();
+    	        resFilter.setOwner(res);
+    	        resFilter.setName(name);
+	        }
+	        
+	        filteringEventWriterModelCategories.put(name, res);
+	    }
+	    return res;
 	}
 
-	public FilteringRecordEventWriter getLogsFilteringEventWriter() {
-		return logsFilteringEventWriter;
+	public FilteringRecordEventWriter getOrCreateFilteringEventWriterCategory(String name) {
+	    FilteringRecordEventWriterModel tmpres = getOrCreateFilteringEventWriterModelCategory(name);
+	    return tmpres.getResultFilteringEventWriter();
 	}
 
-	public void setLogsFilteringEventWriter(FilteringRecordEventWriter p) {
-		this.logsFilteringEventWriter = p;
+	/** helper method for getOrCreateFilteringEventWriterCategory("methodCall") */
+	public FilteringRecordEventWriter getMethodCallEventWriterCategory() {
+	    return getOrCreateFilteringEventWriterCategory("methodCall");
 	}
 
-	public FilteringRecordEventWriter getAwtEventSpyFilteringEventWriter() {
-		return awtEventSpyFilteringEventWriter;
-	}
-
-	public void setAwtEventSpyFilteringEventWriter(FilteringRecordEventWriter p) {
-		this.awtEventSpyFilteringEventWriter = p;
-	}
-
-	public ObjectReplacementMap getObjReplMap() {
+	
+    public ObjectReplacementMap getObjReplMap() {
 		return objReplMap;
 	}
 

@@ -1,13 +1,15 @@
 package com.google.code.joto.eventrecorder.writer;
 
+import com.google.code.joto.eventrecorder.RecordEventData;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
+
+import org.apache.commons.collections.Predicate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.code.joto.eventrecorder.RecordEventData;
-import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
 
 /**
  * proxy implementation of RecordEventWriter to add filtering
@@ -20,7 +22,15 @@ public class FilteringRecordEventWriter extends AbstractRecordEventWriter implem
 	
 	protected boolean enable = true;
 
-	protected List<RecordEventSummaryPredicate> eventSummaryPredicates = new ArrayList<RecordEventSummaryPredicate>();
+	/**
+	 * list of predicate (filters) to filter on RecordEventSummary elements
+	 */
+	protected List<Predicate> eventPredicates = new ArrayList<Predicate>();
+	
+	/** optional */
+	private Object owner;
+    /** optional */
+    private String name;
 	
 	// -------------------------------------------------------------------------
 	
@@ -55,33 +65,63 @@ public class FilteringRecordEventWriter extends AbstractRecordEventWriter implem
 		}
 	}
 
-	public List<RecordEventSummaryPredicate> getEventSummaryPredicates() {
-		return Collections.unmodifiableList(eventSummaryPredicates);
+	public List<Predicate> getEventPredicates() {
+		return Collections.unmodifiableList(eventPredicates);
+	}
+
+	public void setEventPredicateElts(List<Predicate> p) {
+        List<Predicate> old = new ArrayList<Predicate>(eventPredicates);
+        eventPredicates.clear();
+        if (p != null) {
+            eventPredicates.addAll(p);
+        }
+        changeSupport.firePropertyChange("eventPredicates", old, eventPredicates);
+    }
+
+	public void addEventPredicate(RecordEventSummaryPredicate p) {
+		List<Predicate> old = new ArrayList<Predicate>(eventPredicates);
+		eventPredicates.add(p);
+		changeSupport.firePropertyChange("eventPredicates", old, eventPredicates);
 	}
 	
-	public void addEventSummaryPredicate(RecordEventSummaryPredicate p) {
-		List<RecordEventSummaryPredicate> old = new ArrayList<RecordEventSummaryPredicate>(eventSummaryPredicates);
-		eventSummaryPredicates.add(p);
-		changeSupport.firePropertyChange("eventSummaryPredicates", old, eventSummaryPredicates);
-	}
-	
-	public void removeEventSummaryPredicate(RecordEventSummaryPredicate p) {
-		List<RecordEventSummaryPredicate> old = new ArrayList<RecordEventSummaryPredicate>(eventSummaryPredicates);
-		eventSummaryPredicates.add(p);
-		changeSupport.firePropertyChange("eventSummaryPredicates", old, eventSummaryPredicates);
+	public void removeEventPredicate(Predicate p) {
+		List<Predicate> old = new ArrayList<Predicate>(eventPredicates);
+		eventPredicates.add(p);
+		changeSupport.firePropertyChange("eventPredicates", old, eventPredicates);
 	}
 
 	
 	public boolean isEnable(RecordEventSummary eventInfo) {
-		if (eventSummaryPredicates != null && !eventSummaryPredicates.isEmpty()) {
-			for(RecordEventSummaryPredicate pred : eventSummaryPredicates) {
+		boolean res = true;
+		if (eventInfo.getEventMethodName() != null 
+		        && eventInfo.getEventMethodName().endsWith("UserAdvancement")) {
+		    int dbg = 0; dbg++;
+		}
+		if (eventPredicates != null && !eventPredicates.isEmpty()) {
+			for(Predicate pred : eventPredicates) {
 				if (!pred.evaluate(eventInfo)) {
-					return false;
+					res = false;
+					break;
 				}
 			}
 		}
-		return true;
+		return res;
 	}
 
-	
+    public Object getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Object p) {
+        this.owner = p;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String p) {
+        this.name = p;
+    }
+    
 }
