@@ -1,21 +1,22 @@
 package com.google.code.joto.eventrecorder.ui;
 
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.event.SwingPropertyChangeSupport;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.JotoConfig;
 import com.google.code.joto.eventrecorder.RecordEventStore;
+import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterAopInterceptor;
 import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.eventrecorder.ui.filter.FilteringRecordEventWriterModel;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.swing.event.SwingPropertyChangeSupport;
-
-import java.beans.PropertyChangeListener;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -48,6 +49,8 @@ public class JotoContext {
 
 	protected ObjectReplacementMap objReplMap = new ObjectReplacementMap();
 	
+	protected MethodEventWriterAopInterceptor defaultMethodEventWriterAopInterceptor;
+
 	// ------------------------------------------------------------------------
 	
 	public JotoContext(JotoConfig optConfig, RecordEventStore optEventStore) {
@@ -186,6 +189,42 @@ public class JotoContext {
 	    return getOrCreateFilteringEventWriterCategory("methodCall");
 	}
 
+	/** 
+	 * helper method to create a default MethodEventWriterAopInterceptor, 
+	 * with writer filtering on category "methodCall" 
+	 * 
+	 * typical example in Spring configuration file:
+	 * <code><PRE>
+	 * &lt;bean id="javaVersion" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+	 *    &lt;property name="targetObject" ref="jotoContext"/>
+     *    &lt;property name="targetMethod" value="getDefaultMethodEventWriterAopInterceptor"/>
+     * &lt;/bean>
+	 * </PRE>
+	 * </code>  
+	 */ 
+	public MethodEventWriterAopInterceptor getDefaultMethodEventWriterAopInterceptor() {
+		if (defaultMethodEventWriterAopInterceptor == null) {
+			String writerCategory = "methodCall";
+			String eventType = "methodCall";
+			defaultMethodEventWriterAopInterceptor =
+					createMethodEventWriterAopInterceptor(writerCategory, eventType);
+		}
+		return defaultMethodEventWriterAopInterceptor;
+	}
+
+	/**
+	 * helper method to create a MethodEventWriterAopInterceptor, with writer filtering on <code>writerCategory</code>
+	 * @param writerCategory
+	 * @param eventType
+	 * @return
+	 */
+	public MethodEventWriterAopInterceptor createMethodEventWriterAopInterceptor(String writerCategory, String eventType) {
+		FilteringRecordEventWriter eventWriter = getOrCreateFilteringEventWriterCategory(writerCategory);
+		MethodEventWriterAopInterceptor res = 
+				new MethodEventWriterAopInterceptor(eventWriter, eventType); 
+		return res;
+	}
+	
 	
     public ObjectReplacementMap getObjReplMap() {
 		return objReplMap;
