@@ -73,6 +73,10 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 		} else {
 			throw new IllegalArgumentException("invalid mode '" + mode + "', expecting one of { ra, rw, r }");
 		}
+		
+		if (canWriteAppend) {
+	        asyncEventWriter.startQueue();
+		}
 	}
 	
 	public boolean getCanRead() {
@@ -85,6 +89,9 @@ public abstract class AbstractRecordEventStore implements RecordEventStore {
 
 	@Override
 	public void close() {
+        if (canWriteAppend) {
+            asyncEventWriter.stopQueue();
+        }
 		canRead = false;
 		canWriteAppend = false;
 	}

@@ -16,19 +16,19 @@ public class RecordEventFilterTablePanelTest extends AbstractJotoUiTestCase {
 	
 	@Test
 	public void openCloseEditorPane() throws Exception {
-		RecordEventFilterItemEditor editor = new RecordEventFilterItemEditor();
+		RecordEventFilterFileEditor editor = new RecordEventFilterFileEditor();
 		UiTestUtils.showInFrame(editor.getJComponent());
 	}
 	
 //	@Test
 	public void openCloseTablePane() throws Exception {
-		RecordEventFilterItemTableModel tm = new RecordEventFilterItemTableModel();
-		RecordEventFilterItem f1 = new RecordEventFilterItem();
+		RecordEventFilterFileTableModel tm = new RecordEventFilterFileTableModel();
+		RecordEventFilterFile f1 = new RecordEventFilterFile();
 		tm.addRow(f1);
-		RecordEventFilterItem f2 = new RecordEventFilterItem();
+		RecordEventFilterFile f2 = new RecordEventFilterFile();
 		tm.addRow(f2);
 		
-		RecordEventFilterItemTablePanel tableView = new RecordEventFilterItemTablePanel(tm);
+		RecordEventFilterFileTablePanel tableView = new RecordEventFilterFileTablePanel(tm);
 		
 		UiTestUtils.showInFrame(tableView.getJComponent());
 	}

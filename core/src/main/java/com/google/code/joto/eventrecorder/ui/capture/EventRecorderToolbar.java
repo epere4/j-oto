@@ -1,8 +1,8 @@
 package com.google.code.joto.eventrecorder.ui.capture;
 
 import com.google.code.joto.eventrecorder.ui.JotoContext;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemTableModel;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterItemTablePanel;
+import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterFileTableModel;
+import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterFileTablePanel;
 import com.google.code.joto.util.ui.IconUtils;
 import com.google.code.joto.util.ui.JButtonUtils;
 
@@ -38,7 +38,7 @@ public class EventRecorderToolbar {
 	private JButton showCaptureFiltersButton;
 //	private JButton clearButton;
 
-	private RecordEventFilterItemTablePanel captureFiltersPanel;
+	private RecordEventFilterFileTablePanel captureFiltersPanel;
 	private JFrame captureFiltersFrame;
 	
 	// -------------------------------------------------------------------------
@@ -67,8 +67,8 @@ public class EventRecorderToolbar {
 		ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
 		showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "filter", this, "onButtonShowCaptureFilters");
 		toolbar.add(showCaptureFiltersButton);
-		RecordEventFilterItemTableModel captureFiltersTableModel = new RecordEventFilterItemTableModel();
-		captureFiltersPanel = new RecordEventFilterItemTablePanel(captureFiltersTableModel);
+		RecordEventFilterFileTableModel captureFiltersTableModel = new RecordEventFilterFileTableModel();
+		captureFiltersPanel = new RecordEventFilterFileTablePanel(captureFiltersTableModel);
 	}
 
 	public void dispose() {

@@ -10,12 +10,14 @@ import org.apache.commons.collections.Predicate;
 /**
  * 
  */
-public class RecordEventFilterItem {
+public class RecordEventFilterFile {
 
 	private SwingPropertyChangeSupport changeSupport = new SwingPropertyChangeSupport(this);
 	
 	private String name;
 
+	boolean active = true;
+	
 	private String description;
 
 	private File persistentFile;
@@ -34,7 +36,7 @@ public class RecordEventFilterItem {
 
 	// ------------------------------------------------------------------------
 
-	public RecordEventFilterItem() {
+	public RecordEventFilterFile() {
 	}
 
 	// ------------------------------------------------------------------------
@@ -46,6 +48,16 @@ public class RecordEventFilterItem {
 	public void removePropertyChangeSupport(PropertyChangeListener p) {
 		this.changeSupport.removePropertyChangeListener(p);
 	}
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean p) {
+        boolean old = active;
+        this.active = p;
+        changeSupport.firePropertyChange("active", old, p);
+    }
 
 	public String getName() {
 		return name;
@@ -178,7 +190,7 @@ public class RecordEventFilterItem {
 	}
 
 	
-	public void set(RecordEventFilterItem src) {
+	public void set(RecordEventFilterFile src) {
 		this.name = src.name;
 		this.description = src.description;
 		this.persistentFile = src.persistentFile;

@@ -25,7 +25,7 @@ public class RecordEventTablePane {
 		this.recordEventTableModel = recordEventTableModel;
 		
 		this.recordEventTable = new JTable(recordEventTableModel);
-		recordEventTable.setRowSorter(new TableRowSorter<AbstractRecordEventTableModel>(recordEventTableModel));
+//		recordEventTable.setRowSorter(new TableRowSorter<AbstractRecordEventTableModel>(recordEventTableModel));
 		
 		this.recordEventScrollPane = new JScrollPane(recordEventTable);
 

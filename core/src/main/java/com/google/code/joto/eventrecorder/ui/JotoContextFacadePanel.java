@@ -1,13 +1,16 @@
 package com.google.code.joto.eventrecorder.ui;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-
 import com.google.code.joto.eventrecorder.ui.capture.RecordEventsCapturePanel;
 import com.google.code.joto.eventrecorder.ui.config.JotoConfigPanel;
 import com.google.code.joto.eventrecorder.ui.conv.RecordEventsTableAndConvertersPanel;
 import com.google.code.joto.eventrecorder.ui.table.AbstractRecordEventTableModel;
+import com.google.code.joto.eventrecorder.ui.table.RecordEventStoreTableModel;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+
+import java.awt.BorderLayout;
 
 /**
  * Main UI facade for Joto
@@ -36,9 +39,10 @@ public class JotoContextFacadePanel {
 	}
 
 	private void initComponents() {
-		panel = new JPanel();
+		panel = new JPanel(new BorderLayout());
+		
 		tabbedPane = new JTabbedPane();
-		panel.add(tabbedPane);
+		panel.add(tabbedPane, BorderLayout.CENTER);
 
 		{ // tab : general / config
 			configPanel = new JotoConfigPanel(context);
@@ -56,7 +60,9 @@ public class JotoContextFacadePanel {
 
 		{ // tab : selection table (+ display filter)
 			// TODO selectedRecordEventTableModel
-			
+			if (selectedRecordEventTableModel == null) {
+			    selectedRecordEventTableModel = new RecordEventStoreTableModel(context.getEventStore());
+			}
 		}
 
 		{ // tab : result converters

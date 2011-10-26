@@ -39,11 +39,11 @@ import com.thoughtworks.xstream.XStream;
 /**
  * simple swing View/Editor for RecordEventFilter model
  */
-public class RecordEventFilterItemEditor {
+public class RecordEventFilterFileEditor {
 	
-	private static Logger log = LoggerFactory.getLogger(RecordEventFilterItemEditor.class);
+	private static Logger log = LoggerFactory.getLogger(RecordEventFilterFileEditor.class);
 	
-	private RecordEventFilterItem model;
+	private RecordEventFilterFile model;
 
 	private JPanel panel;
 	
@@ -77,12 +77,10 @@ public class RecordEventFilterItemEditor {
 	private JButton saveFilterFileButton;
 	private JButton reloadFilterFileButton;
 
-	private JButton saveAllFilterFileButton;
-	private JButton reloaAlldFilterFileButton;
 
 	// ------------------------------------------------------------------------
 
-	public RecordEventFilterItemEditor() {
+	public RecordEventFilterFileEditor() {
 		initComponents();
 	}
 
@@ -159,10 +157,10 @@ public class RecordEventFilterItemEditor {
 		{
 			// toolbar buttons for Save File / Reload File
 			// toolbar buttons for Save File / Reload File
-			applyEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("apply"), "Apply Edit", this, "onApplyEditFilterFileButton");
+			applyEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("apply"), "Apply", this, "onApplyEditFilterFileButton");
 			detailedViewerToolbar.add(applyEditFilterFileButton);
 
-			undoEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("undo"), "Undo Edit", this, "onUndoEditFilterFileButton");
+			undoEditFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("undo"), "Undo", this, "onUndoEditFilterFileButton");
 			detailedViewerToolbar.add(undoEditFilterFileButton);
 
 			saveFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("save"), "Save File", this, "onSaveFilterFileButton");
@@ -170,12 +168,6 @@ public class RecordEventFilterItemEditor {
 
 			reloadFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("reload"), "Reload File", this, "onReloadFilterFileButton");
 			detailedViewerToolbar.add(reloadFilterFileButton);
-
-			saveAllFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("saveAll"), "Save All Files", this, "onSaveAllFilterFilesButton");
-			detailedViewerToolbar.add(saveAllFilterFileButton);
-
-			reloaAlldFilterFileButton = JButtonUtils.snew(IconUtils.eclipseGif.get("reloadAll"), "Reload All Files", this, "onReloadAllFilterFilesButton");
-			detailedViewerToolbar.add(reloaAlldFilterFileButton);
 
 		}
 
@@ -225,11 +217,11 @@ public class RecordEventFilterItemEditor {
 		return detailedViewerToolbar;
 	}
 
-	public RecordEventFilterItem getModel() {
+	public RecordEventFilterFile getModel() {
 		return model;
 	}
 	
-	public void setModel(RecordEventFilterItem p) {
+	public void setModel(RecordEventFilterFile p) {
 		if (model != null) {
 //			model.removePropertyChangeListener(innerPropChangeListener);
 		}
@@ -242,7 +234,9 @@ public class RecordEventFilterItemEditor {
 
 	public void updateModel2View() {
 		// use tmp new empty instead when null
-		RecordEventFilterItem m = (model != null)? model : new RecordEventFilterItem(); 
+		RecordEventFilterFile m = (model != null)? model : new RecordEventFilterFile(); 
+		
+		activeField.setSelected(m.isActive());
 		
 		nameField.setText(m.getName());
 		descriptionField.setText(m.getDescription());
@@ -264,12 +258,16 @@ public class RecordEventFilterItemEditor {
 		detailedXmlPredicateTextPane.setText(xstreamPredicateXml);
 	}
 	
-	public void updateView2Model(RecordEventFilterItem m) {
+	public void updateView2Model(RecordEventFilterFile m) {
 		if (m == null) return;
+		
+		m.setActive(activeField.isSelected());
+        
 		m.setName(nameField.getText());
 		m.setDescription(descriptionField.getText());
 
-		File persistentFile = new File(persistentFileField.getText());
+		String tmpPersistentFilePath = persistentFileField.getText();
+		File persistentFile = !"".equals(tmpPersistentFilePath) ? new File(tmpPersistentFilePath) : null;
 		m.setPersistentFile(persistentFile);
 
 		m.setEventIdPredicateDescription(eventIdPredicateDescription.getText());
@@ -303,48 +301,17 @@ public class RecordEventFilterItemEditor {
 	}
 
 	public void onSaveFilterFileButton(ActionEvent event) {
-		updateView2Model(model);
-		XStream xstream = RecordEventFilterItemUtils.getXStream();
-		File file = model.getPersistentFile();
-		if (file == null) {
-			// file path attribute should be set for storing, generate a unique name...
-			for(int i = 1; ; i++) {
-				String testFileName = "tmp-filter-" + i + ".xml";
-				File testFile = new File(testFileName);
-				if (!testFile.exists()) {
-					file = testFile;
-					break;
-				}
-			}
-			model.setPersistentFile(file);
+		if (model == null) {
+		    return;
 		}
-		XStreamUtils.toFile(xstream, model, file);
+	    updateView2Model(model);
+	    RecordEventFilterFileUtils.saveFilterFile(model);
 	}
 
 	public void onReloadFilterFileButton(ActionEvent event) {
-		File file = model.getPersistentFile();
-		if (file == null) {
-			log.error("file is not set, can not reload");
-			return;
-		}
-		if (!file.exists()) {
-			log.error("file not found, can not reload");
-			return;
-		}
-		XStream xstream = RecordEventFilterItemUtils.getXStream();
-		RecordEventFilterItem newModelData = (RecordEventFilterItem) XStreamUtils.fromFile(xstream, file);
-		model.set(newModelData);
+		RecordEventFilterFileUtils.loadFilterFile(model);
 		updateModel2View();
 	}
-
-	public void onSaveAllFilterFilesButton(ActionEvent event) {
-		JotoRuntimeException.NOT_IMPLEMENTED_YET();
-	}
-
-	public void onReloadAllFilterFilesButton(ActionEvent event) {
-		JotoRuntimeException.NOT_IMPLEMENTED_YET();
-	}
-
 
 	public void onButtonCheckParse(ActionEvent event) {
 		String inputText = detailedXmlPredicateTextPane.getText();
