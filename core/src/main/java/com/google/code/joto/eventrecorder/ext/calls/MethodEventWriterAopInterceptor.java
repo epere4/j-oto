@@ -55,6 +55,12 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 
 	public MethodEventWriterAopInterceptor(
 			RecordEventWriter eventWriter,
+			String eventType) {
+		this(eventWriter, eventType, "request", "response");
+	}
+
+	public MethodEventWriterAopInterceptor(
+			RecordEventWriter eventWriter,
 			String eventType,
 			String requestEventSubType,
 			String responseEventSubType
