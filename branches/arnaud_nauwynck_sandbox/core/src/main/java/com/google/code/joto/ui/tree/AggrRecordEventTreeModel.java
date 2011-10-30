@@ -10,7 +10,7 @@ import com.google.code.joto.eventrecorder.RecordEventChangeVisitor;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.AbstractAggrEventTreeNode;
-import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.PackageAggrEventTreeNode;
+import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.RootPackageAggrEventTreeNode;
 
 /**
  * a swing TreeModel adapter for aggregating RecordEventTree per template category
@@ -37,7 +37,7 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 	// ------------------------------------------------------------------------
 	
 	public AggrRecordEventTreeModel(JotoContext context) {
-		super(new PackageAggrEventTreeNode(null, ""));
+		super(new RootPackageAggrEventTreeNode());
 		this.context = context;
 
 		context.getEventStore().getEventsAndAddEventListener(0, 

@@ -1,5 +1,6 @@
 package com.google.code.joto.ui.tree;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
 
@@ -16,7 +17,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 	/**
 	 *
 	 */
-	public static abstract class AbstractAggrEventTreeNode implements TreeNode {
+	public static abstract class AbstractAggrEventTreeNode implements TreeNode, Serializable {
+		
 		/** internal for java.io.Serializable */
 		private static final long serialVersionUID = 1L;
 		
@@ -46,6 +48,9 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return false;
 		}
 
+		public String toString() {
+			return name;
+		}
 	}
 	
 	/**
@@ -68,6 +73,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			
 		}
 
+		// ------------------------------------------------------------------------
+		
 		public String getFullPackageName() {
 			return fullPackageName;
 		}
@@ -134,6 +141,22 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		}
 		
 		
+	}
+	
+	/**
+	 *
+	 */
+	public static class RootPackageAggrEventTreeNode extends PackageAggrEventTreeNode {
+		/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+
+		public RootPackageAggrEventTreeNode() {
+			super(null, "");
+		}
+
+		public String toString() {
+			return "(root package)";
+		}
 	}
 	
 	/**

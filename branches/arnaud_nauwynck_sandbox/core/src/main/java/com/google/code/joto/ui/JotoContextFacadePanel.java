@@ -1,16 +1,18 @@
 package com.google.code.joto.ui;
 
-import com.google.code.joto.ui.capture.RecordEventsCapturePanel;
-import com.google.code.joto.ui.config.JotoConfigPanel;
-import com.google.code.joto.ui.conv.RecordEventsTableAndConvertersPanel;
-import com.google.code.joto.ui.table.AbstractRecordEventTableModel;
-import com.google.code.joto.ui.table.RecordEventStoreTableModel;
+import java.awt.BorderLayout;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import java.awt.BorderLayout;
+import com.google.code.joto.ui.capture.RecordEventsCapturePanel;
+import com.google.code.joto.ui.config.JotoConfigPanel;
+import com.google.code.joto.ui.conv.RecordEventsTableAndConvertersPanel;
+import com.google.code.joto.ui.table.AbstractRecordEventTableModel;
+import com.google.code.joto.ui.table.RecordEventStoreTableModel;
+import com.google.code.joto.ui.tree.AggrRecordEventTreeModel;
+import com.google.code.joto.ui.tree.AggrRecordEventTreeView;
 
 /**
  * Main UI facade for Joto
@@ -26,6 +28,8 @@ public class JotoContextFacadePanel {
 	protected JotoConfigPanel configPanel;
 
 	protected RecordEventsCapturePanel capturePanel;
+	
+	protected AggrRecordEventTreeView aggrTreeView;
 	
 	protected AbstractRecordEventTableModel selectedRecordEventTableModel;
 	
@@ -55,7 +59,9 @@ public class JotoContextFacadePanel {
 		}
 
 		{ // tab : aggregated display
-			
+			AggrRecordEventTreeModel aggrTreeModel = new AggrRecordEventTreeModel(context);
+			aggrTreeView = new AggrRecordEventTreeView(aggrTreeModel);
+			tabbedPane.add("Aggr Tree", aggrTreeView.getJComponent());
 		}
 
 		{ // tab : selection table (+ display filter)
