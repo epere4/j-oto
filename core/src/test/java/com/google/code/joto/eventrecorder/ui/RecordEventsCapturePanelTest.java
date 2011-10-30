@@ -2,7 +2,8 @@ package com.google.code.joto.eventrecorder.ui;
 
 import org.junit.Test;
 
-import com.google.code.joto.eventrecorder.ui.capture.RecordEventsCapturePanel;
+import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.capture.RecordEventsCapturePanel;
 import com.google.code.joto.util.io.ui.UiTestUtils;
 
 public class RecordEventsCapturePanelTest extends AbstractJotoUiTestCase {

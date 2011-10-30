@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.conv;
+package com.google.code.joto.ui.conv;
 
 import java.awt.Component;
 import java.io.PrintStream;
@@ -25,9 +25,9 @@ import com.google.code.joto.eventrecorder.processor.DispatcherRecordEventsProces
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
 import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
-import com.google.code.joto.eventrecorder.ui.JotoContext;
-import com.google.code.joto.eventrecorder.ui.table.AbstractRecordEventTableModel;
-import com.google.code.joto.eventrecorder.ui.table.RecordEventTablePane;
+import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.table.AbstractRecordEventTableModel;
+import com.google.code.joto.ui.table.RecordEventTablePane;
 import com.thoughtworks.xstream.XStream;
 
 /**

@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.capture;
+package com.google.code.joto.ui.capture;
 
 import java.awt.BorderLayout;
 
@@ -6,7 +6,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import com.google.code.joto.eventrecorder.ui.JotoContext;
+import com.google.code.joto.ui.JotoContext;
 
 /**
  * swing Panel for controling Capture of RecordEvent in RecordEventStore

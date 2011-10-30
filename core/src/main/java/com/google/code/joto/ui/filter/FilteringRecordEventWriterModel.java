@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.filter;
+package com.google.code.joto.ui.filter;
 
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;

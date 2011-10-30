@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.config;
+package com.google.code.joto.ui.config;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -12,7 +12,7 @@ import javax.swing.JTextField;
 
 import com.google.code.joto.JotoConfig;
 import com.google.code.joto.JotoConfigUtils;
-import com.google.code.joto.eventrecorder.ui.JotoContext;
+import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.util.io.XStreamUtils;
 import com.google.code.joto.util.ui.GridBagLayoutFormBuilder;
 import com.google.code.joto.util.ui.JButtonUtils;

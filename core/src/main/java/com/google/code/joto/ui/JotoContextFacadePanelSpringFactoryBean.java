@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.ui;
 
 import javax.swing.JFrame;
 

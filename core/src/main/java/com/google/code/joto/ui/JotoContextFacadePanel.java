@@ -1,10 +1,10 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.ui;
 
-import com.google.code.joto.eventrecorder.ui.capture.RecordEventsCapturePanel;
-import com.google.code.joto.eventrecorder.ui.config.JotoConfigPanel;
-import com.google.code.joto.eventrecorder.ui.conv.RecordEventsTableAndConvertersPanel;
-import com.google.code.joto.eventrecorder.ui.table.AbstractRecordEventTableModel;
-import com.google.code.joto.eventrecorder.ui.table.RecordEventStoreTableModel;
+import com.google.code.joto.ui.capture.RecordEventsCapturePanel;
+import com.google.code.joto.ui.config.JotoConfigPanel;
+import com.google.code.joto.ui.conv.RecordEventsTableAndConvertersPanel;
+import com.google.code.joto.ui.table.AbstractRecordEventTableModel;
+import com.google.code.joto.ui.table.RecordEventStoreTableModel;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

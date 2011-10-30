@@ -6,7 +6,7 @@ import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore.Def
 import com.google.code.joto.eventrecorder.impl.FileRecordEventStore.FileRecordEventStoreFactory;
 import com.google.code.joto.eventrecorder.impl.RollingFileRecordEventStore.RollingFileRecordEventStoreFactory;
 import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterFileUtils;
+import com.google.code.joto.ui.filter.RecordEventFilterFileUtils;
 import com.thoughtworks.xstream.XStream;
 
 public class JotoConfigUtils {

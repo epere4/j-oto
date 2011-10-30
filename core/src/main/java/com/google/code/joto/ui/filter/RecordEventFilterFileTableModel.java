@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.filter;
+package com.google.code.joto.ui.filter;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
