@@ -3,6 +3,10 @@ package com.google.code.joto.eventrecorder.ui.filter;
 import org.junit.Test;
 
 import com.google.code.joto.eventrecorder.ui.AbstractJotoUiTestCase;
+import com.google.code.joto.ui.filter.RecordEventFilterFile;
+import com.google.code.joto.ui.filter.RecordEventFilterFileEditor;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
 import com.google.code.joto.util.io.ui.UiTestUtils;
 
 /**

@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.ui;
 
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
@@ -14,9 +14,9 @@ import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterAopInterceptor;
 import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
-import com.google.code.joto.eventrecorder.ui.filter.FilteringRecordEventWriterModel;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
+import com.google.code.joto.ui.filter.FilteringRecordEventWriterModel;
 
 /**
  *

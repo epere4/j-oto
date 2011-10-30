@@ -1,7 +1,7 @@
 package com.google.code.joto.value2java;
 
 import com.google.code.joto.JotoConfig;
-import com.google.code.joto.eventrecorder.ui.JotoContextFacadePanelSpringFactoryBean;
+import com.google.code.joto.ui.JotoContextFacadePanelSpringFactoryBean;
 import com.google.code.joto.value2java.VHToStmtConverterLookupRegister.VHToStmtConverterLookupRegisterEntry;
 import com.google.code.joto.value2java.converters.FixedStringVHToStmtConverter;
 

@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.table;
+package com.google.code.joto.ui.table;
 
 import javax.swing.table.AbstractTableModel;
 

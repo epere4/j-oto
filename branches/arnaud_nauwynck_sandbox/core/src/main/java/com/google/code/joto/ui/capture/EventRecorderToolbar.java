@@ -1,8 +1,8 @@
-package com.google.code.joto.eventrecorder.ui.capture;
+package com.google.code.joto.ui.capture;
 
-import com.google.code.joto.eventrecorder.ui.JotoContext;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterFileTableModel;
-import com.google.code.joto.eventrecorder.ui.filter.RecordEventFilterFileTablePanel;
+import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
 import com.google.code.joto.util.ui.IconUtils;
 import com.google.code.joto.util.ui.JButtonUtils;
 

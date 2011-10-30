@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.conv;
+package com.google.code.joto.ui.conv;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

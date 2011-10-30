@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui.capture;
+package com.google.code.joto.ui.capture;
 
 
 /**

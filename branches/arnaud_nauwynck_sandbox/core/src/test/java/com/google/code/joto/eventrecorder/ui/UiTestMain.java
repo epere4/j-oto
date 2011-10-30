@@ -25,6 +25,8 @@ import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.Pt;
 import com.google.code.joto.testobj.TestObjFactory;
+import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.JotoContextFacadePanel;
 
 public class UiTestMain {
 
