@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ui;
+package com.google.code.joto.ui;
 
 import java.io.Serializable;
 import java.util.Calendar;
