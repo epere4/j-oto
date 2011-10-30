@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ext.awtspy;
+package com.google.code.joto.eventrecorder.spy.awtspy;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;

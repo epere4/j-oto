@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ext.log;
+package com.google.code.joto.eventrecorder.spy.log;
 
 import java.io.PrintStream;
 import java.text.MessageFormat;

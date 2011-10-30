@@ -1,48 +1,21 @@
-package com.google.code.joto.eventrecorder.ext.calls;
+package com.google.code.joto.eventrecorder.spy.calls;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Date;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.aop.framework.ReflectiveMethodInvocation;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback.CorrelatedEventSetterCallback;
 
 /**
- * AOP-Alliance support class for recording events to EventStore 
- *
-  * pseudo code:
- * <pre>
- * {@code
- * @Override // implements org.aopalliance.intercept.MethodInterceptor
- * public Object invoke(MethodInvocation methInvocation) throws Throwable {
- *
- * 	// record beginning of method:
- * 	RecordEventSummary requestEvent = new RecordEventSummary(...);
- *  EventMethodRequestData requestData = new EventMethodRequestData(methodObject, methodArguments); 
- *  eventWriter.addEvent(evt, reqObjData, ...);  
- *  int requestEventId = ...  // pseudo-code: retreived eventId (with async callbacks)
- * 
- *  // the method..
- *  // *** do call ***
- *  Object res = method.invoke(target, args);
- *  
- *  // record end of method
- *  RecordEventSummary responseEvent = new RecordEventSummary(...);
- *  responseEvent.setCorrelatedEventId(requestEventId); // pseudo-code ... (with in async callback)
- *  EventMethodResponseData responseData = new EventMethodResponseData(methodResult, methodException) 
- *  eventWriter.addEvent(responseEvent, responseData, ...);
- * 
- *  return res;
- * }
- * }</pre>
- * 
+ * default implementation of java Proxy reflection, 
+ * for generating record events as request/response
  */
-public class MethodEventWriterAopInterceptor implements MethodInterceptor {
+public class MethodEventWriterInvocationHandler implements InvocationHandler {
 
+	private Object target;
+	
 	private RecordEventWriter eventWriter;
 	
 	private String eventType;
@@ -53,18 +26,13 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 	
 	//-------------------------------------------------------------------------
 
-	public MethodEventWriterAopInterceptor(
-			RecordEventWriter eventWriter,
-			String eventType) {
-		this(eventWriter, eventType, "request", "response");
-	}
-
-	public MethodEventWriterAopInterceptor(
+	public MethodEventWriterInvocationHandler(Object target,
 			RecordEventWriter eventWriter,
 			String eventType,
 			String requestEventSubType,
 			String responseEventSubType
 			) {
+		this.target = target;
 		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 		this.requestEventSubType = requestEventSubType;
@@ -85,17 +53,23 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 
 
 	@Override
-	public Object invoke(MethodInvocation methInvocation) throws Throwable {
-		Method method = methInvocation.getMethod();
-		String methodName = method.getName();
-		Object target = methInvocation.getThis();
-		Object proxy = target;
-		if (methInvocation instanceof ReflectiveMethodInvocation) {
-			ReflectiveMethodInvocation r = (ReflectiveMethodInvocation) methInvocation;
-			proxy = r.getProxy();
-		}
-		Object[] args = methInvocation.getArguments(); 
+	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		final String methodName = method.getName();
 
+		// Handle the methods from java.lang.Object
+		if (method.getDeclaringClass() == Object.class) {
+			if (args == null && methodName.equals("toString")) {
+				return "EventDataSourceProxy[" + target + "]";
+			} else if (args == null && methodName.equals("hashCode")) {
+				return target.hashCode() + 123;
+			} else if (args.length == 1
+					&& method.getParameterTypes()[0] == Object.class
+					&& methodName.equals("equals")) {
+				return proxy ==  args[0];
+			} 
+		} 
+
+		// generate event for method request
 		boolean enable = eventWriter.isEnable();
 		if (!enable) {
 			// *** do call (case 1/3, no event) ***
@@ -109,36 +83,37 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 				return res;
 			}
 
-			Object replProxy = proxy;
-			Object[] replArgs = args; // TODO not required to replace args in current version?
+			Object replTarget = target;
+			Object[] replArgs = args; // TODO not required to replace arg sin current version?
 			if (objectReplacementMap != null) {
-				replProxy = objectReplacementMap.checkReplace(replProxy);
+				replTarget = objectReplacementMap.checkReplace(replTarget);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
 			}
-			EventMethodRequestData reqObjData = new EventMethodRequestData(replProxy, method, replArgs);
+			EventMethodRequestData reqObjData = new EventMethodRequestData(replTarget, method, replArgs);
 			
-			RecordEventSummary responseEvt = createEvent(methodName, responseEventSubType);
+			RecordEventSummary respEvt = createEvent(methodName, responseEventSubType);
 			CorrelatedEventSetterCallback callbackForEventId =
-				new CorrelatedEventSetterCallback(responseEvt);
+				new CorrelatedEventSetterCallback(respEvt);
 			
 			eventWriter.addEvent(evt, reqObjData, callbackForEventId);
+
 
 			try {
 				// *** do call (case 3/3, with events) ***
 				Object res = method.invoke(target, args);
-	
+				
 				Object replRes = res;
 				if (objectReplacementMap != null) {
 					replRes = objectReplacementMap.checkReplace(res);
 				}
 				EventMethodResponseData respObjData = new EventMethodResponseData(replRes, null);
-				eventWriter.addEvent(responseEvt, respObjData, null);
+				eventWriter.addEvent(respEvt, respObjData, null);
 
 				return res;
-	
+
 			} catch(Exception ex) {
 				EventMethodResponseData respObjData = new EventMethodResponseData(null, ex);
-				eventWriter.addEvent(responseEvt, respObjData, null);
+				eventWriter.addEvent(respEvt, respObjData, null);
 	
 				throw ex; // rethow!
 			}
@@ -156,4 +131,3 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 	}
 
 }
-

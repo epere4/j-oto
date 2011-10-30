@@ -1,21 +1,48 @@
-package com.google.code.joto.eventrecorder.ext.calls;
+package com.google.code.joto.eventrecorder.spy.calls;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Date;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.framework.ReflectiveMethodInvocation;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriterCallback.CorrelatedEventSetterCallback;
 
 /**
- * default implementation of java Proxy reflection, 
- * for generating record events as request/response
+ * AOP-Alliance support class for recording events to EventStore 
+ *
+  * pseudo code:
+ * <pre>
+ * {@code
+ * @Override // implements org.aopalliance.intercept.MethodInterceptor
+ * public Object invoke(MethodInvocation methInvocation) throws Throwable {
+ *
+ * 	// record beginning of method:
+ * 	RecordEventSummary requestEvent = new RecordEventSummary(...);
+ *  EventMethodRequestData requestData = new EventMethodRequestData(methodObject, methodArguments); 
+ *  eventWriter.addEvent(evt, reqObjData, ...);  
+ *  int requestEventId = ...  // pseudo-code: retreived eventId (with async callbacks)
+ * 
+ *  // the method..
+ *  // *** do call ***
+ *  Object res = method.invoke(target, args);
+ *  
+ *  // record end of method
+ *  RecordEventSummary responseEvent = new RecordEventSummary(...);
+ *  responseEvent.setCorrelatedEventId(requestEventId); // pseudo-code ... (with in async callback)
+ *  EventMethodResponseData responseData = new EventMethodResponseData(methodResult, methodException) 
+ *  eventWriter.addEvent(responseEvent, responseData, ...);
+ * 
+ *  return res;
+ * }
+ * }</pre>
+ * 
  */
-public class MethodEventWriterInvocationHandler implements InvocationHandler {
+public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 
-	private Object target;
-	
 	private RecordEventWriter eventWriter;
 	
 	private String eventType;
@@ -26,13 +53,18 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 	
 	//-------------------------------------------------------------------------
 
-	public MethodEventWriterInvocationHandler(Object target,
+	public MethodEventWriterAopInterceptor(
+			RecordEventWriter eventWriter,
+			String eventType) {
+		this(eventWriter, eventType, "request", "response");
+	}
+
+	public MethodEventWriterAopInterceptor(
 			RecordEventWriter eventWriter,
 			String eventType,
 			String requestEventSubType,
 			String responseEventSubType
 			) {
-		this.target = target;
 		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 		this.requestEventSubType = requestEventSubType;
@@ -53,23 +85,17 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 
 
 	@Override
-	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		final String methodName = method.getName();
+	public Object invoke(MethodInvocation methInvocation) throws Throwable {
+		Method method = methInvocation.getMethod();
+		String methodName = method.getName();
+		Object target = methInvocation.getThis();
+		Object proxy = target;
+		if (methInvocation instanceof ReflectiveMethodInvocation) {
+			ReflectiveMethodInvocation r = (ReflectiveMethodInvocation) methInvocation;
+			proxy = r.getProxy();
+		}
+		Object[] args = methInvocation.getArguments(); 
 
-		// Handle the methods from java.lang.Object
-		if (method.getDeclaringClass() == Object.class) {
-			if (args == null && methodName.equals("toString")) {
-				return "EventDataSourceProxy[" + target + "]";
-			} else if (args == null && methodName.equals("hashCode")) {
-				return target.hashCode() + 123;
-			} else if (args.length == 1
-					&& method.getParameterTypes()[0] == Object.class
-					&& methodName.equals("equals")) {
-				return proxy ==  args[0];
-			} 
-		} 
-
-		// generate event for method request
 		boolean enable = eventWriter.isEnable();
 		if (!enable) {
 			// *** do call (case 1/3, no event) ***
@@ -83,37 +109,36 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 				return res;
 			}
 
-			Object replTarget = target;
-			Object[] replArgs = args; // TODO not required to replace arg sin current version?
+			Object replProxy = proxy;
+			Object[] replArgs = args; // TODO not required to replace args in current version?
 			if (objectReplacementMap != null) {
-				replTarget = objectReplacementMap.checkReplace(replTarget);
+				replProxy = objectReplacementMap.checkReplace(replProxy);
 				replArgs = objectReplacementMap.checkReplaceArray(replArgs);
 			}
-			EventMethodRequestData reqObjData = new EventMethodRequestData(replTarget, method, replArgs);
+			EventMethodRequestData reqObjData = new EventMethodRequestData(replProxy, method, replArgs);
 			
-			RecordEventSummary respEvt = createEvent(methodName, responseEventSubType);
+			RecordEventSummary responseEvt = createEvent(methodName, responseEventSubType);
 			CorrelatedEventSetterCallback callbackForEventId =
-				new CorrelatedEventSetterCallback(respEvt);
+				new CorrelatedEventSetterCallback(responseEvt);
 			
 			eventWriter.addEvent(evt, reqObjData, callbackForEventId);
-
 
 			try {
 				// *** do call (case 3/3, with events) ***
 				Object res = method.invoke(target, args);
-				
+	
 				Object replRes = res;
 				if (objectReplacementMap != null) {
 					replRes = objectReplacementMap.checkReplace(res);
 				}
 				EventMethodResponseData respObjData = new EventMethodResponseData(replRes, null);
-				eventWriter.addEvent(respEvt, respObjData, null);
+				eventWriter.addEvent(responseEvt, respObjData, null);
 
 				return res;
-
+	
 			} catch(Exception ex) {
 				EventMethodResponseData respObjData = new EventMethodResponseData(null, ex);
-				eventWriter.addEvent(respEvt, respObjData, null);
+				eventWriter.addEvent(responseEvt, respObjData, null);
 	
 				throw ex; // rethow!
 			}
@@ -131,3 +156,4 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 	}
 
 }
+

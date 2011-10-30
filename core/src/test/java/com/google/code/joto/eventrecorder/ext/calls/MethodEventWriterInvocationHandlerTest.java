@@ -11,6 +11,9 @@ import junit.framework.TestCase;
 import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.spy.calls.EventMethodRequestData;
+import com.google.code.joto.eventrecorder.spy.calls.EventMethodResponseData;
+import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterInvocationHandler;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.SerializableObj;
 

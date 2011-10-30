@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ext.log;
+package com.google.code.joto.eventrecorder.spy.log;
 
 import java.io.PrintStream;
 
@@ -8,11 +8,11 @@ import com.google.code.joto.eventrecorder.processor.RecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
 
 /**
- * Formatter for processing RecordEvent(s) corresponding to Logback ILoggingEvent
+ * Formatter for processing RecordEvent(s) corresponding to Log4j LoggingEvent
  * and converting to String as Java "log.info(msg)" code, or "// msg" comment code
  *
  */
-public class LogbackToCodeRecordEventsProcessor implements RecordEventsProcessor {
+public class Log4jToCodeRecordEventsProcessor implements RecordEventsProcessor {
 
 	public static class Factory implements RecordEventsProcessorFactory<PrintStream> {
 		private boolean convertToComment;
@@ -23,7 +23,7 @@ public class LogbackToCodeRecordEventsProcessor implements RecordEventsProcessor
 
 		@Override
 		public RecordEventsProcessor create(PrintStream out) {
-			return new LogbackToCodeRecordEventsProcessor(convertToComment, out);
+			return new Log4jToCodeRecordEventsProcessor(convertToComment, out);
 		}
 	}
 
@@ -32,7 +32,7 @@ public class LogbackToCodeRecordEventsProcessor implements RecordEventsProcessor
 	
 	//-------------------------------------------------------------------------
 
-	public LogbackToCodeRecordEventsProcessor(
+	public Log4jToCodeRecordEventsProcessor(
 			boolean convertToComment,
 			PrintStream out) {
 		this.convertToComment = convertToComment;
@@ -48,9 +48,9 @@ public class LogbackToCodeRecordEventsProcessor implements RecordEventsProcessor
 
 	@Override
 	public void processEvent(RecordEventSummary event, Object eventObjectData) {
-		LogbackEventData eventData = (LogbackEventData) eventObjectData;
+		Log4jEventData eventData = (Log4jEventData) eventObjectData;
 		
-		String formattedMsg = eventData.getFormattedMessage();
+		String formattedMsg = eventData.getFormattedMessage(event);
 		
 		if (convertToComment) {
 			String escapedMsg = formattedMsg.replace("\n", "\n//");  

@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.google.code.joto.JotoConfig;
-import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
+import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
 
 /**
  * Springframework helper class for creating JotoContext
