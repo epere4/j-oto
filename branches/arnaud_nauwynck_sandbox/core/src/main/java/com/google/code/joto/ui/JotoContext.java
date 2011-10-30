@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.JotoConfig;
 import com.google.code.joto.eventrecorder.RecordEventStore;
-import com.google.code.joto.eventrecorder.ext.calls.MethodEventWriterAopInterceptor;
-import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterAopInterceptor;
+import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.ui.filter.FilteringRecordEventWriterModel;

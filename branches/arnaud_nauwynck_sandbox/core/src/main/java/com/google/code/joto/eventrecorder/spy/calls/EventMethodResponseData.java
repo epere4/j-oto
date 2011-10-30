@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ext.calls;
+package com.google.code.joto.eventrecorder.spy.calls;
 
 import java.io.Serializable;
 

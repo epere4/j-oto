@@ -12,6 +12,8 @@ import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.spy.log.EventStoreWriterLog4jAppender;
+import com.google.code.joto.eventrecorder.spy.log.Log4jEventData;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**

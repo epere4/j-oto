@@ -1,4 +1,4 @@
-package com.google.code.joto.eventrecorder.ext.calls;
+package com.google.code.joto.eventrecorder.spy.calls;
 
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -6,9 +6,9 @@ import java.lang.reflect.Method;
 import com.google.code.joto.ObjectToCodeGenerator;
 import com.google.code.joto.ast.beanstmt.impl.BeanASTPrettyPrinter;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
-import com.google.code.joto.eventrecorder.ext.calls.ObjectReplacementMap.ObjectInstanceReplacement;
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
+import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap.ObjectInstanceReplacement;
 import com.google.code.joto.reflect.ReflectUtils;
 
 /**

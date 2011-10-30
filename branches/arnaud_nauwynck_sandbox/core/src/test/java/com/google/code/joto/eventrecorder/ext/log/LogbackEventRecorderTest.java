@@ -13,6 +13,8 @@ import com.google.code.joto.eventrecorder.RecordEventData;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.spy.log.EventStoreWriterLogbackAppender;
+import com.google.code.joto.eventrecorder.spy.log.LogbackEventData;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
