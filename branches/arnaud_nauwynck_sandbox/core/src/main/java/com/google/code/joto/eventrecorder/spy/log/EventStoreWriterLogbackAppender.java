@@ -18,7 +18,7 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 	
 	private RecordEventWriter eventWriter;
 	
-	private String eventType = "logback";
+	private String eventType = LogbackEventData.EVENT_TYPE;
 	
 	// -------------------------------------------------------------------------
 	

@@ -17,6 +17,8 @@ public class LogbackEventData implements Serializable {
 	/** internal for java.io.Serializable */
 	private static final long serialVersionUID = 1L;
 
+	public static final String EVENT_TYPE = "slf4j";
+
 	// private String message; .. cf EventSummary
 	
 	private String formattedMessage; 

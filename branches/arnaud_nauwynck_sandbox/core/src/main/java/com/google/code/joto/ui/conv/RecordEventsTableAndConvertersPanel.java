@@ -21,9 +21,12 @@ import com.google.code.joto.eventrecorder.processor.DispatcherRecordEventsProces
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
 import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.eventrecorder.spy.calls.MethodCallToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
+import com.google.code.joto.eventrecorder.spy.log.Log4jEventData;
 import com.google.code.joto.eventrecorder.spy.log.Log4jToCodeRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.spy.log.LogbackEventData;
 import com.google.code.joto.eventrecorder.spy.log.LogbackToCodeRecordEventsProcessor;
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.table.AbstractRecordEventTableModel;
@@ -137,9 +140,9 @@ public class RecordEventsTableAndConvertersPanel {
 		Map<String,RecordEventsProcessorFactory<PrintStream>> eventTypeToFactory =
 			new HashMap<String,RecordEventsProcessorFactory<PrintStream>>();
 		eventTypeToFactory.put("testObj", objConverterFactory);
-		eventTypeToFactory.put("methCall", methCallConverterFactory);
-		eventTypeToFactory.put("logback", logbackToCommentConverterFactory);
-		eventTypeToFactory.put("log4j", log4jToCommentConverterFactory);
+		eventTypeToFactory.put(MethodCallEventUtils.METHODCALL_EVENT_TYPE, methCallConverterFactory);
+		eventTypeToFactory.put(LogbackEventData.EVENT_TYPE, logbackToCommentConverterFactory);
+		eventTypeToFactory.put(Log4jEventData.EVENT_TYPE, log4jToCommentConverterFactory);
 		
 		RecordEventsProcessorFactory<PrintStream> dispatcherConverterFactory =
 			new DispatcherRecordEventsProcessor.Factory<PrintStream>(

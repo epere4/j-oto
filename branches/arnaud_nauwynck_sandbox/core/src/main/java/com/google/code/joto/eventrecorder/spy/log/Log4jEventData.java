@@ -13,6 +13,8 @@ public class Log4jEventData implements Serializable {
 	/** internal for java.io.Serializable */
 	private static final long serialVersionUID = 1L;
 
+	public static final String EVENT_TYPE = "log4j";
+	
 //	private String unformattedMessage; 
 //	private Object[] argumentArray;
 
