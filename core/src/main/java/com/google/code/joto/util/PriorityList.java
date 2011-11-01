@@ -1,5 +1,6 @@
 package com.google.code.joto.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -10,8 +11,11 @@ import java.util.TreeSet;
 /**
  * extension of java.util.List for supporting sorting with priority 
  */
-public class PriorityList<T> implements Iterable<T> {
+public class PriorityList<T> implements Iterable<T>, Serializable {
 
+	/** internal for java.io.Serializable */
+	private static final long serialVersionUID = 1L;
+	
     private final Set<Item<T>> set = new TreeSet<Item<T>>();
 
     private int idGenerator = 0;
@@ -39,13 +43,22 @@ public class PriorityList<T> implements Iterable<T> {
     	return tmp.iterator();
     }
 
+    public void addAllWithPriority(PriorityList<T> src) {
+    	for(Item<T> srcItem : src.set) {
+    		add(srcItem.value, srcItem.priority);
+    	}
+    }
+    
     // -------------------------------------------------------------------------
     
     /**
      * internal
      */
-    private static class Item<T> implements Comparable<Item<T>> {
+    private static class Item<T> implements Comparable<Item<T>>, Serializable {
 
+    	/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+		
         private final T value;
         private final int priority;
         private final int id; // for comparing with equals priority

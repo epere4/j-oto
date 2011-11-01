@@ -2,13 +2,16 @@ package com.google.code.joto.ui.tree;
 
 import javax.swing.tree.DefaultTreeModel;
 
-import org.apache.commons.collections.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.DefaultRecordEventChangeVisitor;
 import com.google.code.joto.eventrecorder.DefaultVisitorRecordEventListener;
 import com.google.code.joto.eventrecorder.RecordEventChangeVisitor;
 import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventStoreEvent;
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.table.RecordEventSwingRedispatcher;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.AbstractAggrEventTreeNode;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.RootPackageAggrEventTreeNode;
 
@@ -20,6 +23,9 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 
 	/** internal for java.io.Serializable */
 	private static final long serialVersionUID = 1L;
+
+	
+	private static Logger log = LoggerFactory.getLogger(AggrRecordEventTreeModel.class);
 	
 	private JotoContext context;
 	
@@ -27,12 +33,8 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 
 	private RecordEventChangeVisitor innerRecordEventChangeListener = new InnerRecordEventChangeListener();
 
-	// pluggable dispatcher using event Predicate + RecordEventTemplatizer
-	private class RecordEventTemplatizerEntry {
-		Predicate predicate;
-		AggrRecordEventTemplatizer templatizer;
-	}
-	// private Map<String,List<RecordEventTemplatizerEntry>> 
+	/** dispatcher for choosing RecordEventTemplatizer per event types, and build the aggregated TreeNode */
+	private AggrRecordEventTemplatizerDispatcher eventTemplatizerDispatcher = new AggrRecordEventTemplatizerDispatcher();
 	
 	// ------------------------------------------------------------------------
 	
@@ -40,8 +42,12 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 		super(new RootPackageAggrEventTreeNode());
 		this.context = context;
 
+		// copy Templatizers settings from context
+		eventTemplatizerDispatcher.addTemplatizers(context.getConfig().getEventTemplatizerDispatcher());
+
+		// subscribe + replay history from first to current event
 		context.getEventStore().getEventsAndAddEventListener(0, 
-				new DefaultVisitorRecordEventListener(innerRecordEventChangeListener));
+				new RecordEventSwingRedispatcher(new DefaultVisitorRecordEventListener(innerRecordEventChangeListener)));
 
 	}
 
@@ -60,8 +66,13 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 	private class InnerRecordEventChangeListener extends DefaultRecordEventChangeVisitor {
 
 		@Override
-		public void caseAddEvent(AddRecordEventStoreEvent event) {
-			// TODO Auto-generated method stub
+		public void caseAddEvent(AddRecordEventStoreEvent addEvent) {
+			RecordEventSummary event = addEvent.getEventSummary();
+			try {
+				eventTemplatizerDispatcher.dispatchAggregateTemplatizedEvent(AggrRecordEventTreeModel.this, event);
+			} catch(Exception ex) {
+				log.error("Failed to templatize event " + event + "... ignore it, no rethrow!", ex);
+			}
 		}
 	};
 }
