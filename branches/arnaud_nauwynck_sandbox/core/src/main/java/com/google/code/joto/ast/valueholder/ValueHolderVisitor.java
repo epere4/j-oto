@@ -1,5 +1,6 @@
 package com.google.code.joto.ast.valueholder;
 
+import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ImmutableObjectValueHolder;
@@ -11,7 +12,6 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.ObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayEltValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveFieldValueHolder;
-import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
 

@@ -1,9 +1,11 @@
 package com.google.code.joto.eventrecorder.predicate;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.collections.Predicate;
 import org.apache.commons.collections.functors.AndPredicate;
 import org.apache.commons.collections.functors.EqualPredicate;
 import org.apache.commons.collections.functors.FalsePredicate;
@@ -42,7 +44,23 @@ public class RecordEventSummaryPredicateUtils {
 		
 	}
 	
-	
+	public static Predicate snewDefaultClassMethodPredicate(String className, String methodName) {
+		List<String> classNameIncludes = null;
+		if (className != null) {
+			classNameIncludes = new ArrayList<String>();
+			classNameIncludes.add(className);
+		}
+		List<String> methodNameIncludes = null;
+		if (methodName != null) {
+			methodNameIncludes = new ArrayList<String>();
+			methodNameIncludes.add(methodName);
+		}
+		
+		ClassMethodPatternRecordEventSummaryPredicate res = 
+				new ClassMethodPatternRecordEventSummaryPredicate(classNameIncludes,
+						null, methodNameIncludes, null);
+		return res;
+	}
 
 	// ------------------------------------------------------------------------
 	

@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.google.code.joto.ast.valueholder.ValueHolderVisitor;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.AbstractObjectValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.ArrayEltRefValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.CollectionEltRefValueHolder;
@@ -26,6 +25,7 @@ import com.google.code.joto.ast.valueholder.ValueHolderAST.PrimitiveFieldValueHo
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefArrayValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefFieldValueHolder;
 import com.google.code.joto.ast.valueholder.ValueHolderAST.RefObjectValueHolder;
+import com.google.code.joto.ast.valueholder.ValueHolderVisitor;
 
 /**
  * PrettyPrinter for  AbstractObjectValueHolder to String representation.

@@ -46,14 +46,23 @@ public class ObjToCodeRecordEventsProcessor implements RecordEventsProcessor {
 
 	@Override
 	public void processEvent(RecordEventSummary event, Object eventData) {
-		out.print("meth:" + event.getEventMethodName() + "\n");
-		out.print("\n");
-		out.print("code: {\n\n");
+		String simpleClassMethName = "";  
+		String simpleClassName = event.getEventClassName();
+		if (simpleClassName != null) {
+			int indexLastDot = simpleClassName.lastIndexOf(".");
+			if (indexLastDot != -1) {
+				simpleClassName = simpleClassName.substring(indexLastDot + 1);
+			}
+			simpleClassMethName = simpleClassName + "."; 
+		}
+		simpleClassMethName += event.getEventMethodName();
+		out.print("{ // evt:" + event.getEventId() 
+				+ ", meth: " + simpleClassMethName + "\n");
 		
 		String stmtsStr = objToCode.objToStmtsString(eventData, "eventData");
 		out.print(stmtsStr);
 		
-		out.print("\n} // code\n");
+		out.print("\n} // \n");
 		
 		out.print("\n");
 	}

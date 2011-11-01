@@ -39,7 +39,7 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 	// ------------------------------------------------------------------------
 	
 	public AggrRecordEventTreeModel(JotoContext context) {
-		super(new RootPackageAggrEventTreeNode());
+		super(new RootPackageAggrEventTreeNode(context));
 		this.rootPackageNode = (RootPackageAggrEventTreeNode) super.getRoot();
 		rootPackageNode.setInit(this);
 		this.context = context;

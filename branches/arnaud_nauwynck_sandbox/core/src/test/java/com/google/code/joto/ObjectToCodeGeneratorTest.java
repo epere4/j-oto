@@ -2,10 +2,10 @@ package com.google.code.joto;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,50 +22,64 @@ import com.google.code.joto.testobj.TestObjFactory;
 /**
  * JUnit test for ObjectToCodeGenerator 
  */
-public class ObjectToCodeGeneratorTest extends TestCase {
+public class ObjectToCodeGeneratorTest {
 
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = true;
 	private static Logger log = LoggerFactory.getLogger(ObjectToCodeGeneratorTest.class);
 	
-	public ObjectToCodeGeneratorTest(String testName) {
-		super(testName);
-    }
-
+	@Test
 	public void test_SimpleIntFieldA() {
 		SimpleIntFieldA a = TestObjFactory.createSimpleIntFieldA();
 		doTest("test_SimpleIntFieldA", a);
 	}
 
+	@Test
 	public void test_SimpleRefObjectFieldA() {
 		SimpleRefObjectFieldA a = TestObjFactory.createSimpleRefObjectFieldA();
 		doTest("test_SimpleRefObjectFieldA", a);
 	}
 
+	@Test
 	public void test_A() {
 		A a = TestObjFactory.createBeanA();
 		doTest("test_A", a);
 	}
-
+	
+	@Test
 	public void test_A2() {
 		A a = TestObjFactory.createBeanA2();
 		doTest("test_A2", a);
 	}
 
+	@Test
 	public void test_SimpleRefA() {
 		Object a = TestObjFactory.createSimpleRefA();
 		doTest("test_SimpleRefA", a);
 	}
 
+	@Test
 	public void test_SimpleRefBeanCyclic() {
 		SimpleRefBean a = TestObjFactory.createSimpleRefBean_Cyclic();
 		doTest("test_SimpleRefBeanCyclic", a);
 	}
 
+	@Test
 	public void test_Pt() {
 		Object a = new Pt(1, 2);
 		doTest("test_Pt", a);
 	}
 
+	@Test
+	public void test_ArrayListA() {
+		A a = TestObjFactory.createBeanA();
+		List<Object> ls = new ArrayList<Object>();
+		ls.add(a);
+		ls.add(a);
+		doTest("test_ListA", ls);
+	}
+	
+	// ------------------------------------------------------------------------
+	
 	private void doTest(String testName, Object obj) {
 		if (DEBUG) {
 			log.info(testName + " ...");

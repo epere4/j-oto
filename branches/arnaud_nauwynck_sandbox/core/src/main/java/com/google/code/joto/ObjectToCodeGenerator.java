@@ -149,10 +149,10 @@ public class ObjectToCodeGenerator {
 		}
 
 // TODO TEMPORARY HACK FOR COMPARISON
-boolean debugNoSort = true;
-if (debugNoSort) {
-	return tmpUnsortedStmts;
-}
+//boolean debugNoSort = false;
+//if (debugNoSort) {
+//	return tmpUnsortedStmts;
+//}
 		
 		
 		// build graph for topological sort
