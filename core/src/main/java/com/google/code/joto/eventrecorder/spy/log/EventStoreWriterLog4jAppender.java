@@ -18,7 +18,7 @@ public class EventStoreWriterLog4jAppender extends AppenderSkeleton {
 
 	private RecordEventWriter eventWriter;
 	
-	private String eventType = "log4j";
+	private String eventType = Log4jEventData.EVENT_TYPE;
 	// private String eventSubType => used for logEvent message severity 
 
 	
