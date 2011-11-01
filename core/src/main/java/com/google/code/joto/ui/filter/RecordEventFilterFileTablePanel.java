@@ -22,7 +22,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.expression.spel.ast.OpNE;
 
 import com.google.code.joto.util.ui.IconUtils;
 import com.google.code.joto.util.ui.JButtonUtils;

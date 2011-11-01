@@ -1,11 +1,17 @@
 package com.google.code.joto.ui.tree;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import org.apache.commons.collections.iterators.IteratorEnumeration;
+
+import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.util.CompoundEnumeration;
 import com.google.code.joto.util.SortedListTreeMap;
 
@@ -51,6 +57,69 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		public String toString() {
 			return name;
 		}
+		
+		protected RootPackageAggrEventTreeNode getRootTreeNode() {
+			RootPackageAggrEventTreeNode res = null;
+			for(AbstractAggrEventTreeNode p = this; p != null; p = p.parent) {
+				if (p instanceof RootPackageAggrEventTreeNode) {
+					res = (RootPackageAggrEventTreeNode) p;
+					break;
+				}
+			}
+			return res;
+		}
+
+		public int getChildDepth(AbstractAggrEventTreeNode node) {
+			int res = 0;
+			for(AbstractAggrEventTreeNode p = node; p != null; p = p.parent) {
+				if (p instanceof RootPackageAggrEventTreeNode) {
+					break;
+				}
+				res++;
+			}
+			return res;
+		}
+
+		protected DefaultTreeModel getRootTreeModel() {
+			RootPackageAggrEventTreeNode rootNode = getRootTreeNode();
+			return (rootNode != null)? rootNode.treeModel : null; 
+		}
+
+		protected int[] getChildIndices(AbstractAggrEventTreeNode node) {
+			int depth = getChildDepth(node);
+			int[] res = new int[depth];
+			AbstractAggrEventTreeNode p = node;
+			for (int i = depth - 1; i >= 0; i--, p = p.parent) {
+				res[i] = p.parent.getIndex(p);
+			}
+			return res;
+		}
+		
+		protected void fireNodeAdded(AbstractAggrEventTreeNode node) {
+			DefaultTreeModel treeModel = getRootTreeModel();
+			if (treeModel == null) return;
+			int[] childIndices = getChildIndices(node);
+			treeModel.nodesWereInserted(node, childIndices);
+		}
+
+		protected void fireNodeRemoved(AbstractAggrEventTreeNode node, int prevChildIndex) {
+			DefaultTreeModel treeModel = getRootTreeModel();
+			if (treeModel == null) return;
+			// no index when already removed => get parent's index
+			int[] parentChildIndices = getChildIndices(node.parent);
+			int[] childIndices = new int[parentChildIndices.length + 1];
+			System.arraycopy(parentChildIndices, 0, childIndices, 0, parentChildIndices.length);
+			parentChildIndices[parentChildIndices.length] = prevChildIndex;
+			treeModel.nodesWereRemoved(node, childIndices, new TreeNode[] { node });
+		}
+
+		protected void fireNodeChanged(AbstractAggrEventTreeNode node) {
+			DefaultTreeModel treeModel = getRootTreeModel();
+			if (treeModel == null) return;
+			int[] childIndices = getChildIndices(node);
+			treeModel.nodesChanged(node, childIndices);
+		}
+
 	}
 	
 	/**
@@ -83,15 +152,32 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return super.getName();
 		}
 
-		public PackageAggrEventTreeNode getOrCreateChildPackage(String childName) {
-			PackageAggrEventTreeNode res = childPackageTreeNode.get(childName);
+		public PackageAggrEventTreeNode getOrCreateChildPackage(String childPackageName) {
+			if (childPackageName.contains(".")) {
+				throw new IllegalArgumentException("bad sub package name '" + childPackageName + "', should not contains '.'");
+			}
+			PackageAggrEventTreeNode res = childPackageTreeNode.get(childPackageName);
 			if (res == null) {
-				res = new PackageAggrEventTreeNode(this, childName); 
-				childPackageTreeNode.put(childName, res);
+				res = new PackageAggrEventTreeNode(this, childPackageName); 
+				childPackageTreeNode.put(childPackageName, res);
 			}
 			return res;
 		}
 
+		public PackageAggrEventTreeNode getOrCreateRecursiveChildPackage(String fullPackageName) {
+			PackageAggrEventTreeNode res;
+			int indexDot = fullPackageName.indexOf('.');
+			if (indexDot != -1) {
+				String immediatePackageName = fullPackageName.substring(0, indexDot);
+				String remainingPackages = fullPackageName.substring(indexDot + 1);
+				PackageAggrEventTreeNode immediatePackage = getOrCreateChildPackage(immediatePackageName);
+				res = immediatePackage.getOrCreateRecursiveChildPackage(remainingPackages); // recursive call
+			} else {
+				res = getOrCreateChildPackage(fullPackageName);
+			}
+			return res;
+		}
+		
 		public ClassAggrEventTreeNode getOrCreateChildClass(String simpleClassName) {
 			ClassAggrEventTreeNode res = childClassTreeNode.get(simpleClassName);
 			if (res == null) {
@@ -101,6 +187,18 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return res;
 		}
 
+		public ClassAggrEventTreeNode getOrCreateRecursiveChildClass(String fullClassName) {
+			int indexLastDot = fullClassName.lastIndexOf('.');
+			if (indexLastDot == -1) {
+				return getOrCreateChildClass(fullClassName);
+			}
+			String simpleClassName = fullClassName.substring(indexLastDot + 1);
+			String packageFullName = fullClassName.substring(0, indexLastDot);
+			PackageAggrEventTreeNode pck = getOrCreateRecursiveChildPackage(packageFullName);
+			ClassAggrEventTreeNode res = pck.getOrCreateChildClass(simpleClassName);
+			return res;
+		}
+		
 		// implements TreeNode
 		// ------------------------------------------------------------------------
 		
@@ -150,17 +248,24 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		/** internal for java.io.Serializable */
 		private static final long serialVersionUID = 1L;
 
+		private DefaultTreeModel treeModel;
+		
+		/** param ... DefaultTreeModel treeModel can not be set here .... chicken-egg pb => set init() next !*/
 		public RootPackageAggrEventTreeNode() {
 			super(null, "");
 		}
 
+		public void setInit(DefaultTreeModel treeModel) {
+			this.treeModel = treeModel;
+		}
+		
 		public String toString() {
 			return "(root package)";
 		}
 	}
 	
 	/**
-	 * 
+	 * TreeNode corresponding to a java.lang.Class
 	 */
 	public static class ClassAggrEventTreeNode extends AbstractAggrEventTreeNode {
 		/** internal for java.io.Serializable */
@@ -182,6 +287,15 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return super.getName();
 		}
 
+		public MethodAggrEventTreeNode getOrCreateMethod(String methodName) {
+			MethodAggrEventTreeNode res = childMethods.get(methodName);
+			if (res == null) {
+				res = new MethodAggrEventTreeNode(this, methodName);
+				childMethods.put(methodName, res);
+			}
+			return res;
+		}
+		
 		// implements TreeNode
 		// ------------------------------------------------------------------------
 		
@@ -208,7 +322,7 @@ public class AggrRecordEventTemplateTreeNodeAST {
 	}
 	
 	/**
-	 * 
+	 * TreeNode corresponding to a class java.lang.reflect.Method
 	 */
 	public static class MethodAggrEventTreeNode extends AbstractAggrEventTreeNode {
 		
@@ -221,8 +335,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		
 		// ------------------------------------------------------------------------
 		
-		public MethodAggrEventTreeNode(ClassAggrEventTreeNode parent, Method meth) {
-			super(parent, meth.getName());
+		public MethodAggrEventTreeNode(ClassAggrEventTreeNode parent, String methodName) {
+			super(parent, methodName);
 		}
 
 		// ------------------------------------------------------------------------
@@ -231,6 +345,16 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return super.getName();
 		}
 
+
+		public TemplateMethodCallAggrEventTreeNode getOrCreateTemplateCall(String templateCallKey) {
+			TemplateMethodCallAggrEventTreeNode res = childTemplateCalls.get(templateCallKey);
+			if (res == null) {
+				res = new TemplateMethodCallAggrEventTreeNode(this, templateCallKey);
+				childTemplateCalls.put(templateCallKey, res);
+			}
+			return res;
+		}
+		
 		// implements TreeNode
 		// ------------------------------------------------------------------------
 		
@@ -257,7 +381,7 @@ public class AggrRecordEventTemplateTreeNodeAST {
 	}
 	
 	/**
-	 * 
+	 * TreeNode corresponding to a list of templatized method invocation with request-response events
 	 */
 	public static class TemplateMethodCallAggrEventTreeNode extends AbstractAggrEventTreeNode {
 		
@@ -266,14 +390,97 @@ public class AggrRecordEventTemplateTreeNodeAST {
 
 		// implicit from super.getName() ... private String methodSignature;
 		
-		private Object[] templateArgs;
+		private int maxRequestResponsesCount = 32; 
+		private List<MethodCallRequestResponseEventTreeNode> purgedFifoRequestResponses = new ArrayList<MethodCallRequestResponseEventTreeNode>(); 
 		
 		// ------------------------------------------------------------------------
 		
-		public TemplateMethodCallAggrEventTreeNode(MethodAggrEventTreeNode parent, String templateKey, Object[] templateArgs) {
+		public TemplateMethodCallAggrEventTreeNode(MethodAggrEventTreeNode parent, String templateKey) {
 			super(parent, templateKey);
 		}
 
+		// ------------------------------------------------------------------------
+		
+		public void addRequestEvent(RecordEventSummary event) {
+			MethodCallRequestResponseEventTreeNode e = new MethodCallRequestResponseEventTreeNode(this, event);
+			if (purgedFifoRequestResponses.size() >= maxRequestResponsesCount) {
+				MethodCallRequestResponseEventTreeNode purged = (MethodCallRequestResponseEventTreeNode) purgedFifoRequestResponses.remove(0);
+				fireNodeRemoved(purged, 0);
+			}
+			purgedFifoRequestResponses.add(e);
+		}
+
+		public MethodCallRequestResponseEventTreeNode addResponseEvent(RecordEventSummary event) {
+			MethodCallRequestResponseEventTreeNode res = null;
+			int reqEventId = event.getCorrelatedEventId();
+			if (reqEventId == -1) {
+				return null; // should not occur : not linked to a reqest? => ignore this response  
+			}
+			for (Iterator<MethodCallRequestResponseEventTreeNode> iter = purgedFifoRequestResponses.iterator(); iter.hasNext(); ) {
+				MethodCallRequestResponseEventTreeNode reqResp = iter.next();
+				if (reqResp.requestEvent.getEventId() == reqEventId) {
+					reqResp.responseEvent = event;
+					res = reqResp;
+					break;
+				}
+			}
+			return res;
+		}
+
+		// implements TreeNode
+		// ------------------------------------------------------------------------
+
+		@Override
+		public TreeNode getChildAt(int childIndex) {
+			return purgedFifoRequestResponses.get(childIndex);
+		}
+
+		@Override
+		public int getChildCount() {
+			return purgedFifoRequestResponses.size();
+		}
+
+		@Override
+		public int getIndex(TreeNode node) {
+			return purgedFifoRequestResponses.indexOf(node);
+		}
+
+		@Override
+		public Enumeration<?> children() {
+			return new IteratorEnumeration(purgedFifoRequestResponses.iterator());
+		}
+		
+	}
+	
+	
+	/**
+	 * TreeNode corresponding to a method invocation with request-response events 
+	 */
+	public static class MethodCallRequestResponseEventTreeNode extends AbstractAggrEventTreeNode {
+		
+		/** internal for java.io.Serializable */
+		private static final long serialVersionUID = 1L;
+
+		private RecordEventSummary requestEvent;
+		private RecordEventSummary responseEvent;
+		
+		public MethodCallRequestResponseEventTreeNode(AbstractAggrEventTreeNode parent, RecordEventSummary requestEvent) {
+			super(parent, "req#" + requestEvent.getEventId());
+			this.requestEvent = requestEvent;
+		}
+
+		public RecordEventSummary getRequestEvent() {
+			return requestEvent;
+		}
+
+		public RecordEventSummary getResponseEvent() {
+			return responseEvent;
+		}
+
+		public void setResponseEvent(RecordEventSummary p) {
+			this.responseEvent = p;
+		}
+		
 		// implements TreeNode
 		// ------------------------------------------------------------------------
 
@@ -306,7 +513,6 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		public Enumeration<?> children() {
 			return null;
 		}
-		
 	}
 	
 }

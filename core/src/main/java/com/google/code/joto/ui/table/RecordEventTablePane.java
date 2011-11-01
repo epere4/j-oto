@@ -6,12 +6,11 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.TableRowSorter;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 
 /**
- * 
+ * swing Panel containing a table of RecordEvent  
  */
 public class RecordEventTablePane {
 
