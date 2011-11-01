@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.AbstractAggrEventTreeNode;
+import com.google.code.joto.ui.tree.aggrs.MethodCallEventTemplatizer;
 import com.google.code.joto.util.PriorityList;
 
 /**
@@ -28,13 +30,14 @@ public class AggrRecordEventTemplatizerDispatcher implements Serializable {
 	// ------------------------------------------------------------------------
 
 	public AggrRecordEventTemplatizerDispatcher() {
+		addDefaultTemplatizers();
 	}
 
 	// ------------------------------------------------------------------------
 	
 	public void addDefaultTemplatizers() {
-		// TODO
-		
+		MethodCallEventTemplatizer defaultCallTemplatizer = new MethodCallEventTemplatizer();
+		addEventTypeTemplatizer(MethodCallEventUtils.METHODCALL_EVENT_TYPE, defaultCallTemplatizer, 10);
 	}
 	
 	public void addTemplatizers(AggrRecordEventTemplatizerDispatcher src) {

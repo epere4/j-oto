@@ -1,7 +1,6 @@
 package com.google.code.joto.eventrecorder.spy.calls;
 
 import java.lang.reflect.Method;
-import java.util.Date;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -56,7 +55,8 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 	public MethodEventWriterAopInterceptor(
 			RecordEventWriter eventWriter,
 			String eventType) {
-		this(eventWriter, eventType, "request", "response");
+		this(eventWriter, eventType, 
+				MethodCallEventUtils.REQUEST_EVENT_SUBTYPE, MethodCallEventUtils.RESPONSE_EVENT_SUBTYPE);
 	}
 
 	public MethodEventWriterAopInterceptor(
@@ -86,14 +86,15 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 
 	@Override
 	public Object invoke(MethodInvocation methInvocation) throws Throwable {
-		Method method = methInvocation.getMethod();
-		String methodName = method.getName();
 		Object target = methInvocation.getThis();
 		Object proxy = target;
 		if (methInvocation instanceof ReflectiveMethodInvocation) {
 			ReflectiveMethodInvocation r = (ReflectiveMethodInvocation) methInvocation;
 			proxy = r.getProxy();
 		}
+		String className = MethodCallEventUtils.extractEventClassName(target.getClass());
+		Method method = methInvocation.getMethod();
+		String methodName = method.getName();
 		Object[] args = methInvocation.getArguments(); 
 
 		boolean enable = eventWriter.isEnable();
@@ -102,7 +103,7 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 			Object res = method.invoke(target, args);
 			return res;
 		} else {
-			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
+			RecordEventSummary evt = MethodCallEventUtils.createEvent(eventType, requestEventSubType, className, methodName);
 			if (!eventWriter.isEnable(evt)) {
 				// *** do call (case 2/3, no event) ***
 				Object res = method.invoke(target, args);
@@ -117,7 +118,7 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 			}
 			EventMethodRequestData reqObjData = new EventMethodRequestData(replProxy, method, replArgs);
 			
-			RecordEventSummary responseEvt = createEvent(methodName, responseEventSubType);
+			RecordEventSummary responseEvt = MethodCallEventUtils.createEvent(eventType, responseEventSubType, className, methodName);
 			CorrelatedEventSetterCallback callbackForEventId =
 				new CorrelatedEventSetterCallback(responseEvt);
 			
@@ -146,14 +147,6 @@ public class MethodEventWriterAopInterceptor implements MethodInterceptor {
 	}
 
 	
-	private RecordEventSummary createEvent(String methodName, String eventSubType) {
-		RecordEventSummary evt = new RecordEventSummary(-1);
-		evt.setEventDate(new Date());
-		evt.setEventType(eventType);
-		evt.setEventSubType(eventSubType);
-		evt.setEventMethodName(methodName);
-		return evt;
-	}
 
 }
 
