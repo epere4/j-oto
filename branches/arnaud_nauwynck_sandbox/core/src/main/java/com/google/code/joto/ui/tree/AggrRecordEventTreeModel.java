@@ -12,7 +12,6 @@ import com.google.code.joto.eventrecorder.RecordEventStoreChange.AddRecordEventS
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.table.RecordEventSwingRedispatcher;
-import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.AbstractAggrEventTreeNode;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.RootPackageAggrEventTreeNode;
 
 /**
@@ -30,7 +29,8 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 	private JotoContext context;
 	
 	// ... implicit from super: private DefaultRecordEventTemplateTreeNode rootNode;
-
+	private RootPackageAggrEventTreeNode rootPackageNode;
+	
 	private RecordEventChangeVisitor innerRecordEventChangeListener = new InnerRecordEventChangeListener();
 
 	/** dispatcher for choosing RecordEventTemplatizer per event types, and build the aggregated TreeNode */
@@ -40,6 +40,8 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 	
 	public AggrRecordEventTreeModel(JotoContext context) {
 		super(new RootPackageAggrEventTreeNode());
+		this.rootPackageNode = (RootPackageAggrEventTreeNode) super.getRoot();
+		rootPackageNode.setInit(this);
 		this.context = context;
 
 		// copy Templatizers settings from context
@@ -56,11 +58,11 @@ public class AggrRecordEventTreeModel extends DefaultTreeModel {
 	public JotoContext getContext() {
 		return context;
 	}
-	
-	public AbstractAggrEventTreeNode getRoot2() {
-		return (AbstractAggrEventTreeNode) super.getRoot();
-	}
 
+	public RootPackageAggrEventTreeNode getRootPackageNode() {
+		return rootPackageNode;
+	}
+	
 	// ------------------------------------------------------------------------
 
 	private class InnerRecordEventChangeListener extends DefaultRecordEventChangeVisitor {

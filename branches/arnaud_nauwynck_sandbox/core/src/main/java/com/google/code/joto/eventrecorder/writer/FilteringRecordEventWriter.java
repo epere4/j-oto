@@ -5,6 +5,8 @@ import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicate;
 
 import org.apache.commons.collections.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,7 +18,9 @@ import java.util.List;
  * with global boolean, or List<RecordEventSummaryPredicate>
  */
 public class FilteringRecordEventWriter extends AbstractRecordEventWriter implements RecordEventWriter {
-
+	
+	private static Logger log = LoggerFactory.getLogger(FilteringRecordEventWriter.class);
+	
 	/** underlying proxy target object */
 	private RecordEventWriter target;
 	
@@ -95,7 +99,7 @@ public class FilteringRecordEventWriter extends AbstractRecordEventWriter implem
 		boolean res = true;
 		if (eventInfo.getEventMethodName() != null 
 		        && eventInfo.getEventMethodName().endsWith("UserAdvancement")) {
-		    int dbg = 0; dbg++;
+		    log.debug("event: " + eventInfo.getEventMethodName());
 		}
 		if (eventPredicates != null && !eventPredicates.isEmpty()) {
 			for(Predicate pred : eventPredicates) {

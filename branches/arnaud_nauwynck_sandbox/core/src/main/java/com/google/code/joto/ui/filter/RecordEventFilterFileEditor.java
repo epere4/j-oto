@@ -28,8 +28,6 @@ import com.google.code.joto.eventrecorder.predicate.DefaultEventTypeRecordEventS
 import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils;
 import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils.ClassMethodPatternRecordEventSummaryPredicate;
 import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils.TypeSubTypePatternRecordEventSummaryPredicate;
-import com.google.code.joto.util.JotoRuntimeException;
-import com.google.code.joto.util.io.XStreamUtils;
 import com.google.code.joto.util.ui.GridBagLayoutFormBuilder;
 import com.google.code.joto.util.ui.IconUtils;
 import com.google.code.joto.util.ui.JButtonUtils;
