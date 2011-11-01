@@ -38,6 +38,7 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 
 	private ObjectToCodeGenerator objToCode;
 	private ObjectReplacementMap objectReplacementMap; 
+	private boolean useCommentBlockMarker = true;
 	private PrintStream out;
 	
 	//-------------------------------------------------------------------------
@@ -68,8 +69,9 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 			Method meth = reqData.getMethod();
 			Object[] args = reqData.getArguments();
 			
-			out.println("{ // call " // + eventId:" + event.getEventId() + " " 
-					+ meth.getName() + "(...);\"");
+			String commentBlockMarker = (useCommentBlockMarker)? " eventId:" + event.getEventId() : "";
+			out.println("{ // methodCall" + commentBlockMarker
+					+ " " + meth.getName() + "(...)");
 			try {
 				String exprName = prepareGenerateObj(meth.getReturnType(), expr, "expr");
 				String[] argNames = null;
@@ -79,6 +81,10 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 					Class<?>[] parameterTypes = meth.getParameterTypes();
 					for (int i = 0; i < len; i++) {
 						argNames[i] = prepareGenerateObj(parameterTypes[i], args[i], "arg" + i);
+						
+						if (len > 3) {
+							out.println();
+						}
 					}
 				}
 	
@@ -101,10 +107,11 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 				out.println(sb.toString());
 			} catch(Exception ex) {
 				// ignore, no rethrow!
-				out.println("***FAILED to decode object(method request) to java code: ");
+				out.println("*** FAILED to decode object(method request) to java code: ");
 				ex.printStackTrace(out);
 			}
-			out.println("} // end call"); // eventId:" + event.getEventId()
+			out.println("} // end methodCall" + commentBlockMarker);
+			out.println();
 			
 		} else {
 			// method response
@@ -113,7 +120,9 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 			Throwable methodEx = respData.getException();
 			Object result = respData.getResult();
 			
-			out.println("{ // result call"); // eventId:" + event.getEventId()
+			String commentBlockMarker = (useCommentBlockMarker)? 
+					" eventId:" + event.getEventId() + " (call eventId:" + event.getCorrelatedEventId() + ")" : "";
+			out.println("{ // methodCall result" + commentBlockMarker);
 			try {
 				if (methodEx != null) {
 					String stmtsStr = objToCode.objToStmtsString(methodEx, "methodException");
@@ -128,7 +137,8 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 				out.println("*** FAILED to decode object(method request) to java code: " + ex.getMessage());
 			}
 
-			out.println("} // end result call"); // eventId:" + event.getEventId()
+			out.println("} // methodCall result" + commentBlockMarker);
+			out.println();
 		}
 	}
 
@@ -150,7 +160,7 @@ public class MethodCallToCodeRecordEventsProcessor implements RecordEventsProces
 		String res = objToCode.objToStmtsString(declaredObjClass, obj, exprVarName, stmtBuffer);
 		String stmtsText = stmtBuffer.toString();
 		if (stmtsText.length() != 0) {
-			out.println("// " + exprVarName + ":");
+			// out.println("// " + exprVarName + ":");
 			out.print(stmtBuffer);
 			// out.println("\n");
 		}

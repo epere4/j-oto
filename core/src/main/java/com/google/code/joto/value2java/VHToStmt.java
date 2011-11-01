@@ -1,5 +1,17 @@
 package com.google.code.joto.value2java;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import com.google.code.joto.JotoConfig;
 import com.google.code.joto.ast.beanstmt.BeanAST;
 import com.google.code.joto.ast.beanstmt.BeanAST.AssignExpr;
@@ -36,18 +48,6 @@ import com.google.code.joto.reflect.ConstructorJotoInfo;
 import com.google.code.joto.reflect.ParamToFieldInfo;
 import com.google.code.joto.util.NameGenerator;
 import com.google.code.joto.value2java.impl.ObjectStmtInfo;
-
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  *

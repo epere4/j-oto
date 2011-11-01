@@ -138,6 +138,10 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			}
 		}
 		
+		public String toString() {
+			return "RefVH[ to:" + to + "]";
+		}
+		
 	}
 	
 //	/**
@@ -623,8 +627,8 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 //		}
 
 		public void addRefElt(AbstractObjectValueHolder p) {
-			CollectionEltRefValueHolder elt = new CollectionEltRefValueHolder(this);
-			elts.add(elt);
+			CollectionEltRefValueHolder refElt = new CollectionEltRefValueHolder(this, p);
+			elts.add(refElt);
 		}
 
 	}
@@ -655,6 +659,9 @@ public abstract class ValueHolderAST implements IAttributeSupportDelegate {
 			return v.caseCollectionElt(this, arg);
 		}
 		
+		public String toString() {
+			return "EltRefVH[" + super.toString() + "]";
+		}
 	}
 	
 

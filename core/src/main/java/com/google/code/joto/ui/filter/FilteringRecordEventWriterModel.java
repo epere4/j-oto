@@ -1,17 +1,20 @@
 package com.google.code.joto.ui.filter;
 
-import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
-import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
-
-import org.apache.commons.collections.Predicate;
-
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+
+import org.apache.commons.collections.Predicate;
+
+import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
+import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 
 /**
  * a swing wrapper model for FilteringRecordEventWriter
@@ -31,6 +34,9 @@ public class FilteringRecordEventWriterModel {
     private String name;
     private Object owner;
     
+	private RecordEventFilterFileTablePanel filtersPanel;
+	private JFrame filtersFrame;
+
     // ------------------------------------------------------------------------
     
     public FilteringRecordEventWriterModel(RecordEventWriter underlyingEventWriter) {
@@ -63,8 +69,45 @@ public class FilteringRecordEventWriterModel {
         this.owner = p;
     }
 
+    public void addFilterRow(RecordEventFilterFile filter) {
+    	filterItemTableModel.addRow(filter);
+    }
+    
 
+    public void onShowFilterFrame(ActionEvent event) {
+    	showFilterFrame();
+    }
+    
+	public void showFilterFrame() {
+		if (filtersFrame == null) {
+			filtersFrame = new JFrame();
+			
+			filtersPanel = new RecordEventFilterFileTablePanel(filterItemTableModel);
 
+			filtersFrame.getContentPane().add(filtersPanel.getJComponent());
+			filtersFrame.pack();
+			
+			filtersFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+//			filtersFrame.addWindowListener(new WindowAdapter() {
+//				@Override
+//				public void windowClosing(WindowEvent e) {
+//					super.windowClosing(e);
+//				}
+//				
+//			});
+			
+			filtersFrame.setVisible(true);
+		} else {
+			if (!filtersFrame.isVisible()) {
+				filtersFrame.setVisible(true);
+			}
+		}
+		filtersFrame.requestFocus();
+	}
+	
+	
+	// ------------------------------------------------------------------------
+	
     /**
      * inner TableModelListener adapter class 
      * to update FilteringRecordEventWriter when a RecordEventFilterItemTableModel change

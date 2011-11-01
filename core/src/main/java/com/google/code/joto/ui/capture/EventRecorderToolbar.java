@@ -1,6 +1,8 @@
 package com.google.code.joto.ui.capture;
 
+import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.filter.FilteringRecordEventWriterModel;
 import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
 import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
 import com.google.code.joto.util.ui.IconUtils;
@@ -40,7 +42,7 @@ public class EventRecorderToolbar {
 
 	private RecordEventFilterFileTablePanel captureFiltersPanel;
 	private JFrame captureFiltersFrame;
-	
+
 	// -------------------------------------------------------------------------
 
 	public EventRecorderToolbar(JotoContext context) {
@@ -64,11 +66,22 @@ public class EventRecorderToolbar {
 		toolbar.add(stopRecordButton);
 
 		
-		ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
-		showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "filter", this, "onButtonShowCaptureFilters");
-		toolbar.add(showCaptureFiltersButton);
-		RecordEventFilterFileTableModel captureFiltersTableModel = new RecordEventFilterFileTableModel();
-		captureFiltersPanel = new RecordEventFilterFileTablePanel(captureFiltersTableModel);
+		{ // capture filter
+			ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
+			showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "filter", this, "onButtonShowCaptureFilters");
+			toolbar.add(showCaptureFiltersButton);
+			RecordEventFilterFileTableModel captureFiltersTableModel = new RecordEventFilterFileTableModel();
+			captureFiltersPanel = new RecordEventFilterFileTablePanel(captureFiltersTableModel);
+		}
+
+		{ // methodCall filter
+			ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
+			FilteringRecordEventWriterModel filterWriterModel = 
+					context.getMethodCallEventWriterModelCategory();
+			showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "meth filter", filterWriterModel, "onShowFilterFrame");
+			toolbar.add(showCaptureFiltersButton);
+		}
+
 	}
 
 	public void dispose() {
@@ -125,6 +138,10 @@ public class EventRecorderToolbar {
 			}
 		}
 		captureFiltersFrame.requestFocus();
+	}
+
+	public void onButtonShowMethodCallFilters(ActionEvent event) {
+		
 	}
 	
 	private void onModelPropertyChange(PropertyChangeEvent evt) {

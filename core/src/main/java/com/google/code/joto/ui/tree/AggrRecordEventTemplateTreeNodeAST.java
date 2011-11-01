@@ -1,19 +1,28 @@
 package com.google.code.joto.ui.tree;
 
+import java.awt.event.ActionEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.predicate.RecordEventSummaryPredicateUtils;
+import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
+import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.filter.RecordEventFilterFile;
 import com.google.code.joto.util.CompoundEnumeration;
 import com.google.code.joto.util.SortedListTreeMap;
+import com.google.code.joto.util.ui.JMenuItemUtils;
 
 /**
  *
@@ -54,6 +63,12 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return false;
 		}
 
+		/** used by CellRenderer */
+		public String getDisplayLabel() {
+			return getName();
+		}
+
+		@Override
 		public String toString() {
 			return name;
 		}
@@ -85,6 +100,11 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return (rootNode != null)? rootNode.treeModel : null; 
 		}
 		
+		public JotoContext getContext() {
+			RootPackageAggrEventTreeNode rootNode = getRootTreeNode();
+			return (rootNode != null)? rootNode.getContext() : null; 
+		}
+		
 		protected void fireNodeAdded(AbstractAggrEventTreeNode node, int childIndex) {
 			DefaultTreeModel treeModel = getRootTreeModel();
 			if (treeModel == null) return;
@@ -106,6 +126,10 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			treeModel.nodesChanged(node, childIndices);
 		}
 
+		public void fillCtxMenu(JPopupMenu ctxMenu) {
+			// do nothing, cf overriden methods
+		}
+
 	}
 	
 	/**
@@ -124,8 +148,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		
 		public PackageAggrEventTreeNode(PackageAggrEventTreeNode parent, String packageName) {
 			super(parent, packageName);
-			this.fullPackageName = (parent != null)? parent.getFullPackageName() + "." + packageName : "";
-			
+			this.fullPackageName = (parent != null && !(parent instanceof RootPackageAggrEventTreeNode))? 
+					parent.getFullPackageName() + "." + packageName : packageName;			
 		}
 
 		// ------------------------------------------------------------------------
@@ -232,7 +256,9 @@ public class AggrRecordEventTemplateTreeNodeAST {
 					childClassTreeNode.enumeration());
 		}
 		
-		
+		public String toString() {
+			return "PackageNode[" + fullPackageName + "]";
+		}
 	}
 	
 	/**
@@ -242,13 +268,19 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		/** internal for java.io.Serializable */
 		private static final long serialVersionUID = 1L;
 
+		private JotoContext context;
 		private DefaultTreeModel treeModel;
 		
 		/** param ... DefaultTreeModel treeModel can not be set here .... chicken-egg pb => set init() next !*/
-		public RootPackageAggrEventTreeNode() {
+		public RootPackageAggrEventTreeNode(JotoContext context) {
 			super(null, "");
+			this.context = context;
 		}
 
+		public JotoContext getContext() {
+			return context;
+		}
+		
 		public void setInit(DefaultTreeModel treeModel) {
 			this.treeModel = treeModel;
 		}
@@ -279,6 +311,14 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		
 		public String getSimpleClassName() {
 			return super.getName();
+		}
+
+		public PackageAggrEventTreeNode getParentPackageNode() {
+			return (PackageAggrEventTreeNode) super.getParent();
+		}
+		
+		public String getFullClassName() {
+			return getParentPackageNode().getFullPackageName() + "." + getSimpleClassName();
 		}
 
 		public MethodAggrEventTreeNode getOrCreateMethod(String methodName) {
@@ -315,6 +355,38 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return childMethods.enumeration();
 		}
 		
+		public String toString() {
+			return "ClassNode[" + getSimpleClassName() + "]";
+		}
+		
+		public void fillCtxMenu(JPopupMenu ctxMenu) {
+			ctxMenu.add(JMenuItemUtils.snew("create exclude quick filter ~Class", this, "onCtxMenuItemCreateQuickFilter"));
+		}
+
+		public void onCtxMenuItemCreateQuickFilter(ActionEvent event) {
+			JotoContext context = getContext();
+			ClassAggrEventTreeNode classNode = this;
+			String className = classNode.getFullClassName();
+			String simpleClassName = classNode.getSimpleClassName();
+			
+			RecordEventFilterFile filter = new RecordEventFilterFile();
+			filter.setDescription("class ~ " + simpleClassName);
+			filter.setActive(true);
+			
+			// TODO filter is not created as persistent yet... 
+			// filter.setPersistentFile(persistentFile);
+
+			Predicate eventIncludePredicate = 
+					RecordEventSummaryPredicateUtils.snewDefaultClassMethodPredicate(className, null);
+			Predicate eventPredicate = PredicateUtils.notPredicate(eventIncludePredicate);
+			
+			filter.setEventPredicate(eventPredicate);
+			filter.setEventTypePredicateDescription(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+			filter.setEventClassNamePredicateDescription(className);
+
+			context.addMethodCallFilter(filter);
+		}
+		
 	}
 	
 	/**
@@ -329,6 +401,9 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		
 		private SortedListTreeMap<String,TemplateMethodCallAggrEventTreeNode> childTemplateCalls = new SortedListTreeMap<String,TemplateMethodCallAggrEventTreeNode>();
 		
+		private static final String OTHERS_TEMPLATES_KEY = "others";
+		private int maxTemplateCount = 10;
+		
 		// ------------------------------------------------------------------------
 		
 		public MethodAggrEventTreeNode(ClassAggrEventTreeNode parent, String methodName) {
@@ -341,11 +416,22 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return super.getName();
 		}
 
+		public ClassAggrEventTreeNode getParentClassNode() {
+			return (ClassAggrEventTreeNode) super.getParent();
+		}
 
 		public TemplateMethodCallAggrEventTreeNode getOrCreateTemplateCall(String templateCallKey) {
+			boolean isOtherTemplates = false;
+			if (childTemplateCalls.size() >= maxTemplateCount) {
+				templateCallKey = OTHERS_TEMPLATES_KEY;
+				isOtherTemplates = true;
+			} 
 			TemplateMethodCallAggrEventTreeNode res = childTemplateCalls.get(templateCallKey);
 			if (res == null) {
 				res = new TemplateMethodCallAggrEventTreeNode(this, templateCallKey);
+				if (isOtherTemplates) {
+					res.maxRequestResponsesCount = res.maxRequestResponsesCount * 3;
+				}
 				childTemplateCalls.put(templateCallKey, res);
 				int childIndex = childTemplateCalls.indexOf(res);
 				fireNodeAdded(res, childIndex);
@@ -375,7 +461,40 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		public Enumeration<TemplateMethodCallAggrEventTreeNode> children() {
 			return childTemplateCalls.enumeration();
 		}
+	
+		public String toString() {
+			return "MethodNode[" + getMethodName() + "]";
+		}
 		
+		public void fillCtxMenu(JPopupMenu ctxMenu) {
+			ctxMenu.add(JMenuItemUtils.snew("create exclude quick filter ~Method", this, "onCtxMenuItemCreateQuickFilter"));
+		}
+
+		public void onCtxMenuItemCreateQuickFilter(ActionEvent event) {
+			JotoContext context = getContext();
+			ClassAggrEventTreeNode classNode = getParentClassNode();
+			String className = classNode.getFullClassName();
+			String simpleClassName = classNode.getSimpleClassName();
+			String methodName = getMethodName();
+			
+			RecordEventFilterFile filter = new RecordEventFilterFile();
+			filter.setDescription("method ~ " + simpleClassName + "." + methodName);
+			filter.setActive(true);
+			
+			// TODO filter is not created as persistent yet... 
+			// filter.setPersistentFile(persistentFile);
+
+			Predicate eventIncludePredicate = 
+					RecordEventSummaryPredicateUtils.snewDefaultClassMethodPredicate(className, methodName);
+			Predicate eventPredicate = PredicateUtils.notPredicate(eventIncludePredicate);
+			
+			filter.setEventPredicate(eventPredicate);
+			filter.setEventTypePredicateDescription(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+			filter.setEventClassNamePredicateDescription(className);
+			filter.setEventMethodNamePredicateDescription(methodName);
+
+			context.addMethodCallFilter(filter);
+		}
 	}
 	
 	/**
@@ -450,6 +569,10 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return new IteratorEnumeration(purgedFifoRequestResponses.iterator());
 		}
 		
+		public String toString() {
+			return "TemplateMethodCallNode[" + purgedFifoRequestResponses.size() + "]";
+		}
+
 	}
 	
 	
@@ -513,6 +636,13 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		public Enumeration<?> children() {
 			return null;
 		}
+		
+		public String toString() {
+			return "MethodCallRequestResponseNode[" 
+					// + requestEvent 
+					+ "]";
+		}
+		
 	}
 	
 }

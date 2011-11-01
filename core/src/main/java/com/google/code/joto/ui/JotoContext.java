@@ -19,6 +19,7 @@ import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.ui.filter.FilteringRecordEventWriterModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFile;
 
 /**
  *
@@ -187,6 +188,16 @@ public class JotoContext {
 	    FilteringRecordEventWriterModel tmpres = getOrCreateFilteringEventWriterModelCategory(name);
 	    return tmpres.getResultFilteringEventWriter();
 	}
+
+	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE) */
+	public FilteringRecordEventWriterModel getMethodCallEventWriterModelCategory() {
+	    return getOrCreateFilteringEventWriterModelCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+	}
+
+	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE).addFilter(filter) */
+    public void addMethodCallFilter(RecordEventFilterFile filter) {
+    	getMethodCallEventWriterModelCategory().addFilterRow(filter);
+    }
 
 	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE) */
 	public FilteringRecordEventWriter getMethodCallEventWriterCategory() {
