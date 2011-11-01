@@ -31,7 +31,7 @@ public class SortedListTreeMap<K,V> {
 
 	private void checkCleanListData() {
 		if (listData == null) {
-			listData =  Collections.unmodifiableList(new ArrayList<V>(mapData.values()));
+			listData = Collections.unmodifiableList(new ArrayList<V>(mapData.values()));
 		}
 	}
 
@@ -48,7 +48,11 @@ public class SortedListTreeMap<K,V> {
 	
 	public V getAt(int index) {
 		checkCleanListData();
-		return listData.get(index);
+		try {
+			return listData.get(index);	
+		} catch(IndexOutOfBoundsException ex) {
+			throw ex; // should not occur!!
+		}
 	}
 	
 	public int indexOf(Object obj) {

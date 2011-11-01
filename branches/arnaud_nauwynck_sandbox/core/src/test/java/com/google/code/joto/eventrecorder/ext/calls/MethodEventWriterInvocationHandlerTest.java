@@ -1,8 +1,6 @@
 package com.google.code.joto.eventrecorder.ext.calls;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +11,7 @@ import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
 import com.google.code.joto.eventrecorder.spy.calls.EventMethodRequestData;
 import com.google.code.joto.eventrecorder.spy.calls.EventMethodResponseData;
-import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterInvocationHandler;
+import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterProxyTransformer;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.testobj.SerializableObj;
 
@@ -22,14 +20,11 @@ import com.google.code.joto.testobj.SerializableObj;
  *
  */
 public class MethodEventWriterInvocationHandlerTest extends TestCase {
-
+	
 	public static IFoo createFooProxyRecorder(IFoo targetObjCallToRecord, RecordEventWriter eventWriter) {
-		ClassLoader classLoader = targetObjCallToRecord.getClass().getClassLoader();
-		InvocationHandler h = 
-			new MethodEventWriterInvocationHandler(targetObjCallToRecord, eventWriter, 
-						"methCall", "request", "response");
-						// TOADD eventMethodDetail... add name of obj?
-		IFoo fooProxy = (IFoo) Proxy.newProxyInstance(classLoader, new Class[] { IFoo.class }, h );
+		MethodEventWriterProxyTransformer proxyTransformer = 
+				new MethodEventWriterProxyTransformer(eventWriter, null);
+		IFoo fooProxy = (IFoo) proxyTransformer.createProxy(new Class[] { IFoo.class }, targetObjCallToRecord);
 		return fooProxy;
 	}
 

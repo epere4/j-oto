@@ -2,7 +2,6 @@ package com.google.code.joto.eventrecorder.spy.calls;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Date;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
@@ -30,13 +29,15 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 			RecordEventWriter eventWriter,
 			String eventType,
 			String requestEventSubType,
-			String responseEventSubType
+			String responseEventSubType,
+			ObjectReplacementMap objectReplacementMap
 			) {
 		this.target = target;
 		this.eventWriter = eventWriter;
 		this.eventType = eventType;
 		this.requestEventSubType = requestEventSubType;
 		this.responseEventSubType = responseEventSubType;
+		this.objectReplacementMap = objectReplacementMap;
 	}
 
 	
@@ -54,6 +55,8 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		Class<?> clss = method.getDeclaringClass();
+		String className = MethodCallEventUtils.extractEventClassName(clss);
 		final String methodName = method.getName();
 
 		// Handle the methods from java.lang.Object
@@ -76,7 +79,8 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 			Object res = method.invoke(target, args);
 			return res;
 		} else {
-			RecordEventSummary evt = createEvent(methodName, requestEventSubType);
+			RecordEventSummary evt = MethodCallEventUtils.createEvent(eventType, requestEventSubType, 
+					className, methodName);
 			if (!eventWriter.isEnable(evt)) {
 				// *** do call (case 2/3, no event) ***
 				Object res = method.invoke(target, args);
@@ -91,7 +95,8 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 			}
 			EventMethodRequestData reqObjData = new EventMethodRequestData(replTarget, method, replArgs);
 			
-			RecordEventSummary respEvt = createEvent(methodName, responseEventSubType);
+			RecordEventSummary respEvt = MethodCallEventUtils.createEvent(eventType, responseEventSubType, 
+					className, methodName);
 			CorrelatedEventSetterCallback callbackForEventId =
 				new CorrelatedEventSetterCallback(respEvt);
 			
@@ -121,13 +126,4 @@ public class MethodEventWriterInvocationHandler implements InvocationHandler {
 	}
 
 	
-	private RecordEventSummary createEvent(String methodName, String eventSubType) {
-		RecordEventSummary evt = new RecordEventSummary(-1);
-		evt.setEventDate(new Date());
-		evt.setEventType(eventType);
-		evt.setEventSubType(eventSubType);
-		evt.setEventMethodName(methodName);
-		return evt;
-	}
-
 }

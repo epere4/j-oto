@@ -1,6 +1,7 @@
 package com.google.code.joto.ui.tree.aggrs;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.AbstractAggrEventTreeNode;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.ClassAggrEventTreeNode;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.MethodAggrEventTreeNode;
@@ -24,7 +25,7 @@ public class MethodCallEventTemplatizer implements AggrRecordEventTemplatizer {
 	
 	@Override
 	public boolean canHandle(AggrRecordEventTreeModel target, RecordEventSummary event) {
-		return "methodCall".equals(event.getEventType());
+		return MethodCallEventUtils.METHODCALL_EVENT_TYPE.equals(event.getEventType());
 	}
 
 	@Override
@@ -32,7 +33,9 @@ public class MethodCallEventTemplatizer implements AggrRecordEventTemplatizer {
 		String eventSubType = event.getEventSubType();
 		String className = event.getEventClassName();
 		String methodName = event.getEventMethodName();
-		
+		if (className == null) {
+			className = "Unknown"; // should not occur
+		}
 		RootPackageAggrEventTreeNode rootPackageNode = target.getRootPackageNode();
 		ClassAggrEventTreeNode classNode = rootPackageNode.getOrCreateRecursiveChildClass(className);	
 		MethodAggrEventTreeNode methodNode = classNode.getOrCreateMethod(methodName);
@@ -41,10 +44,12 @@ public class MethodCallEventTemplatizer implements AggrRecordEventTemplatizer {
 		
 		TemplateMethodCallAggrEventTreeNode methodCallNode = methodNode.getOrCreateTemplateCall(templateCallKey);
 
-		if ("request".equals(eventSubType)) {
+		if (MethodCallEventUtils.REQUEST_EVENT_SUBTYPE.equals(eventSubType)) {
 			methodCallNode.addRequestEvent(event);	
-		} else { // "response"
+		} else if (MethodCallEventUtils.RESPONSE_EVENT_SUBTYPE.equals(eventSubType)) {
 			methodCallNode.addResponseEvent(event);	
+		} else {
+			// unrecognized request/response event subType => ignore!
 		}
 		return methodCallNode;
 	}

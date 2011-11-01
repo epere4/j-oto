@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.google.code.joto.JotoConfig;
 import com.google.code.joto.eventrecorder.RecordEventStore;
 import com.google.code.joto.eventrecorder.impl.DefaultMemoryRecordEventStore;
+import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterAopInterceptor;
+import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterProxyTransformer;
 import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
@@ -50,7 +52,8 @@ public class JotoContext {
 	protected ObjectReplacementMap objReplMap = new ObjectReplacementMap();
 	
 	protected MethodEventWriterAopInterceptor defaultMethodEventWriterAopInterceptor;
-
+	protected MethodEventWriterProxyTransformer defaultMethodEventWriterProxyTransformer;
+	
 	// ------------------------------------------------------------------------
 	
 	public JotoContext(JotoConfig optConfig, RecordEventStore optEventStore) {
@@ -65,10 +68,11 @@ public class JotoContext {
 		captureFiltersWriterModel.setOwner(this);
 		captureFiltersWriterModel.getResultFilteringEventWriter().setOwner(captureFiltersWriterModel);
 		
-		getOrCreateFilteringEventWriterModelCategory("methodCall");
+		getOrCreateFilteringEventWriterModelCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
 //        getOrCreateFilteringEventWriterModelCategory("logs");
 //        getOrCreateFilteringEventWriterModelCategory("AWTSpy");
 
+	
 		eventStore.open("rw");		
 	}
 
@@ -184,14 +188,14 @@ public class JotoContext {
 	    return tmpres.getResultFilteringEventWriter();
 	}
 
-	/** helper method for getOrCreateFilteringEventWriterCategory("methodCall") */
+	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE) */
 	public FilteringRecordEventWriter getMethodCallEventWriterCategory() {
-	    return getOrCreateFilteringEventWriterCategory("methodCall");
+	    return getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
 	}
 
 	/** 
 	 * helper method to create a default MethodEventWriterAopInterceptor, 
-	 * with writer filtering on category "methodCall" 
+	 * with writer filtering on category MethodCallEventUtils.METHODCALL_EVENT_TYPE
 	 * 
 	 * typical example in Spring configuration file:
 	 * <code><PRE>
@@ -204,8 +208,8 @@ public class JotoContext {
 	 */ 
 	public MethodEventWriterAopInterceptor getDefaultMethodEventWriterAopInterceptor() {
 		if (defaultMethodEventWriterAopInterceptor == null) {
-			String writerCategory = "methodCall";
-			String eventType = "methodCall";
+			String writerCategory = MethodCallEventUtils.METHODCALL_EVENT_TYPE;
+			String eventType = MethodCallEventUtils.METHODCALL_EVENT_TYPE;
 			defaultMethodEventWriterAopInterceptor =
 					createMethodEventWriterAopInterceptor(writerCategory, eventType);
 		}
@@ -224,7 +228,30 @@ public class JotoContext {
 				new MethodEventWriterAopInterceptor(eventWriter, eventType); 
 		return res;
 	}
+
+	public MethodEventWriterProxyTransformer getDefaultMethodEventWriterProxyTransformer() {
+		if (defaultMethodEventWriterProxyTransformer == null) {
+			RecordEventWriter methodCallWriter = 
+					getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+			defaultMethodEventWriterProxyTransformer = 
+					new MethodEventWriterProxyTransformer(methodCallWriter, this.getObjReplMap());
+		}
+		return defaultMethodEventWriterProxyTransformer;
+	}
+
+	public <T> T createDefaultMethodEventWriterProxy(T targetObjCallToRecord) {
+		Class<?> objClass = targetObjCallToRecord.getClass();
+		Class<?>[] objInterfaces = objClass.getInterfaces();
+		@SuppressWarnings("unchecked")
+		T resProxy = (T) createDefaultMethodEventWriterProxy(objInterfaces, targetObjCallToRecord);
+		return resProxy;
+	}
 	
+	public Object createDefaultMethodEventWriterProxy(Class<?>[] proxyInterfaces, Object targetObjCallToRecord) {
+		MethodEventWriterProxyTransformer tf = getDefaultMethodEventWriterProxyTransformer();
+		Object resProxy = tf.createProxy(proxyInterfaces, targetObjCallToRecord);
+		return resProxy;
+	}
 	
     public ObjectReplacementMap getObjReplMap() {
 		return objReplMap;

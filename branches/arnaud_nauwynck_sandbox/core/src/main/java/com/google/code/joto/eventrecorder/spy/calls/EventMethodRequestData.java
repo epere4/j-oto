@@ -19,7 +19,7 @@ public class EventMethodRequestData implements Serializable {
 
 	/** */
 	private static final long serialVersionUID = 1L;
-
+	
 	private Object expr;
 	
 	// java.lang.Method is not serializable!! => use Class+methodName+signature

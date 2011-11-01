@@ -84,39 +84,25 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			RootPackageAggrEventTreeNode rootNode = getRootTreeNode();
 			return (rootNode != null)? rootNode.treeModel : null; 
 		}
-
-		protected int[] getChildIndices(AbstractAggrEventTreeNode node) {
-			int depth = getChildDepth(node);
-			int[] res = new int[depth];
-			AbstractAggrEventTreeNode p = node;
-			for (int i = depth - 1; i >= 0; i--, p = p.parent) {
-				res[i] = p.parent.getIndex(p);
-			}
-			return res;
-		}
 		
-		protected void fireNodeAdded(AbstractAggrEventTreeNode node) {
+		protected void fireNodeAdded(AbstractAggrEventTreeNode node, int childIndex) {
 			DefaultTreeModel treeModel = getRootTreeModel();
 			if (treeModel == null) return;
-			int[] childIndices = getChildIndices(node);
-			treeModel.nodesWereInserted(node, childIndices);
+			int[] childIndices = new int[] { childIndex };
+			treeModel.nodesWereInserted(node.getParent(), childIndices);
 		}
 
-		protected void fireNodeRemoved(AbstractAggrEventTreeNode node, int prevChildIndex) {
+		protected void fireNodeRemoved(AbstractAggrEventTreeNode node, int childIndex) {
 			DefaultTreeModel treeModel = getRootTreeModel();
 			if (treeModel == null) return;
-			// no index when already removed => get parent's index
-			int[] parentChildIndices = getChildIndices(node.parent);
-			int[] childIndices = new int[parentChildIndices.length + 1];
-			System.arraycopy(parentChildIndices, 0, childIndices, 0, parentChildIndices.length);
-			parentChildIndices[parentChildIndices.length] = prevChildIndex;
-			treeModel.nodesWereRemoved(node, childIndices, new TreeNode[] { node });
+			int[] childIndices = new int[] { childIndex };
+			treeModel.nodesWereRemoved(node.getParent(), childIndices, new TreeNode[] { node });
 		}
 
-		protected void fireNodeChanged(AbstractAggrEventTreeNode node) {
+		protected void fireNodeChanged(AbstractAggrEventTreeNode node, int childIndex) {
 			DefaultTreeModel treeModel = getRootTreeModel();
 			if (treeModel == null) return;
-			int[] childIndices = getChildIndices(node);
+			int[] childIndices = new int[] { childIndex };
 			treeModel.nodesChanged(node, childIndices);
 		}
 
@@ -160,6 +146,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			if (res == null) {
 				res = new PackageAggrEventTreeNode(this, childPackageName); 
 				childPackageTreeNode.put(childPackageName, res);
+				int childIndex = childPackageTreeNode.indexOf(res);
+				fireNodeAdded(res, childIndex);
 			}
 			return res;
 		}
@@ -183,6 +171,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			if (res == null) {
 				res = new ClassAggrEventTreeNode(this, simpleClassName); 
 				childClassTreeNode.put(simpleClassName, res);
+				int childIndex = childClassTreeNode.indexOf(res);
+				fireNodeAdded(res, childIndex);
 			}
 			return res;
 		}
@@ -209,7 +199,11 @@ public class AggrRecordEventTemplateTreeNodeAST {
 				res = childPackageTreeNode.getAt(childIndex);
 			} else {
 				int classIndex = childIndex - childPackageTreeNode.size();
-				res = childClassTreeNode.getAt(classIndex);
+				if (classIndex >= 0 && classIndex < childClassTreeNode.size()) {
+					res = childClassTreeNode.getAt(classIndex);
+				} else {
+					res = null; // should not occur?!
+				}
 			}
 			return res;
 		}
@@ -292,6 +286,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			if (res == null) {
 				res = new MethodAggrEventTreeNode(this, methodName);
 				childMethods.put(methodName, res);
+				int childIndex = childMethods.indexOf(res);
+				fireNodeAdded(res, childIndex);
 			}
 			return res;
 		}
@@ -351,6 +347,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			if (res == null) {
 				res = new TemplateMethodCallAggrEventTreeNode(this, templateCallKey);
 				childTemplateCalls.put(templateCallKey, res);
+				int childIndex = childTemplateCalls.indexOf(res);
+				fireNodeAdded(res, childIndex);
 			}
 			return res;
 		}
@@ -390,7 +388,7 @@ public class AggrRecordEventTemplateTreeNodeAST {
 
 		// implicit from super.getName() ... private String methodSignature;
 		
-		private int maxRequestResponsesCount = 32; 
+		private int maxRequestResponsesCount = 5; 
 		private List<MethodCallRequestResponseEventTreeNode> purgedFifoRequestResponses = new ArrayList<MethodCallRequestResponseEventTreeNode>(); 
 		
 		// ------------------------------------------------------------------------
@@ -408,6 +406,8 @@ public class AggrRecordEventTemplateTreeNodeAST {
 				fireNodeRemoved(purged, 0);
 			}
 			purgedFifoRequestResponses.add(e);
+			int childIndex = purgedFifoRequestResponses.size() -1;
+			fireNodeAdded(e, childIndex);
 		}
 
 		public MethodCallRequestResponseEventTreeNode addResponseEvent(RecordEventSummary event) {
