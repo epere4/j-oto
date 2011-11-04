@@ -47,8 +47,10 @@ public class FilteringRecordEventWriter extends AbstractRecordEventWriter implem
 	@Override
 	public void addEvent(RecordEventSummary info, Serializable objData, RecordEventWriterCallback callback) {
 		if (enable == false || !isEnable(info)) {
-			RecordEventData dummy = new RecordEventData(info, objData);			
-			callback.onStore(dummy);
+			if (callback != null) {
+				RecordEventData dummy = new RecordEventData(info, objData);			
+				callback.onStore(dummy);
+			}
 			return;
 		}
 		

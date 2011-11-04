@@ -22,7 +22,7 @@ public class SwingBinderUtils {
 		} catch (SecurityException ex) {
 			throw JotoRuntimeException.wrapRethrow("Can not find method " + targetClass.getSimpleName() + "." + methodName + "ActionEvent evt)", ex);
 		} catch (NoSuchMethodException ex) {
-			throw JotoRuntimeException.wrapRethrow("Method not found " + targetClass.getSimpleName() + "." + methodName + "ActionEvent evt)", ex);
+			throw JotoRuntimeException.wrapRethrow("Method not found " + targetClass.getSimpleName() + "." + methodName + "(ActionEvent evt)", ex);
 		}
 		if (meth == null) {
 			throw new JotoRuntimeException("method not found");

@@ -18,8 +18,9 @@ import com.google.code.joto.eventrecorder.spy.calls.MethodEventWriterProxyTransf
 import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
-import com.google.code.joto.ui.filter.FilteringRecordEventWriterModel;
+import com.google.code.joto.ui.filter.RecordEventFilterCategoryModel;
 import com.google.code.joto.ui.filter.RecordEventFilterFile;
+import com.google.code.joto.ui.spy.logs.MethodCallCaptureCategoryPanel;
 
 /**
  *
@@ -33,6 +34,7 @@ public class JotoContext {
 		IDDLE
 	}
 	
+    
 	private static Logger log = LoggerFactory.getLogger(JotoContext.class);
 	
 	// ------------------------------------------------------------------------
@@ -46,9 +48,9 @@ public class JotoContext {
 
 	private RecordingStatus recordingStatus = RecordingStatus.IDDLE;
 
-	private FilteringRecordEventWriterModel captureFiltersWriterModel;
+	private RecordEventFilterCategoryModel captureFilterCategoryModel;
 
-    protected Map<String,FilteringRecordEventWriterModel> filteringEventWriterModelCategories = new HashMap<String,FilteringRecordEventWriterModel>();
+    protected Map<String,RecordEventFilterCategoryModel> filterCategoryModels = new HashMap<String,RecordEventFilterCategoryModel>();
 
 	protected ObjectReplacementMap objReplMap = new ObjectReplacementMap();
 	
@@ -63,15 +65,14 @@ public class JotoContext {
 		
 		
 		RecordEventWriter asyncEventWriter = eventStore.getAsyncEventWriter();
-
-		this.captureFiltersWriterModel = new FilteringRecordEventWriterModel(asyncEventWriter);
-		captureFiltersWriterModel.setName("jotoContext.captureFiltersWriterModel");
-		captureFiltersWriterModel.setOwner(this);
-		captureFiltersWriterModel.getResultFilteringEventWriter().setOwner(captureFiltersWriterModel);
+		this.captureFilterCategoryModel = new RecordEventFilterCategoryModel(asyncEventWriter);
+		captureFilterCategoryModel.setName("jotoContext.captureFiltersWriterModel");
+		captureFilterCategoryModel.setOwner(this);
+		captureFilterCategoryModel.getResultFilteringEventWriter().setOwner(captureFilterCategoryModel);
 		
-		getOrCreateFilteringEventWriterModelCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
-//        getOrCreateFilteringEventWriterModelCategory("logs");
-//        getOrCreateFilteringEventWriterModelCategory("AWTSpy");
+		// getOrCreateFilteringEventWriterModelCategory(MethodCallCaptureCategoryPanel.METHODCALL_CAPTURE_CATEGORY);		
+        // getOrCreateFilteringEventWriterModelCategory(LogCallCaptureCategoryPanel.LOGS_CAPTURE_CATEGORY);
+        // getOrCreateFilteringEventWriterModelCategory(AWTEventCaptureCategoryPanel.AWTSPY_CAPTURE_CATEGORY);
 
 	
 		eventStore.open("rw");		
@@ -156,53 +157,54 @@ public class JotoContext {
 	}
 
     public RecordEventWriter getAsyncEventWriter() {
-        return captureFiltersWriterModel.getResultFilteringEventWriter();
+        return captureFilterCategoryModel.getResultFilteringEventWriter();
     }
 
-    public FilteringRecordEventWriterModel getCaptureFiltersWriterModel() {
-        return captureFiltersWriterModel;
+    public RecordEventFilterCategoryModel getCaptureFilterCategoryModel() {
+        return captureFilterCategoryModel;
     }
 
-	public FilteringRecordEventWriterModel getOrCreateFilteringEventWriterModelCategory(String name) {
-	    FilteringRecordEventWriterModel res = filteringEventWriterModelCategories.get(name);
+	public RecordEventFilterCategoryModel getOrCreateFilterCategoryModel(String name) {
+	    RecordEventFilterCategoryModel res = filterCategoryModels.get(name);
 	    if (res == null) {
-	        FilteringRecordEventWriter mainAsyncEventWriter = captureFiltersWriterModel.getResultFilteringEventWriter();
-	        res = new FilteringRecordEventWriterModel(mainAsyncEventWriter);
-	        
+	        FilteringRecordEventWriter mainAsyncEventWriter = captureFilterCategoryModel.getResultFilteringEventWriter();
+	        res = new RecordEventFilterCategoryModel(mainAsyncEventWriter);
+
+            res.setName(name);
+
 	        boolean debugOwner = true;
 	        if (debugOwner) {
 	            res.setOwner(this);
-                res.setName(name);
                 
 	            FilteringRecordEventWriter resFilter = res.getResultFilteringEventWriter();
     	        resFilter.setOwner(res);
     	        resFilter.setName(name);
 	        }
 	        
-	        filteringEventWriterModelCategories.put(name, res);
+	        filterCategoryModels.put(name, res);
 	    }
 	    return res;
 	}
 
-	public FilteringRecordEventWriter getOrCreateFilteringEventWriterCategory(String name) {
-	    FilteringRecordEventWriterModel tmpres = getOrCreateFilteringEventWriterModelCategory(name);
+	public FilteringRecordEventWriter getOrCreateFilterCategoryEventWriter(String name) {
+	    RecordEventFilterCategoryModel tmpres = getOrCreateFilterCategoryModel(name);
 	    return tmpres.getResultFilteringEventWriter();
 	}
 
-	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE) */
-	public FilteringRecordEventWriterModel getMethodCallEventWriterModelCategory() {
-	    return getOrCreateFilteringEventWriterModelCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+	/** helper method for getOrCreateFilteringEventWriterCategory(METHODCALL_CAPTURE_CATEGORY) */
+	public RecordEventFilterCategoryModel getMethodCallFilterCategoryModel() {
+	    return getOrCreateFilterCategoryModel(MethodCallCaptureCategoryPanel.METHODCALL_CAPTURE_CATEGORY);
 	}
 
-	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE).addFilter(filter) */
+	/** helper method for getOrCreateFilteringEventWriterCategory(DEFAULT_METHODCALL_CAPTURE_CATEGORY) */
+	public FilteringRecordEventWriter getMethodCallFilterCategoryEventWriter() {
+	    return getMethodCallFilterCategoryModel().getResultFilteringEventWriter();
+	}
+
+	/** helper method for getOrCreateFilteringEventWriterCategory(DEFAULT_METHODCALL_CAPTURE_CATEGORY).addFilter(filter) */
     public void addMethodCallFilter(RecordEventFilterFile filter) {
-    	getMethodCallEventWriterModelCategory().addFilterRow(filter);
+    	getMethodCallFilterCategoryModel().addFilterRow(filter);
     }
-
-	/** helper method for getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE) */
-	public FilteringRecordEventWriter getMethodCallEventWriterCategory() {
-	    return getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
-	}
 
 	/** 
 	 * helper method to create a default MethodEventWriterAopInterceptor, 
@@ -234,7 +236,7 @@ public class JotoContext {
 	 * @return
 	 */
 	public MethodEventWriterAopInterceptor createMethodEventWriterAopInterceptor(String writerCategory, String eventType) {
-		FilteringRecordEventWriter eventWriter = getOrCreateFilteringEventWriterCategory(writerCategory);
+		FilteringRecordEventWriter eventWriter = getOrCreateFilterCategoryEventWriter(writerCategory);
 		MethodEventWriterAopInterceptor res = 
 				new MethodEventWriterAopInterceptor(eventWriter, eventType); 
 		return res;
@@ -243,7 +245,7 @@ public class JotoContext {
 	public MethodEventWriterProxyTransformer getDefaultMethodEventWriterProxyTransformer() {
 		if (defaultMethodEventWriterProxyTransformer == null) {
 			RecordEventWriter methodCallWriter = 
-					getOrCreateFilteringEventWriterCategory(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+					getOrCreateFilterCategoryEventWriter(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
 			defaultMethodEventWriterProxyTransformer = 
 					new MethodEventWriterProxyTransformer(methodCallWriter, this.getObjReplMap());
 		}

@@ -1,15 +1,8 @@
 package com.google.code.joto.ui.capture;
 
-import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
-import com.google.code.joto.ui.JotoContext;
-import com.google.code.joto.ui.filter.FilteringRecordEventWriterModel;
-import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
-import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
-import com.google.code.joto.util.ui.IconUtils;
-import com.google.code.joto.util.ui.JButtonUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -18,9 +11,15 @@ import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.WindowConstants;
 
-import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.filter.RecordEventFilterCategoryModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
+import com.google.code.joto.util.ui.IconUtils;
+import com.google.code.joto.util.ui.JButtonUtils;
 
 
 /**
@@ -56,6 +55,7 @@ public class EventRecorderToolbar {
 		context.addPropertyChangeListener(modelChangeListener); 
 		
 		toolbar = new JToolBar();
+		toolbar.setFloatable(false);
 		
 		ImageIcon playIcon = IconUtils.getBasic32().get("play");
 		startRecordButton = JButtonUtils.snew(playIcon, "start record", this, "onButtonStartRecord");
@@ -74,11 +74,11 @@ public class EventRecorderToolbar {
 			captureFiltersPanel = new RecordEventFilterFileTablePanel(captureFiltersTableModel);
 		}
 
-		{ // methodCall filter
+		{ // methodCall filter (shortcut for tab "methodCall" -> button)
 			ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
-			FilteringRecordEventWriterModel filterWriterModel = 
-					context.getMethodCallEventWriterModelCategory();
-			showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "meth filter", filterWriterModel, "onShowFilterFrame");
+			RecordEventFilterCategoryModel categoryModel = 
+					context.getMethodCallFilterCategoryModel();
+			showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "meth filter", categoryModel, "onShowFilterFrame");
 			toolbar.add(showCaptureFiltersButton);
 		}
 
