@@ -22,7 +22,7 @@ import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
  * internally use a RecordEventFilterItemTableModel to edit list of filter to apply
  * 
  */
-public class FilteringRecordEventWriterModel {
+public class RecordEventFilterCategoryModel {
 
     protected RecordEventFilterFileTableModel filterItemTableModel;
     
@@ -39,7 +39,7 @@ public class FilteringRecordEventWriterModel {
 
     // ------------------------------------------------------------------------
     
-    public FilteringRecordEventWriterModel(RecordEventWriter underlyingEventWriter) {
+    public RecordEventFilterCategoryModel(RecordEventWriter underlyingEventWriter) {
         this.resultFilteringEventWriter = new FilteringRecordEventWriter(underlyingEventWriter);
         this.filterItemTableModel = new RecordEventFilterFileTableModel();
         
@@ -53,7 +53,11 @@ public class FilteringRecordEventWriterModel {
         return resultFilteringEventWriter;
     }
     
-    public String getName() {
+    public RecordEventFilterFileTableModel getFilterItemTableModel() {
+		return filterItemTableModel;
+	}
+
+	public String getName() {
         return name;
     }
 

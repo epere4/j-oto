@@ -7,6 +7,9 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import com.google.code.joto.ui.JotoContext;
+import com.google.code.joto.ui.spy.awtspy.AWTEventCaptureCategoryPanel;
+import com.google.code.joto.ui.spy.calls.LogCallCaptureCategoryPanel;
+import com.google.code.joto.ui.spy.logs.MethodCallCaptureCategoryPanel;
 
 /**
  * swing Panel for controling Capture of RecordEvent in RecordEventStore
@@ -24,8 +27,8 @@ public class RecordEventsCapturePanel {
 	
 	protected EventRecorderToolbar toolbar;
 	
-	protected JTabbedPane tabbedPane;
-		
+	protected JTabbedPane tabbedCategoryPane;
+	
 	// ------------------------------------------------------------------------
 
 	public RecordEventsCapturePanel(JotoContext context) {
@@ -38,10 +41,21 @@ public class RecordEventsCapturePanel {
 		
 		toolbar = new EventRecorderToolbar(context);
 		panel.add(toolbar.getJComponent(), BorderLayout.NORTH);
+	
+		tabbedCategoryPane = new JTabbedPane();
+		panel.add(tabbedCategoryPane, BorderLayout.CENTER);
 		
+		addDefaultsCategoryPanels();
 	}
 
+	protected void addDefaultsCategoryPanels() {
+		addCategoryPanel(new MethodCallCaptureCategoryPanel(context));
+		addCategoryPanel(new AWTEventCaptureCategoryPanel(context));
+		addCategoryPanel(new LogCallCaptureCategoryPanel(context));
+	}
+	
 	// ------------------------------------------------------------------------
+
 
 	public JComponent getJComponent() {
 		return panel;
@@ -51,4 +65,7 @@ public class RecordEventsCapturePanel {
 		this.context = p;
 	}
 	
+	public void addCategoryPanel(RecordEventsCaptureCategoryPanel p) {
+		tabbedCategoryPane.add(p.getTabName(), p.getJComponent());
+	}
 }

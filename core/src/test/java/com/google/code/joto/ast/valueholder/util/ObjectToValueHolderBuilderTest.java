@@ -3,7 +3,6 @@ package com.google.code.joto.ast.valueholder.util;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;

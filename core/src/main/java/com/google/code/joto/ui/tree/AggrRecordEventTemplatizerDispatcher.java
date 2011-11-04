@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.google.code.joto.eventrecorder.RecordEventSummary;
 import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.ui.tree.AggrRecordEventTemplateTreeNodeAST.AbstractAggrEventTreeNode;
+import com.google.code.joto.ui.tree.aggrs.IgnoreAggrRecordEventTemplatizer;
 import com.google.code.joto.ui.tree.aggrs.MethodCallEventTemplatizer;
 import com.google.code.joto.util.PriorityList;
 
@@ -88,6 +89,10 @@ public class AggrRecordEventTemplatizerDispatcher implements Serializable {
 		// apply templatizer
 		if (foundTemplatizer == null) {
 			log.warn("no templatizer for aggregating event type " + eventType + " .. default NOT IMPLEMENTED YET => ignore event");
+			
+			// to log once... register the "do-nothing" templatizer...
+			addEventTypeTemplatizer(eventType, IgnoreAggrRecordEventTemplatizer.getInstance(), 0);
+			
 			res = null;
 		} else {
 			res = foundTemplatizer.aggregateTemplatizedEvent(target, event);
