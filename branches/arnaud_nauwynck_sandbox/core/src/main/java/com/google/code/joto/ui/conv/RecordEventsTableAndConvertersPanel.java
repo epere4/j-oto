@@ -21,6 +21,7 @@ import com.google.code.joto.eventrecorder.processor.DispatcherRecordEventsProces
 import com.google.code.joto.eventrecorder.processor.RecordEventsProcessorFactory;
 import com.google.code.joto.eventrecorder.processor.impl.ObjToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.processor.impl.XStreamFormatterRecordEventsProcessor;
+import com.google.code.joto.eventrecorder.spy.awtspy.AWTRecordEventWriterSpy;
 import com.google.code.joto.eventrecorder.spy.calls.MethodCallEventUtils;
 import com.google.code.joto.eventrecorder.spy.calls.MethodCallToCodeRecordEventsProcessor;
 import com.google.code.joto.eventrecorder.spy.calls.ObjectReplacementMap;
@@ -69,6 +70,8 @@ public class RecordEventsTableAndConvertersPanel {
 		this.splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
 				recordEventTablePane.getJComponent(), selectionTabbedPane);
 		splitPane.setDividerLocation(0.4);
+		AWTRecordEventWriterSpy.setIgnoreComponentAwtEventSpy(splitPane);
+
 		
 		recordEventTablePane.getRecordEventTable().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {

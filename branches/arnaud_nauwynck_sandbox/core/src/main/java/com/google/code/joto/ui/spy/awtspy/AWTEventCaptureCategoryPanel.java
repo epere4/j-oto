@@ -12,6 +12,7 @@ import javax.swing.JToolBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.code.joto.eventrecorder.spy.awtspy.AWTEventInfos;
 import com.google.code.joto.eventrecorder.spy.awtspy.AWTRecordEventWriterSpy;
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.capture.RecordEventsCaptureCategoryPanel;
@@ -204,7 +205,7 @@ public class AWTEventCaptureCategoryPanel extends RecordEventsCaptureCategoryPan
 	
 	/** called by introspection, GUI callback */
 	public void onButtonSelectAll(ActionEvent event) {
-		awtSpy.setAwtEventMask(AWTRecordEventWriterSpy.ALL_AWTEVENTS_MASK);
+		awtSpy.setAwtEventMask(AWTEventInfos.ALL_AWTEVENTS_MASK);
 		for (JCheckBox cb : eventMaskCheckBoxes) {
 			cb.setSelected(true);
 		}

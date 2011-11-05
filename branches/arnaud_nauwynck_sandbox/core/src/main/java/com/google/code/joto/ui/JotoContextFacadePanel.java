@@ -6,6 +6,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import com.google.code.joto.eventrecorder.spy.awtspy.AWTRecordEventWriterSpy;
 import com.google.code.joto.ui.capture.RecordEventsCapturePanel;
 import com.google.code.joto.ui.config.JotoConfigPanel;
 import com.google.code.joto.ui.conv.RecordEventsTableAndConvertersPanel;
@@ -44,6 +45,7 @@ public class JotoContextFacadePanel {
 
 	private void initComponents() {
 		panel = new JPanel(new BorderLayout());
+		AWTRecordEventWriterSpy.setIgnoreComponentAwtEventSpy(panel);
 		
 		tabbedPane = new JTabbedPane();
 		panel.add(tabbedPane, BorderLayout.CENTER);

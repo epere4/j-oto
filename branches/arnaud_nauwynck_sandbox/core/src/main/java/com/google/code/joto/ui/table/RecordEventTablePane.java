@@ -8,6 +8,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
+import com.google.code.joto.eventrecorder.spy.awtspy.AWTRecordEventWriterSpy;
 
 /**
  * swing Panel containing a table of RecordEvent  
@@ -27,7 +28,7 @@ public class RecordEventTablePane {
 //		recordEventTable.setRowSorter(new TableRowSorter<AbstractRecordEventTableModel>(recordEventTableModel));
 		
 		this.recordEventScrollPane = new JScrollPane(recordEventTable);
-
+		AWTRecordEventWriterSpy.setIgnoreComponentAwtEventSpy(recordEventScrollPane);
 	}
 
 	// ------------------------------------------------------------------------
