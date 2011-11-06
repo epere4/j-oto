@@ -3,6 +3,7 @@ package com.google.code.joto.eventrecorder.spy.awtspy;
 import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
@@ -72,6 +73,15 @@ public class AWTRecordEventWriterSpy {
 				onAWTEventDispatched(event);
 			}
 		};
+		
+		enable = false;
+		for (AWTEventMaskInfo maskInfo : AWTEventMaskInfo.values()) {
+			setAwtEventMaskFlag(maskInfo, maskInfo.getDefaultSelected());
+			
+			for (AWTEventGroupInfo eventGroup : maskInfo.getEventGroups()) {
+				setEventGroupFlag(eventGroup, eventGroup.getDefaultSelected());
+			}
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -140,6 +150,21 @@ public class AWTRecordEventWriterSpy {
 		}
 	}
 
+	public boolean getAwtEventMaskFlag(AWTEventMaskInfo awtEventMaskInfo) {
+		return 0 != (awtEventMask & awtEventMaskInfo.getFlag());
+	}
+
+	public void setAwtEventMaskFlag(AWTEventMaskInfo awtEventMaskInfo, boolean p) {
+		long newMask = clearOrSetFlag(awtEventMask, awtEventMaskInfo.getFlag(), p);
+		setAwtEventMask(newMask);
+	}
+
+	public static long clearOrSetFlag(long mask, long flag, boolean isSetFlag) {
+		long res = (isSetFlag)? (mask | flag) : (mask & (~flag));
+		return res;
+	}
+	
+	
 	public static String maskToString(long mask) {
 		StringBuilder sb = new StringBuilder();
 		for (AWTEventMaskInfo flagInfo : AWTEventMaskInfo.values()) {
@@ -167,6 +192,7 @@ public class AWTRecordEventWriterSpy {
 		AWTEventGroupFlag tmp = eventGroupFlags.get(key);
 		if (tmp == null) {
 			tmp = new AWTEventGroupFlag();
+			tmp.enable = key.getDefaultSelected();
 			eventGroupFlags.put(key, tmp);
 		}
 		return tmp;
@@ -238,15 +264,45 @@ public class AWTRecordEventWriterSpy {
             break;
 	
 		// KeyEvent
-		case KeyEvent.KEY_PRESSED:
-        	eventInfo = AWTEventInfo.KEY_PRESSED;
-			break;
-		case KeyEvent.KEY_RELEASED:
-        	eventInfo = AWTEventInfo.KEY_RELEASED;
-			break;
-		case KeyEvent.KEY_TYPED:
-        	eventInfo = AWTEventInfo.KEY_TYPED;
-			break;
+        case KeyEvent.KEY_PRESSED:
+        case KeyEvent.KEY_RELEASED:
+        case KeyEvent.KEY_TYPED: {
+        	KeyEvent e = (KeyEvent) event;
+        	
+        	switch(event.getID()) {
+	        case KeyEvent.KEY_PRESSED: {
+	        	eventInfo = AWTEventInfo.KEY_PRESSED;
+			} break;
+			case KeyEvent.KEY_RELEASED: {
+	        	eventInfo = AWTEventInfo.KEY_RELEASED;
+			} break;
+			case KeyEvent.KEY_TYPED: {
+	        	eventInfo = AWTEventInfo.KEY_TYPED;
+			} break;
+			default:
+				eventInfo = null; // for compiler, can not occur
+        	}
+
+        	eventMethodDetail = "";
+            if (e.getModifiers() != 0) {
+            	eventMethodDetail += KeyEvent.getKeyModifiersText(e.getModifiers()) + " ";
+            }
+            if (e.getModifiersEx() != 0) {
+            	eventMethodDetail += KeyEvent.getModifiersExText(e.getModifiers()) + " ";
+            }
+            String keyCharStr = keyCharToString(e.getKeyChar());
+            if (keyCharStr != null) {
+            	eventMethodDetail += keyCharStr;
+            }
+            if (e.getKeyCode() != 0) {
+            	eventMethodDetail += " (keyCode=" + Integer.toString(e.getKeyCode()) + ")";
+            }
+        	String keyText = KeyEvent.getKeyText(e.getKeyCode());
+        	if (keyText.indexOf("unknown") != -1) {
+        		eventMethodDetail += " " + keyText; 
+        	}
+        	
+		} break;
 
 		// MouseEvent 
 		case MouseEvent.MOUSE_PRESSED:
@@ -458,6 +514,10 @@ public class AWTRecordEventWriterSpy {
 				eventMethodName = null;
 			}
 
+			if (eventMethodDetail == null) {
+				eventMethodDetail = event.paramString(); // default built-in <<toString>> from AWT 
+			}
+			
 			RecordEventSummary recordEvent = new RecordEventSummary();
 			recordEvent.setEventType("AWTSpy");
 			recordEvent.setEventSubType(typeStr);
@@ -475,4 +535,21 @@ public class AWTRecordEventWriterSpy {
 		}
 	}
 
+	
+	private static String keyCharToString(char keyChar) {
+        String res;
+		switch (keyChar) {
+		case '\b': res = KeyEvent.getKeyText(KeyEvent.VK_BACK_SPACE); break;
+		case '\t': res = KeyEvent.getKeyText(KeyEvent.VK_TAB); break;
+		case '\n': res = KeyEvent.getKeyText(KeyEvent.VK_ENTER); break;
+		case '\u0018': res = KeyEvent.getKeyText(KeyEvent.VK_CANCEL); break;
+		case '\u001b': res = KeyEvent.getKeyText(KeyEvent.VK_ESCAPE); break;
+		case '\u007f': res = KeyEvent.getKeyText(KeyEvent.VK_DELETE); break;
+		case KeyEvent.CHAR_UNDEFINED: res = null; break; // undefined...
+		default:
+			res = Character.toString(keyChar);
+			break;
+		}
+		return res;
+	}
 }

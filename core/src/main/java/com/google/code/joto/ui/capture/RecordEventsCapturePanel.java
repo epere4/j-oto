@@ -8,8 +8,8 @@ import javax.swing.JTabbedPane;
 
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.spy.awtspy.AWTEventCaptureCategoryPanel;
-import com.google.code.joto.ui.spy.calls.LogCallCaptureCategoryPanel;
-import com.google.code.joto.ui.spy.logs.MethodCallCaptureCategoryPanel;
+import com.google.code.joto.ui.spy.calls.MethodCallCaptureCategoryPanel;
+import com.google.code.joto.ui.spy.logs.LogCallCaptureCategoryPanel;
 
 /**
  * swing Panel for controling Capture of RecordEvent in RecordEventStore

@@ -1,5 +1,6 @@
 package com.google.code.joto.ui.capture;
 
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
+import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.filter.RecordEventFilterCategoryModel;
 import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
@@ -36,6 +38,9 @@ public abstract class RecordEventsCaptureCategoryPanel {
 
 	private JButton openExternalFilterTableFrame;
 
+	private JCheckBox showDetailsPanelCheckBox;
+	protected JPanel specificPanel;
+
 	// ------------------------------------------------------------------------
 	
 	public RecordEventsCaptureCategoryPanel(JotoContext context, String categoryName) {
@@ -50,10 +55,13 @@ public abstract class RecordEventsCaptureCategoryPanel {
 	}
 	
 	private void initComponents() {
-		this.panel = new JPanel(new GridBagLayout());
-		GridBagLayoutFormBuilder b = new GridBagLayoutFormBuilder(panel);
+		this.panel = new JPanel(new BorderLayout());
+
+		JPanel northPanel = new JPanel(new GridBagLayout());
+		panel.add(northPanel, BorderLayout.NORTH);
+		GridBagLayoutFormBuilder b = new GridBagLayoutFormBuilder(northPanel);
 		
-		filterEnableEventsCheckBox = JCheckBoxUtils.snew("Enable Filter Events", true, this, "onCheckboxFilterEnableEvents");
+		filterEnableEventsCheckBox = JCheckBoxUtils.snew("Enable Events", true, this, "onCheckboxFilterEnableEvents");
 		b.addCompFillRow(filterEnableEventsCheckBox);
 
 		{
@@ -68,13 +76,13 @@ public abstract class RecordEventsCaptureCategoryPanel {
 		
 		filtersPanel = new RecordEventFilterFileTablePanel(filterCategoryModel.getFilterItemTableModel());
 		b.addCompFillRow(filtersPanel.getJComponent());
-				
 		filtersPanel.getJComponent().setVisible(showEmbeddedFilterTablePanelCheckBox.isSelected());
-		postInitComponents(b);
-	}
 
-	protected void postInitComponents(GridBagLayoutFormBuilder b) {
-		// cf sub-classes
+		showDetailsPanelCheckBox = JCheckBoxUtils.snew("show details", true, this, "onCheckBoxShowDetailsPanel");
+		b.addCompFillRow(showDetailsPanelCheckBox);
+		
+		specificPanel = new JPanel();
+		panel.add(specificPanel, BorderLayout.CENTER);
 	}
 
 	// ------------------------------------------------------------------------
@@ -88,6 +96,14 @@ public abstract class RecordEventsCaptureCategoryPanel {
 		return filterCategoryModel.getName();
 	}
 	
+	public RecordEventFilterCategoryModel getFilterCategoryModel() {
+		return filterCategoryModel;
+	}
+
+	public FilteringRecordEventWriter getFilterCategoryEventWriter() {
+		return filterCategoryModel.getResultFilteringEventWriter();
+	}
+
 	/** called by introspection, GUI callback for JCheckBox showEmbeddedFilterTablePanelCheckBox */
 	public void onCheckboxFilterEnableEvents(ActionEvent event) {
 		filterCategoryModel.getResultFilteringEventWriter().setEnable(filterEnableEventsCheckBox.isSelected());
@@ -103,5 +119,8 @@ public abstract class RecordEventsCaptureCategoryPanel {
 		filterCategoryModel.showFilterFrame();
 	}
 	
-	
+	/** called by introspection, GUI callback for JCheckBox */
+	public void onCheckBoxShowDetailsPanel(ActionEvent event) {
+		specificPanel.setVisible(showDetailsPanelCheckBox.isSelected());
+	}
 }
