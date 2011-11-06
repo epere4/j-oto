@@ -92,7 +92,29 @@ public class GridBagLayoutFormBuilder {
 		
 		newline();
 	}
+
+	public void addCompRow(JComponent jcomp) { 
+		addCompRow(jcomp, 0.0);
+	}
 	
+	public void addCompRow(JComponent jcomp, double weightY) { 
+		compC.gridx = labelC.gridx; // tmp set
+		compC.gridwidth = 2;
+		if (weightY == 0.0) {
+			compC.fill = GridBagConstraints.HORIZONTAL;
+		}
+		compC.weighty = weightY;
+		
+		parent.add(jcomp, compC);
+		
+		// restore from tmp set
+		compC.gridx = labelC.gridx + 1;
+		compC.gridwidth = 1;
+		compC.weighty = 0.0;
+		compC.fill = GridBagConstraints.BOTH;
+		
+		newline();
+	}
 
 	private void newline() {
 		labelC.gridy++;

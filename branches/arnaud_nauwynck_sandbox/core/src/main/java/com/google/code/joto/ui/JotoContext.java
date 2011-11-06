@@ -20,7 +20,7 @@ import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.eventrecorder.writer.RecordEventWriter;
 import com.google.code.joto.ui.filter.RecordEventFilterCategoryModel;
 import com.google.code.joto.ui.filter.RecordEventFilterFile;
-import com.google.code.joto.ui.spy.logs.MethodCallCaptureCategoryPanel;
+import com.google.code.joto.ui.spy.calls.MethodCallCaptureCategoryPanel;
 
 /**
  *

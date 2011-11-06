@@ -13,6 +13,9 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.code.joto.util.ui.GridBagLayoutFormBuilder;
 import com.google.code.joto.util.ui.JButtonUtils;
 
@@ -20,7 +23,9 @@ import com.google.code.joto.util.ui.JButtonUtils;
  *
  */
 public class FooPanel {
-
+	
+	private static Logger log = LoggerFactory.getLogger(FooPanel.class);
+	
 	private IFooService fooService;
 	
 	private JPanel panel;
@@ -87,15 +92,35 @@ public class FooPanel {
 
 	/** called by introspection, for GUI callback */
 	public void onButtonMethInt(ActionEvent event) {
-		int arg1 = Integer.parseInt(int1TextField.getText());
-		int arg2 = Integer.parseInt(int2TextField.getText());
+		int arg1;
+		int arg2;
+		try {
+			arg1 = Integer.parseInt(int1TextField.getText());
+			arg2 = Integer.parseInt(int2TextField.getText());
+		} catch(NumberFormatException ex) {
+			log.error("Bad number format .. do nothing! ex:" + ex.getMessage());
+			return;
+		}
 		fooService.methInt(arg1, arg2);
 	}
 
 	/** called by introspection, for GUI callback */
 	public void onButtonMethDouble(ActionEvent event) {
-		double arg1 = Double.parseDouble(double1TextField.getText());
-		double arg2 = Double.parseDouble(double2TextField.getText());
+		double arg1;
+		double arg2;
+		try {
+			arg1 = Double.parseDouble(double1TextField.getText());
+		} catch(NumberFormatException ex) {
+			log.error("Bad number format .. use arg1=0 !!! " + ex.getMessage());
+			arg1 = 0;
+		}
+		try {
+			arg2 = Double.parseDouble(double2TextField.getText());
+		} catch(NumberFormatException ex) {
+			log.error("Bad number format .. use arg2=0 !!! " + ex.getMessage());
+			arg2 = 0;
+		}
+
 		fooService.methDouble(arg1, arg2);
 	}
 
@@ -105,7 +130,8 @@ public class FooPanel {
 		Date arg1;
 		try {
 			arg1 = sdf.parse(dateTextField.getText());
-		} catch (ParseException e) {
+		} catch (ParseException ex) {
+			log.error("Bad date format (expecting yyyy/MM/dd).. use arg1=null !!! " + ex.getMessage());
 			arg1 = null;
 		}
 		int arg2 = Integer.parseInt(int1TextField.getText());

@@ -3,6 +3,7 @@ package com.google.code.joto.eventrecorder.spy.log;
 import java.util.Date;
 import java.util.Map;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
@@ -20,6 +21,10 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 	
 	private String eventType = LogbackEventData.EVENT_TYPE;
 	
+	protected boolean enable = true;
+
+	protected int minimumLevel = Level.ALL_INT;
+	
 	// -------------------------------------------------------------------------
 	
 	public EventStoreWriterLogbackAppender(RecordEventWriter eventWriter, String eventType) {
@@ -29,6 +34,30 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 	}
 
 	// -------------------------------------------------------------------------
+
+	public boolean isEnable() {
+		return enable;
+	}
+
+	public void setEnable(boolean p) {
+		this.enable = p;
+	}
+	
+	public int getMinimumLevel() {
+		return minimumLevel;
+	}
+
+	public void setMinimumLevel(int p) {
+		this.minimumLevel = p;
+	}
+
+	public void setMinimumLevel(Level p) {
+		this.minimumLevel = (p != null)? p.toInt() : Level.ALL_INT;
+	}
+
+	// implements AppenderBase
+	// ------------------------------------------------------------------------
+	
 
 	@Override
 	public void start() {
@@ -41,9 +70,15 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 		super.start();
 	}
 
+
 	@Override
 	protected void append(ILoggingEvent p) {
-		if (eventWriter == null || !eventWriter.isEnable()) {
+		if (!enable || eventWriter == null || !eventWriter.isEnable()) {
+			return;
+		}
+		
+		Level logLevel = p.getLevel();
+		if (logLevel.toInt() < minimumLevel) {
 			return;
 		}
 		
@@ -52,7 +87,8 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 		eventInfo.setEventType(eventType);
 		eventInfo.setThreadName(p.getThreadName());
 		eventInfo.setEventDate(new Date(p.getTimeStamp()));
-		eventInfo.setEventMethodName(p.getLoggerName());
+		eventInfo.setEventClassName(p.getLoggerName());
+		eventInfo.setEventMethodName(logLevel.toString().toLowerCase());
 
 		// use message instead of formattedMessage for header!!
 		// => use "... {0} .. {1} .." to compress event summary encoding
@@ -63,7 +99,7 @@ public class EventStoreWriterLogbackAppender extends AppenderBase<ILoggingEvent>
 		}
 
 		LogbackEventData eventData = new LogbackEventData();
-		eventData.setLevel(eventInfo, p.getLevel().toString());
+		eventData.setLevel(eventInfo, logLevel.toString());
 		eventData.setFormattedMessage(p.getFormattedMessage());
 		eventData.setArgumentArray(p.getArgumentArray());
 

@@ -158,78 +158,16 @@ public class AWTEventInfos {
 	/**
 	 * info for group of AWTEvent, to be enabled/disabled together
 	 */
-	public static enum AWTEventGroupInfo {
-		
-		COMPONENT_SHOWN_HIDDEN("Component Shown-Hiden", "ComponentEvent", //
-				AWTEventInfo.COMPONENT_SHOWN, AWTEventInfo.COMPONENT_HIDDEN),
-		COMPONENT_MOVED_RESIZED("Component Moved-Resized", "ComponentEvent", //
-				AWTEventInfo.COMPONENT_MOVED, AWTEventInfo.COMPONENT_RESIZED),
-		COMPONENT_ADDED_REMOVED("Component Added-Removed", "ContainerEvent", //
-				AWTEventInfo.COMPONENT_ADDED, AWTEventInfo.COMPONENT_REMOVED),
-		FOCUS_GAINED_LOST("Focus Gained-Lost", "FocusEvent", //
-				AWTEventInfo.FOCUS_GAINED, AWTEventInfo.FOCUS_LOST),
-		KEY_PRESSED_RELEASED("Key Pressed-Released", "KeyEvent", //
-				AWTEventInfo.KEY_PRESSED, AWTEventInfo.KEY_RELEASED, AWTEventInfo.KEY_TYPED),
-		MOUSE_PRESSED_RELEASED("Mouse Pressed-Released", "MouseEvent", //
-				AWTEventInfo.MOUSE_PRESSED, AWTEventInfo.MOUSE_RELEASED, AWTEventInfo.MOUSE_CLICKED),
-		MOUSE_MOVED("Mouse Moved", "MouseEvent", //
-				AWTEventInfo.MOUSE_MOVED, AWTEventInfo.MOUSE_DRAGGED),
-		MOUSE_WHEEL("Mouse Wheel", "MouseEvent", //
-				AWTEventInfo.MOUSE_WHEEL),
-		MOUSE_ENTERED_EXITED("Mouse Entered-Leaved", "MouseEvent", //
-				AWTEventInfo.MOUSE_ENTERED, AWTEventInfo.MOUSE_EXITED),
-				
-		// MOUSE_MOTION("Mouse Motion", "MouseEvent" //
-		// 		),
-		WINDOW_OPENED_CLOSED("Window Opened-Closed", "WindowEvent", //
-				AWTEventInfo.WINDOW_OPENED, AWTEventInfo.WINDOW_CLOSING, AWTEventInfo.WINDOW_CLOSED),
-		WINDOW_ICONIFIED_DEICONIFIED("Window Iconified-Deiconified", "WindowEvent", //
-				AWTEventInfo.WINDOW_ICONIFIED, AWTEventInfo.WINDOW_DEICONIFIED), 
-		WINDOW_ACTIVATED_DEACTIVATED("Window Activated-Deiconified", "WindowEvent", //
-				AWTEventInfo.WINDOW_ACTIVATED, AWTEventInfo.WINDOW_DEACTIVATED),
-		WINDOW_FOCUS_GAINED_LOST("Window Focus Gained-Lost", "WindowEvent", //
-				AWTEventInfo.WINDOW_GAINED_FOCUS, AWTEventInfo.WINDOW_LOST_FOCUS), 
-		WINDOW_STATE_CHANGED("Window State Changed", "WindowEvent", //
-				AWTEventInfo.WINDOW_STATE_CHANGED),
-		
-		ACTION_PERFORMED("ActionPerformed", "ActionEvent", //
-				AWTEventInfo.ACTION_PERFORMED),
-		ADJUSTMENT_VALUE_CHANGED("AdjustmentValuedChanged", "AdjustmentEvent", //
-				AWTEventInfo.ADJUSTMENT_VALUE_CHANGED),
-		ITEM_STATE_CHANGED("ItemStateChanged", "ItemEvent", //
-				AWTEventInfo.ITEM_STATE_CHANGED),
-		TEXT_VALUE_CHANGED("TextValueChanged", "TextEvent", //
-				AWTEventInfo.TEXT_VALUE_CHANGED),
-		INPUT_METHOD_TEXT_CHANGED("TextChanged", "InputMethodEvent", //
-				AWTEventInfo.INPUT_METHOD_TEXT_CHANGED, AWTEventInfo.CARET_POSITION_CHANGED),
-		PAINT_EVENTS("PaintEvent", "PainEvent", //
-				AWTEventInfo.PAINT_FIRST, AWTEventInfo.PAINT_LAST), 
-		INVOCATION_EVENT("Invocation", "InvocationEvent", //
-				AWTEventInfo.INVOCATION_DEFAULT),
-		HIERARCHY_ANCESTORS("Hierarchy Ancestor Moved-Resized", "HierarchyEvent", //
-				AWTEventInfo.ANCESTOR_MOVED, AWTEventInfo.ANCESTOR_RESIZED, AWTEventInfo.HIERARCHY_CHANGED),
-		HIERARCHY_CHANGED("Hierarchy Changed", "HierarchyEvent", //
-				AWTEventInfo.HIERARCHY_CHANGED),
-		HIERARCHY_BOUNDS_EVENTS("Hierarchy Bounds", "HierarchyEvent" //
-				),
-		MOUSE_WHEEL_EVENTS("Mouse Wheel", "MouseEvent" //
-				),
-		WINDOW_STATE_EVENTS("Window State", "WindowEvent" //
-				),
-		WINDOW_FOCUS_EVENTS("Window Focus", "WindowEvent" // 
-				),
-				
-		UNKNOWN("Unkown Events Group", "", // 
-				AWTEventInfo.UNKNOWN_EVENT);
-
+	public static class AWTEventGroupInfo {
+		public static final AWTEventGroupInfo UNKNOWN = new AWTEventGroupInfo("unknown", false);
 		
 		private final String groupName;
-		private final String eventClassName;
+		private boolean defaultSelected;
 		private final AWTEventInfo[] eventInfos;
 		
-		AWTEventGroupInfo(String groupName, String eventClassName, AWTEventInfo... eventInfos) {
+		AWTEventGroupInfo(String groupName, boolean defaultSelected, AWTEventInfo... eventInfos) {
 			 this.groupName = groupName;
-			 this.eventClassName = eventClassName;
+			 this.defaultSelected = defaultSelected;
 			 this.eventInfos = eventInfos;
 			 if (eventInfos != null) {
 				 for (AWTEventInfo e : eventInfos) {
@@ -242,8 +180,8 @@ public class AWTEventInfos {
 		public String getGroupName() {
 			return groupName;
 		}
-		public String getEventClassName() {
-			return eventClassName;
+		public boolean getDefaultSelected() {
+			return defaultSelected;
 		}
 		public AWTEventInfo[] getEventInfos() {
 			return eventInfos;
@@ -256,50 +194,58 @@ public class AWTEventInfos {
 	public static enum AWTEventMaskInfo {
 
 		COMPONENT_EVENT_MASK(AWTEvent.COMPONENT_EVENT_MASK, "COMPONENT_EVENT_MASK", "ComponentEvent", //
-				AWTEventGroupInfo.COMPONENT_SHOWN_HIDDEN, AWTEventGroupInfo.COMPONENT_MOVED_RESIZED),
+				new AWTEventGroupInfo("Shown-Hiden", true, AWTEventInfo.COMPONENT_SHOWN, AWTEventInfo.COMPONENT_HIDDEN),
+				new AWTEventGroupInfo("Moved-Resized", false, AWTEventInfo.COMPONENT_MOVED, AWTEventInfo.COMPONENT_RESIZED)),
 		CONTAINER_EVENT_MASK(AWTEvent.CONTAINER_EVENT_MASK, "CONTAINER_EVENT_MASK", "ContainerEvent", //
-				AWTEventGroupInfo.COMPONENT_ADDED_REMOVED),
+				new AWTEventGroupInfo("Added-Removed", false, AWTEventInfo.COMPONENT_ADDED, AWTEventInfo.COMPONENT_REMOVED)),
 		FOCUS_EVENT_MASK(AWTEvent.FOCUS_EVENT_MASK, "FOCUS_EVENT_MASK", "FocusEvent", //
-				AWTEventGroupInfo.FOCUS_GAINED_LOST),
+				new AWTEventGroupInfo("Focus Gained-Lost", false, AWTEventInfo.FOCUS_GAINED, AWTEventInfo.FOCUS_LOST)),
 		KEY_EVENT_MASK(AWTEvent.KEY_EVENT_MASK, "KEY_EVENT_MASK", "KeyEvent", //
-				AWTEventGroupInfo.KEY_PRESSED_RELEASED),
+				new AWTEventGroupInfo("Pressed-Released", false, AWTEventInfo.KEY_PRESSED, AWTEventInfo.KEY_RELEASED),
+				new AWTEventGroupInfo("Typed", true, AWTEventInfo.KEY_TYPED)),
 		MOUSE_EVENT_MASK(AWTEvent.MOUSE_EVENT_MASK, "MOUSE_EVENT_MASK", "MouseEvent", //
-				AWTEventGroupInfo.MOUSE_PRESSED_RELEASED, 
-				AWTEventGroupInfo.MOUSE_MOVED, 
-				AWTEventGroupInfo.MOUSE_ENTERED_EXITED, 
-				AWTEventGroupInfo.MOUSE_WHEEL),
+				new AWTEventGroupInfo("Pressed-Released", false, AWTEventInfo.MOUSE_PRESSED, AWTEventInfo.MOUSE_RELEASED),
+				new AWTEventGroupInfo("Clicked", true, AWTEventInfo.MOUSE_CLICKED),
+				new AWTEventGroupInfo("Moved", false, AWTEventInfo.MOUSE_MOVED),
+				new AWTEventGroupInfo("Dragged", true, AWTEventInfo.MOUSE_DRAGGED),
+				new AWTEventGroupInfo("Wheel", false, AWTEventInfo.MOUSE_WHEEL),
+				new AWTEventGroupInfo("Entered-Leaved", false, AWTEventInfo.MOUSE_ENTERED, AWTEventInfo.MOUSE_EXITED)
+		),
 		MOUSE_MOTION_EVENT_MASK(AWTEvent.MOUSE_MOTION_EVENT_MASK, "MOUSE_MOTION_EVENT_MASK", "MouseEvent" //
 				),
 		WINDOW_EVENT_MASK(AWTEvent.WINDOW_EVENT_MASK, "WINDOW_EVENT_MASK", "WindowEvent", //
-				AWTEventGroupInfo.WINDOW_OPENED_CLOSED,
-				AWTEventGroupInfo.WINDOW_ICONIFIED_DEICONIFIED, 
-				AWTEventGroupInfo.WINDOW_ACTIVATED_DEACTIVATED,
-				AWTEventGroupInfo.WINDOW_FOCUS_GAINED_LOST, 
-				AWTEventGroupInfo.WINDOW_STATE_CHANGED),
+				new AWTEventGroupInfo("Opened-Closed", true, AWTEventInfo.WINDOW_OPENED, AWTEventInfo.WINDOW_CLOSING, AWTEventInfo.WINDOW_CLOSED),
+				new AWTEventGroupInfo("Iconified-Deiconified", false, AWTEventInfo.WINDOW_ICONIFIED, AWTEventInfo.WINDOW_DEICONIFIED), 
+				new AWTEventGroupInfo("Activated-Deiconified", false, AWTEventInfo.WINDOW_ACTIVATED, AWTEventInfo.WINDOW_DEACTIVATED),
+				new AWTEventGroupInfo("Focus Gained-Lost", false, AWTEventInfo.WINDOW_GAINED_FOCUS, AWTEventInfo.WINDOW_LOST_FOCUS), 
+				new AWTEventGroupInfo("State Changed", false, AWTEventInfo.WINDOW_STATE_CHANGED)
+		),
 		ACTION_EVENT_MASK(AWTEvent.ACTION_EVENT_MASK, "ACTION_EVENT_MASK", "ActionEvent", //
-				AWTEventGroupInfo.ACTION_PERFORMED),
+				new AWTEventGroupInfo("ActionPerformed", true, AWTEventInfo.ACTION_PERFORMED)
+		),
 		ADJUSTMENT_EVENT_MASK(AWTEvent.ADJUSTMENT_EVENT_MASK, "ADJUSTMENT_EVENT_MASK", "AdjustmentEvent", //
-				AWTEventGroupInfo.ADJUSTMENT_VALUE_CHANGED),
+				new AWTEventGroupInfo("ValuedChanged", true, AWTEventInfo.ADJUSTMENT_VALUE_CHANGED)
+		),
 		ITEM_EVENT_MASK(AWTEvent.ITEM_EVENT_MASK, "ITEM_EVENT_MASK", "ItemEvent", //
-				AWTEventGroupInfo.ITEM_STATE_CHANGED),
+				new AWTEventGroupInfo("ItemStateChanged", true, AWTEventInfo.ITEM_STATE_CHANGED)),
 		TEXT_EVENT_MASK(AWTEvent.TEXT_EVENT_MASK, "TEXT_EVENT_MASK", "TextEvent", //
-				AWTEventGroupInfo.TEXT_VALUE_CHANGED),
+				new AWTEventGroupInfo("TextValueChanged", true, AWTEventInfo.TEXT_VALUE_CHANGED)),
 		INPUT_METHOD_EVENT_MASK(AWTEvent.INPUT_METHOD_EVENT_MASK, "INPUT_METHOD_EVENT_MASK", "InputMethodEvent", //
-				AWTEventGroupInfo.INPUT_METHOD_TEXT_CHANGED),
+				new AWTEventGroupInfo("TextChanged", true, AWTEventInfo.INPUT_METHOD_TEXT_CHANGED, AWTEventInfo.CARET_POSITION_CHANGED)),
 		PAINT_EVENT_MASK(AWTEvent.PAINT_EVENT_MASK, "PAINT_EVENT_MASK", "PainEvent", //
-				AWTEventGroupInfo.PAINT_EVENTS), 
+				new AWTEventGroupInfo("PaintEvent", false, AWTEventInfo.PAINT_FIRST, AWTEventInfo.PAINT_LAST)), 
 		INVOCATION_EVENT_MASK(AWTEvent.INVOCATION_EVENT_MASK, "INVOCATION_EVENT_MASK", "InvocationEvent", //
-				AWTEventGroupInfo.INVOCATION_EVENT),
+				new AWTEventGroupInfo("Invocation", true, AWTEventInfo.INVOCATION_DEFAULT)),
 		HIERARCHY_EVENT_MASK(AWTEvent.HIERARCHY_EVENT_MASK, "HIERARCHY_EVENT_MASK", "HierarchyEvent",
-				AWTEventGroupInfo.HIERARCHY_ANCESTORS, AWTEventGroupInfo.HIERARCHY_CHANGED),
-		HIERARCHY_BOUNDS_EVENT_MASK(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK, "HIERARCHY_BOUNDS_EVENT_MASK", "HierarchyEvent" //
-				),
+				new AWTEventGroupInfo("Ancestor Moved-Resized", false, AWTEventInfo.ANCESTOR_MOVED, AWTEventInfo.ANCESTOR_RESIZED, AWTEventInfo.HIERARCHY_CHANGED)),
+		HIERARCHY_BOUNDS_EVENT_MASK(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK, "HIERARCHY_BOUNDS_EVENT_MASK", "HierarchyEvent", //
+				new AWTEventGroupInfo("Hierarchy Changed", false, AWTEventInfo.HIERARCHY_CHANGED)),
 		MOUSE_WHEEL_EVENT_MASK(AWTEvent.MOUSE_WHEEL_EVENT_MASK, "MOUSE_WHEEL_EVENT_MASK", "MouseEvent" //
 				),
 		WINDOW_STATE_EVENT_MASK(AWTEvent.WINDOW_STATE_EVENT_MASK, "WINDOW_STATE_EVENT_MASK", "WindowEvent" //
 				),
 		WINDOW_FOCUS_EVENT_MASK(AWTEvent.WINDOW_FOCUS_EVENT_MASK, "WINDOW_FOCUS_EVENT_MASK", "WindowEvent" // 
-				),;
+				);
 
 
 		private final long flag;
@@ -327,6 +273,18 @@ public class AWTEventInfos {
 			return eventGroups;
 		}
 		
+		public boolean getDefaultSelected() {
+			boolean res = false;
+			if (eventGroups != null) {
+				for (AWTEventGroupInfo g : eventGroups) {
+					if (g.getDefaultSelected()) {
+						res = true;
+						break;
+					}
+				}
+			}
+			return res;
+		}
 	}
 	
 	
