@@ -3,7 +3,6 @@ package com.google.code.joto.eventrecorder.spy.awtspy;
 import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
