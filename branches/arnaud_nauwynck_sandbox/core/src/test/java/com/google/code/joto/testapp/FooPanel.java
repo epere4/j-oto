@@ -3,6 +3,7 @@ package com.google.code.joto.testapp;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -50,19 +52,19 @@ public class FooPanel {
 
 		b.addLabelComp("foo()", JButtonUtils.snew("execute", this, "onButtonFoo"));
 
-		int1TextField = new JTextField();
+		int1TextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		b.addLabelComp("int 1", int1TextField);
-		int2TextField = new JTextField();
+		int2TextField = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		b.addLabelComp("int 2", int2TextField);
 		b.addLabelComp("methInt()", JButtonUtils.snew("execute", this, "onButtonMethInt"));
 
-		double1TextField = new JTextField();
+		double1TextField = new JFormattedTextField(NumberFormat.getNumberInstance());
 		b.addLabelComp("double 1", double1TextField);
-		double2TextField = new JTextField();
+		double2TextField = new JFormattedTextField(NumberFormat.getNumberInstance());
 		b.addLabelComp("double 2", double2TextField);
 		b.addLabelComp("methDouble()", JButtonUtils.snew("execute", this, "onButtonMethDouble"));
 
-		dateTextField = new JTextField();
+		dateTextField = new JFormattedTextField(new SimpleDateFormat("yyyy/MM/dd"));
 		b.addLabelComp("date", dateTextField);
 		b.addLabelComp("methDate()", JButtonUtils.snew("execute", this, "onButtonMethDate"));
 

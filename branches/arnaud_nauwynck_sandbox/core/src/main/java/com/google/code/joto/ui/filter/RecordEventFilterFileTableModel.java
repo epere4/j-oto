@@ -19,6 +19,7 @@ public class RecordEventFilterFileTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
 
 	public static enum ColumnInfo {
+		active("active", Boolean.class, true),
 		name("name", String.class, true),
 		description("description", String.class, true),
 		persistentFile("file", String.class, true), // use File.class ??
@@ -73,6 +74,7 @@ public class RecordEventFilterFileTableModel extends AbstractTableModel {
 		
 	}
 	
+	// ------------------------------------------------------------------------
 	
 	
 	private List<RecordEventFilterFile> rows = new ArrayList<RecordEventFilterFile>();
@@ -157,6 +159,7 @@ public class RecordEventFilterFileTableModel extends AbstractTableModel {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return null; // should not occur!
 		RecordEventFilterFile row = getRow(rowIndex);
 		switch(ColumnInfo.fromOrdinal(columnIndex)) {
+		case active: return row.isActive();
 		case name: return row.getName();
 		case description: return row.getDescription();
 		case persistentFile: {
@@ -201,6 +204,7 @@ public class RecordEventFilterFileTableModel extends AbstractTableModel {
 		if (rowIndex < 0 || rowIndex >= rows.size()) return; // should not occur!
 		RecordEventFilterFile row = getRow(rowIndex);
 		switch(ColumnInfo.fromOrdinal(columnIndex)) {
+		case active: row.setActive(((Boolean) value).booleanValue()); break;
 		case name: row.setName((String) value); break;
 		case description: row.setDescription((String) value); break;
 		case persistentFile: {

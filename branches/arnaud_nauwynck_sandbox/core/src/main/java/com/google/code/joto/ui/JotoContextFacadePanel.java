@@ -12,6 +12,8 @@ import com.google.code.joto.ui.config.JotoConfigPanel;
 import com.google.code.joto.ui.conv.RecordEventsTableAndConvertersPanel;
 import com.google.code.joto.ui.table.AbstractRecordEventTableModel;
 import com.google.code.joto.ui.table.RecordEventStoreTableModel;
+import com.google.code.joto.ui.table.SubSelectionRecordEventTableModel;
+import com.google.code.joto.ui.table.SubSelectionRecordEventTablePanel;
 import com.google.code.joto.ui.tree.AggrRecordEventTreeModel;
 import com.google.code.joto.ui.tree.AggrRecordEventTreeView;
 
@@ -32,8 +34,14 @@ public class JotoContextFacadePanel {
 	
 	protected AggrRecordEventTreeView aggrTreeView;
 	
-	protected AbstractRecordEventTableModel selectedRecordEventTableModel;
+	protected AbstractRecordEventTableModel recordEventTableModel;
 	
+	protected SubSelectionRecordEventTableModel subSelection1TableModel;
+	protected SubSelectionRecordEventTablePanel subSelection1TablePanel;
+
+	protected SubSelectionRecordEventTableModel subSelection2TableModel;
+	protected SubSelectionRecordEventTablePanel subSelection2TablePanel;
+
 	protected RecordEventsTableAndConvertersPanel resultsConverterPanel;
 	
 	// ------------------------------------------------------------------------
@@ -66,15 +74,21 @@ public class JotoContextFacadePanel {
 			tabbedPane.add("Aggr Tree", aggrTreeView.getJComponent());
 		}
 
-		{ // tab : selection table (+ display filter)
-			// TODO selectedRecordEventTableModel
-			if (selectedRecordEventTableModel == null) {
-			    selectedRecordEventTableModel = new RecordEventStoreTableModel(context.getEventStore());
-			}
+		recordEventTableModel = new RecordEventStoreTableModel(context.getEventStore());
+
+		{ // tab : selection table
+			subSelection1TableModel = new SubSelectionRecordEventTableModel(recordEventTableModel);
+			subSelection1TablePanel = new SubSelectionRecordEventTablePanel(context, subSelection1TableModel);
+			tabbedPane.add("Selection1", subSelection1TablePanel.getJComponent());
+		}
+		{ // tab : selection table 
+			subSelection2TableModel = new SubSelectionRecordEventTableModel(recordEventTableModel);
+			subSelection2TablePanel = new SubSelectionRecordEventTablePanel(context, subSelection2TableModel);
+			tabbedPane.add("Selection2", subSelection2TablePanel.getJComponent());
 		}
 
 		{ // tab : result converters
-			resultsConverterPanel = new RecordEventsTableAndConvertersPanel(context, selectedRecordEventTableModel);
+			resultsConverterPanel = new RecordEventsTableAndConvertersPanel(context, subSelection1TableModel);
 			tabbedPane.add("Results", resultsConverterPanel.getJComponent());
 		}
 		

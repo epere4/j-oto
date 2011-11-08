@@ -90,6 +90,7 @@ public class AggrRecordEventTreeView {
 			node.fillCtxMenu(ctxMenu);			
 		} else {
 			// NOT IMPLEMENTED YET
+			log.error("NOT IMPLEMENTED YET ... contextual menu with multi-selection on JTree...");
 		}
 		// fill context menu with selection
 		ctxMenu.show(jtree, e.getX(), e.getY());
