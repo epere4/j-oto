@@ -126,10 +126,12 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			treeModel.nodesChanged(node, childIndices);
 		}
 
-		public void fillCtxMenu(JPopupMenu ctxMenu) {
-			// do nothing, cf overriden methods
-		}
+//		public void fillCtxMenu(JPopupMenu ctxMenu) {
+//			// do nothing, cf overriden methods
+//		}
 
+		public abstract void fillCtxMenu(JPopupMenu ctxMenu);
+		
 	}
 	
 	/**
@@ -255,6 +257,33 @@ public class AggrRecordEventTemplateTreeNodeAST {
 					childPackageTreeNode.enumeration(), 
 					childClassTreeNode.enumeration());
 		}
+		
+		public void fillCtxMenu(JPopupMenu ctxMenu) {
+			ctxMenu.add(JMenuItemUtils.snew("create exclude quick filter ~Package", this, "onCtxMenuItemCreateQuickFilter"));
+		}
+
+		public void onCtxMenuItemCreateQuickFilter(ActionEvent event) {
+			JotoContext context = getContext();
+			String fullPackageName = getFullPackageName();
+			
+			RecordEventFilterFile filter = new RecordEventFilterFile();
+			filter.setDescription("package~ " + fullPackageName);
+			filter.setActive(true);
+			
+			// TODO filter is not created as persistent yet... 
+			// filter.setPersistentFile(persistentFile);
+
+			Predicate eventIncludePredicate = 
+					RecordEventSummaryPredicateUtils.snewDefaultClassMethodPredicate(fullPackageName + ".*", null);
+			Predicate eventPredicate = PredicateUtils.notPredicate(eventIncludePredicate);
+			
+			filter.setEventPredicate(eventPredicate);
+			filter.setEventTypePredicateDescription(MethodCallEventUtils.METHODCALL_EVENT_TYPE);
+			filter.setEventClassNamePredicateDescription(fullPackageName + ".**");
+
+			context.addMethodCallFilter(filter);
+		}
+		
 		
 		public String toString() {
 			return "PackageNode[" + fullPackageName + "]";
@@ -569,6 +598,10 @@ public class AggrRecordEventTemplateTreeNodeAST {
 			return new IteratorEnumeration(purgedFifoRequestResponses.iterator());
 		}
 		
+		public void fillCtxMenu(JPopupMenu ctxMenu) {
+			// ctxMenu.add(JMenuItemUtils.snew("create exclude quick filter ~TemplateMethodCall", this, "onCtxMenuItemCreateQuickFilter"));
+		}
+		
 		public String toString() {
 			return "TemplateMethodCallNode[" + purgedFifoRequestResponses.size() + "]";
 		}
@@ -635,6 +668,10 @@ public class AggrRecordEventTemplateTreeNodeAST {
 		@Override
 		public Enumeration<?> children() {
 			return null;
+		}
+		
+		public void fillCtxMenu(JPopupMenu ctxMenu) {
+			// ctxMenu.add(JMenuItemUtils.snew("create exclude quick filter ~MethodCall", this, "onCtxMenuItemCreateQuickFilter"));
 		}
 		
 		public String toString() {

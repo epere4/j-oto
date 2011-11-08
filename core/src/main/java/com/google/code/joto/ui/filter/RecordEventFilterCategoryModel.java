@@ -1,13 +1,10 @@
 package com.google.code.joto.ui.filter;
 
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -34,8 +31,7 @@ public class RecordEventFilterCategoryModel {
     private String name;
     private Object owner;
     
-	private RecordEventFilterFileTablePanel filtersPanel;
-	private JFrame filtersFrame;
+	private RecordEventFilterFileExternalFrameHolder filterFrameHolder;
 
     // ------------------------------------------------------------------------
     
@@ -45,6 +41,8 @@ public class RecordEventFilterCategoryModel {
         
         filterItemTableModel.addTableModelListener(
                 new FilteringRecordEventWriterSyncFromTableModelListener(filterItemTableModel, resultFilteringEventWriter));
+        
+        filterFrameHolder = new RecordEventFilterFileExternalFrameHolder(filterItemTableModel);
     }
     
     // ------------------------------------------------------------------------
@@ -76,43 +74,14 @@ public class RecordEventFilterCategoryModel {
     public void addFilterRow(RecordEventFilterFile filter) {
     	filterItemTableModel.addRow(filter);
     }
-    
-
-    public void onShowFilterFrame(ActionEvent event) {
-    	showFilterFrame();
-    }
-    
-	public void showFilterFrame() {
-		if (filtersFrame == null) {
-			filtersFrame = new JFrame();
-			
-			filtersPanel = new RecordEventFilterFileTablePanel(filterItemTableModel);
-
-			filtersFrame.getContentPane().add(filtersPanel.getJComponent());
-			filtersFrame.pack();
-			
-			filtersFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-//			filtersFrame.addWindowListener(new WindowAdapter() {
-//				@Override
-//				public void windowClosing(WindowEvent e) {
-//					super.windowClosing(e);
-//				}
-//				
-//			});
-			
-			filtersFrame.setVisible(true);
-		} else {
-			if (!filtersFrame.isVisible()) {
-				filtersFrame.setVisible(true);
-			}
-		}
-		filtersFrame.requestFocus();
+	
+    public RecordEventFilterFileExternalFrameHolder getFilterFrameHolder() {
+		return filterFrameHolder;
 	}
 	
-	
 	// ------------------------------------------------------------------------
-	
-    /**
+
+	/**
      * inner TableModelListener adapter class 
      * to update FilteringRecordEventWriter when a RecordEventFilterItemTableModel change
      * 

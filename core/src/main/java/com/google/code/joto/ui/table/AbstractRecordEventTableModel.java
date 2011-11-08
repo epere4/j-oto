@@ -1,5 +1,8 @@
 package com.google.code.joto.ui.table;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.table.AbstractTableModel;
 
 import com.google.code.joto.eventrecorder.RecordEventSummary;
@@ -22,6 +25,15 @@ public abstract class AbstractRecordEventTableModel extends AbstractTableModel {
 //	public abstract List<RecordEventSummary> getEventRows();
 
 	public abstract RecordEventSummary getEventRow(int row);
+	
+	public List<RecordEventSummary> getEventRowsSubList(int fromIndex, int toIndex) {
+		List<RecordEventSummary> res = new ArrayList<RecordEventSummary>();
+		for (int i = fromIndex; i <= toIndex; i++) {
+			res.add(getEventRow(i));
+		}
+		return res;
+	}
+
 	
 	/** implements TableModel */
 	public int getColumnCount() {

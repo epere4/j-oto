@@ -44,6 +44,15 @@ public class DefaultRecordEventTableModel extends AbstractRecordEventTableModel 
 	    fireTableRowsInserted(index, index);
 	}
 	
+	public void addEventRows(List<RecordEventSummary> rows) {
+		int index = eventRows.size();
+		if (!rows.isEmpty()) {
+			eventRows.addAll(index, rows);
+			int lastRow = eventRows.size(); // index + rows.size() - 1
+		    fireTableRowsInserted(index, lastRow);
+		}
+	}
+	
 	public void removeRows(List<RecordEventSummary> rows) {
 		eventRows.removeAll(rows);
 		fireTableDataChanged();
@@ -65,6 +74,15 @@ public class DefaultRecordEventTableModel extends AbstractRecordEventTableModel 
 		if (truncatedLen != 0) {
 			fireTableRowsDeleted(0, truncatedLen);
 		}
+	}
+
+	public int findEventRowIndex(RecordEventSummary row) {
+		return eventRows.indexOf(row);
+	}
+
+	public void updateRowAt(int index, RecordEventSummary row) {
+		eventRows.set(index, row);
+		fireTableRowsUpdated(index, index);		
 	}
 
 }

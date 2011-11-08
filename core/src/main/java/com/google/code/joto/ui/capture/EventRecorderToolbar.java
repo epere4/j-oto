@@ -7,17 +7,14 @@ import java.beans.PropertyChangeListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JToolBar;
-import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.code.joto.ui.JotoContext;
-import com.google.code.joto.ui.filter.RecordEventFilterCategoryModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFileExternalFrameHolder;
 import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
-import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
 import com.google.code.joto.util.ui.IconUtils;
 import com.google.code.joto.util.ui.JButtonUtils;
 
@@ -39,8 +36,7 @@ public class EventRecorderToolbar {
 	private JButton showCaptureFiltersButton;
 //	private JButton clearButton;
 
-	private RecordEventFilterFileTablePanel captureFiltersPanel;
-	private JFrame captureFiltersFrame;
+	private RecordEventFilterFileExternalFrameHolder captureFiltersFrameHolder;
 
 	// -------------------------------------------------------------------------
 
@@ -65,22 +61,20 @@ public class EventRecorderToolbar {
 		stopRecordButton = JButtonUtils.snew(pauseIcon, "pause record", this, "onButtonPauseRecord");
 		toolbar.add(stopRecordButton);
 
-		
+
 		{ // capture filter
-			ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
-			showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "filter", this, "onButtonShowCaptureFilters");
+			RecordEventFilterFileTableModel captureFiltersTableModel = context.getCaptureFilterCategoryModel().getFilterItemTableModel(); 
+			captureFiltersFrameHolder = new RecordEventFilterFileExternalFrameHolder(captureFiltersTableModel);
+			showCaptureFiltersButton = captureFiltersFrameHolder.createShowExternalFrameButton("filter");
 			toolbar.add(showCaptureFiltersButton);
-			RecordEventFilterFileTableModel captureFiltersTableModel = new RecordEventFilterFileTableModel();
-			captureFiltersPanel = new RecordEventFilterFileTablePanel(captureFiltersTableModel);
 		}
 
-		{ // methodCall filter (shortcut for tab "methodCall" -> button)
-			ImageIcon filterIcon = IconUtils.getBasic32().get("filter");
-			RecordEventFilterCategoryModel categoryModel = 
-					context.getMethodCallFilterCategoryModel();
-			showCaptureFiltersButton = JButtonUtils.snew(filterIcon, "meth filter", categoryModel, "onShowFilterFrame");
-			toolbar.add(showCaptureFiltersButton);
-		}
+//		{ // methodCall filter (shortcut for tab "methodCall" -> button)
+//			RecordEventFilterFileTableModel methodCaptureFilterModel = context.getMethodCallFilterCategoryModel().getFilterItemTableModel();
+//			methodCaptureFiltersFrameHolder = new RecordEventFilterFileExternalFrameHolder(methodCaptureFilterModel);
+//			showMethodCaptureFiltersButton = methodCaptureFiltersFrameHolder.createShowExternalFrameButton("meth filter");
+//			toolbar.add(showMethodCaptureFiltersButton);
+//		}
 
 	}
 
@@ -90,9 +84,9 @@ public class EventRecorderToolbar {
 		}
 		modelChangeListener = null;
 		context = null;
-		if (captureFiltersFrame != null) {
+		if (captureFiltersFrameHolder != null) {
 			try {
-				captureFiltersFrame.dispose();
+				captureFiltersFrameHolder.dispose();
 			} catch(Exception ex) {
 				log.warn("Failed to dispose ... ignore", ex);
 			}
@@ -114,34 +108,6 @@ public class EventRecorderToolbar {
 
 	public void onButtonPauseRecord(ActionEvent event) {
 		context.stopRecord();
-	}
-
-	public void onButtonShowCaptureFilters(ActionEvent event) {
-		if (captureFiltersFrame == null) {
-			captureFiltersFrame = new JFrame();
-			captureFiltersFrame.getContentPane().add(captureFiltersPanel.getJComponent());
-			captureFiltersFrame.pack();
-			
-			captureFiltersFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-//			captureFiltersFrame.addWindowListener(new WindowAdapter() {
-//				@Override
-//				public void windowClosing(WindowEvent e) {
-//					super.windowClosing(e);
-//				}
-//				
-//			});
-			
-			captureFiltersFrame.setVisible(true);
-		} else {
-			if (!captureFiltersFrame.isVisible()) {
-				captureFiltersFrame.setVisible(true);
-			}
-		}
-		captureFiltersFrame.requestFocus();
-	}
-
-	public void onButtonShowMethodCallFilters(ActionEvent event) {
-		
 	}
 	
 	private void onModelPropertyChange(PropertyChangeEvent evt) {

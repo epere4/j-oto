@@ -13,9 +13,10 @@ import javax.swing.JPanel;
 import com.google.code.joto.eventrecorder.writer.FilteringRecordEventWriter;
 import com.google.code.joto.ui.JotoContext;
 import com.google.code.joto.ui.filter.RecordEventFilterCategoryModel;
+import com.google.code.joto.ui.filter.RecordEventFilterFileExternalFrameHolder;
+import com.google.code.joto.ui.filter.RecordEventFilterFileTableModel;
 import com.google.code.joto.ui.filter.RecordEventFilterFileTablePanel;
 import com.google.code.joto.util.ui.GridBagLayoutFormBuilder;
-import com.google.code.joto.util.ui.JButtonUtils;
 import com.google.code.joto.util.ui.JCheckBoxUtils;
 
 /**
@@ -36,7 +37,8 @@ public abstract class RecordEventsCaptureCategoryPanel {
 	private JCheckBox showEmbeddedFilterTablePanelCheckBox;
 	private RecordEventFilterFileTablePanel filtersPanel;
 
-	private JButton openExternalFilterTableFrame;
+	private RecordEventFilterFileExternalFrameHolder externalFiltersFrameHolder;
+	private JButton openExternalFilterTableFrameButton;
 
 	private JCheckBox showDetailsPanelCheckBox;
 	protected JPanel specificPanel;
@@ -64,17 +66,21 @@ public abstract class RecordEventsCaptureCategoryPanel {
 		filterEnableEventsCheckBox = JCheckBoxUtils.snew("Enable Events", true, this, "onCheckboxFilterEnableEvents");
 		b.addCompFillRow(filterEnableEventsCheckBox);
 
+		RecordEventFilterFileTableModel filterTableModel = filterCategoryModel.getFilterItemTableModel();
+
 		{
 			JPanel showFiltersPanel = new JPanel(new FlowLayout(FlowLayout.LEFT)); 
 			showEmbeddedFilterTablePanelCheckBox = JCheckBoxUtils.snew("show embedded filters table", false, this, "onCheckboxShowEmbeddedFilterTablePanel");
 			showFiltersPanel.add(showEmbeddedFilterTablePanelCheckBox);
 			
-			openExternalFilterTableFrame = JButtonUtils.snew("open filters table view", this, "onButtonOpenExternalFilterTableFrame");
-			showFiltersPanel.add(openExternalFilterTableFrame);
+			externalFiltersFrameHolder = new RecordEventFilterFileExternalFrameHolder(filterTableModel);
+			openExternalFilterTableFrameButton = externalFiltersFrameHolder.createShowExternalFrameButton("open filters table view");
+			showFiltersPanel.add(openExternalFilterTableFrameButton);
+			
 			b.addCompFillRow(showFiltersPanel);
 		}
 		
-		filtersPanel = new RecordEventFilterFileTablePanel(filterCategoryModel.getFilterItemTableModel());
+		filtersPanel = new RecordEventFilterFileTablePanel(filterTableModel);
 		b.addCompFillRow(filtersPanel.getJComponent());
 		filtersPanel.getJComponent().setVisible(showEmbeddedFilterTablePanelCheckBox.isSelected());
 
@@ -112,11 +118,6 @@ public abstract class RecordEventsCaptureCategoryPanel {
 	/** called by introspection, GUI callback for JCheckBox showEmbeddedFilterTablePanelCheckBox */
 	public void onCheckboxShowEmbeddedFilterTablePanel(ActionEvent event) {
 		filtersPanel.getJComponent().setVisible(showEmbeddedFilterTablePanelCheckBox.isSelected());
-	}
-
-	/** called by introspection, GUI callback for JCheckBox showEmbeddedFilterTablePanelCheckBox */
-	public void onButtonOpenExternalFilterTableFrame(ActionEvent event) {
-		filterCategoryModel.showFilterFrame();
 	}
 	
 	/** called by introspection, GUI callback for JCheckBox */
